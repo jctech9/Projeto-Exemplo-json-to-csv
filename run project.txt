@@ -1,4 +1,13 @@
----windwos 10---
+_______Windwos 10________
+
+Dentro da pasta [json-to-csv\demo]
 
 .\mvnw spring-boot:run
+
+
+_____teste com arquivo json__________
+
+cmd
+
+curl.exe -X POST http://localhost:8080/export/csv -H "Content-Type: application/json" -d "@test.json" -o dados.csv
 
