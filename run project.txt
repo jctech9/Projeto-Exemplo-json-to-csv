@@ -1,0 +1,4 @@
+---windwos 10---
+
+.\mvnw spring-boot:run
+
