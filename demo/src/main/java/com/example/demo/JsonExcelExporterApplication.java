@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class JsonCsvExporterApplication {
+public class JsonExcelExporterApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(JsonCsvExporterApplication.class, args);
+		SpringApplication.run(JsonExcelExporterApplication.class, args);
 	}
 
 }

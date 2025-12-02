@@ -1,0 +1,29 @@
+_______Windwos 10________
+
+Dentro da pasta [json-to-excel\demo]
+
+.\mvnw spring-boot:run
+
+
+_____teste com arquivo json__________
+
+Dentro da pasta [json-to-excel\demo]
+
+curl.exe -X POST http://localhost:8080/export/xlsx -H "Content-Type: application/json" -d "@test.json" -o dados.xlsx
+
+_______________FORMATO JSON____________________________________
+O endpoint espera um objeto JSON raiz (Map) onde as chaves definem a estrutura do arquivo .xlsx
+
+
+____Exemplo de Payload Válido____
+
+{
+  "NOME_DA_ABA_01": [
+    { "coluna_a": "valor1", "coluna_b": 100 },
+    { "coluna_a": "valor2", "coluna_b": 200 }
+  ],
+  "NOME_DA_ABA_02": [
+    { "id": 1, "status": "ativo" },
+    { "id": 2, "status": "inativo" }
+  ]
+}
