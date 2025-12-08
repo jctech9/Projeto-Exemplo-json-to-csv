@@ -66,9 +66,9 @@ public class ExcelService {
                     }
                 }
 
-                // Ajuste largura das colunas
+                // Ajuste largura das colunas com largura fixa para melhor performance
                 for (int c = 0; c < headerList.size(); c++) {
-                    sheet.autoSizeColumn(c);
+                    sheet.setColumnWidth(c, 5000); // ~50px
                 }
             }
 

@@ -9,7 +9,12 @@ _____teste com arquivo json__________
 
 Dentro da pasta [json-to-excel\demo]
 
-curl.exe -X POST http://localhost:8080/export/xlsx -H "Content-Type: application/json" -d "@test.json" -o dados.xlsx
+curl.exe -X POST http://localhost:8080/export/xlsx -H "Content-Type: application/json" -d "@formatoPadrao.json" -o dados.xlsx
+
+
+______teste com json via link___________
+curl.exe -X GET "http://localhost:8090/processos" -H "accept: application/json" | curl.exe -X POST http://localhost:8080/export/xlsx -H "Content-Type: application/json" -d "@-" -o dados.xlsx
+
 
 _______________FORMATO JSON____________________________________
 O endpoint espera um objeto JSON raiz (Map) onde as chaves definem a estrutura do arquivo .xlsx
