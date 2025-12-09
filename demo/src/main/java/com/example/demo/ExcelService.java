@@ -59,7 +59,7 @@ public class ExcelService {
                         Row dataRow = sheet.createRow(r++);
                         for (int c = 0; c < headerList.size(); c++) {
                             String key = headerList.get(c);
-                            Object val = row == null ? null : row.get(key);
+                            Object val = row.get(key);
                             Cell cell = dataRow.createCell(c);
                             cell.setCellValue(val == null ? "" : String.valueOf(val));
                         }

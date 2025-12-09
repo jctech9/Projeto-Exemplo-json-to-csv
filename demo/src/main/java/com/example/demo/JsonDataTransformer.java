@@ -43,7 +43,7 @@ public class JsonDataTransformer {
         if (content != null) {
             for (Object item : content) {
                 if (item instanceof Map) {
-                    Map<String, Object> flattenedRow = flattenObject((Map<String, Object>) item, "");
+                    Map<String, Object> flattenedRow = flattenObject((Map<String, Object>) item);
                     rows.add(flattenedRow);
                 }
             }
@@ -68,7 +68,6 @@ public class JsonDataTransformer {
                 if (firstItem.containsKey("acao")) return "Ações";
                 if (firstItem.containsKey("risco")) return "Riscos";
                 if (firstItem.containsKey("mitigacao")) return "Mitigações";
-                if (firstItem.containsKey("nome") && firstItem.containsKey("unidadeOrganizacional")) return "Processos";
             }
         }
         return "Dados";
@@ -77,7 +76,7 @@ public class JsonDataTransformer {
     /**
      * Achata objetos aninhados, convertendo para strings legíveis
      */
-    private static Map<String, Object> flattenObject(Map<String, Object> obj, String prefix) {
+    private static Map<String, Object> flattenObject(Map<String, Object> obj) {
         Map<String, Object> result = new LinkedHashMap<>();
 
         for (Map.Entry<String, Object> entry : obj.entrySet()) {
@@ -96,7 +95,7 @@ public class JsonDataTransformer {
             } else if (value instanceof Map) {
                 // Para objetos aninhados, extrai campos principais
                 Map<String, Object> nested = (Map<String, Object>) value;
-                String flattened = flattenNestedObject(nested, key);
+                String flattened = flattenNestedObject(nested);
                 if (!flattened.isEmpty()) {
                     result.put(columnName, flattened);
                 }
@@ -114,7 +113,7 @@ public class JsonDataTransformer {
     /**
      * Achata objeto aninhado extraindo os campos mais relevantes
      */
-    private static String flattenNestedObject(Map<String, Object> nested, String parentKey) {
+    private static String flattenNestedObject(Map<String, Object> nested) {
         List<String> parts = new ArrayList<>();
 
         // Prioriza certos campos
@@ -133,9 +132,6 @@ public class JsonDataTransformer {
      * Formata nome da coluna (camelCase -> Title Case)
      */
     private static String formatColumnName(String key) {
-        // Remove prefixos em português
-        key = key.replaceAll("^(id|unidade|responsavel|objetivo)Organisacional$", "$1");
-        
         // camelCase -> Title Case
         key = key.replaceAll("([a-z])([A-Z])", "$1 $2");
         // Maiúscula na primeira letra
@@ -192,7 +188,7 @@ public class JsonDataTransformer {
      */
     private static Map<String, List<Map<String, Object>>> wrapInDefaultSheet(Map<String, Object> input) {
         List<Map<String, Object>> rows = new ArrayList<>();
-        rows.add(flattenObject(input, ""));
+        rows.add(flattenObject(input));
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
         result.put("Dados", rows);
         return result;
