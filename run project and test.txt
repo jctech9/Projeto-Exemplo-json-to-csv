@@ -1,34 +1,44 @@
-_______Windwos 10________
 
-Dentro da pasta [json-to-excel\demo]
+1. INICIAR O SERVIDOR SPRING BOOT - Windows
 
-.\mvnw spring-boot:run
-
-
-_____teste com arquivo json__________
-
-Dentro da pasta [json-to-excel\demo]
-
-curl.exe -X POST http://localhost:8080/export/xlsx -H "Content-Type: application/json" -d "@formatoPadrao.json" -o dados.xlsx
+Comando:
+  .\mvnw spring-boot:run
 
 
-______teste com json via link___________
-curl.exe -X GET "http://localhost:8090/processos" -H "accept: application/json" | curl.exe -X POST http://localhost:8080/export/xlsx -H "Content-Type: application/json" -d "@-" -o dados.xlsx
+2. TESTE COM ARQUIVO JSON LOCAL
+
+Comando:
+  curl.exe -X POST http://localhost:8080/export/xlsx `
+    -H "Content-Type: application/json" `
+    -d "@formatoPadrao.json" `
+    -o dados.xlsx
+
+Resultado:
+  - Arquivo "dados.xlsx" gerado na pasta demo
 
 
-_______________FORMATO JSON____________________________________
-O endpoint espera um objeto JSON raiz (Map) onde as chaves definem a estrutura do arquivo .xlsx
+3. TESTE COM JSON DE API EXTERNA
+
+Passo 1 - Buscar dados da API:
+  curl.exe -X GET "http://localhost:8090/processos" `
+    -H "accept: application/json" `
+    -o temp.json
+
+Passo 2 - Converter para Excel:
+  curl.exe -X POST http://localhost:8080/export/xlsx `
+    -H "Content-Type: application/json; charset=utf-8" `
+    -d "@temp.json" `
+    -o dados.xlsx
 
 
-____Exemplo de Payload Válido____
+4. FORMATO JSON ACEITO - ExcelService.java
 
-{
-  "NOME_DA_ABA_01": [
-    { "coluna_a": "valor1", "coluna_b": 100 },
-    { "coluna_a": "valor2", "coluna_b": 200 }
-  ],
-  "NOME_DA_ABA_02": [
-    { "id": 1, "status": "ativo" },
-    { "id": 2, "status": "inativo" }
-  ]
-}
+O endpoint aceita um objeto JSON onde:
+  - Cada chave = nome da aba no Excel
+  - Cada valor = array de objetos (linhas da aba)
+  - Cada objeto = conjunto chave-valor (colunas)
+
+
+
+
+
