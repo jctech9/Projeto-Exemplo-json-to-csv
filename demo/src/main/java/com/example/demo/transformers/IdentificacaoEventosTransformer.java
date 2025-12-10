@@ -1,8 +1,8 @@
-package com.example.demo;
+package com.example.demo.transformers;
 
 import java.util.*;
 
-public class RiscoDataTransformer {
+public class IdentificacaoEventosTransformer {
 
     /**
      * Transforma JSON de riscos em formato Excel.

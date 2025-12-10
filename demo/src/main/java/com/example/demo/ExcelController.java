@@ -8,10 +8,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.ProcessoDataTransformer;
-import com.example.demo.RespostaRiscoDataTransformer;
-import com.example.demo.RiscoDataTransformer;
-import com.example.demo.AvaliacaoRiscoDataTransformer;
+import com.example.demo.transformers.DadosProcessoTransformer;
+import com.example.demo.transformers.RespostaRiscosTransformer;
+import com.example.demo.transformers.IdentificacaoEventosTransformer;
+import com.example.demo.transformers.AvaliacaoRiscosTransformer;
+import com.example.demo.transformers.AtividadeControleTransformer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
@@ -46,10 +47,10 @@ public class ExcelController {
             Map<String, Object> riscos = (Map<String, Object>) payload.get("respostasRisco");
             
             if (processos != null) {
-                allSheets.putAll(ProcessoDataTransformer.transform(processos));
+                allSheets.putAll(DadosProcessoTransformer.transform(processos));
             }
             if (riscos != null) {
-                allSheets.putAll(RespostaRiscoDataTransformer.transform(riscos));
+                allSheets.putAll(RespostaRiscosTransformer.transform(riscos));
             }
         } else if (payload.containsKey("content")) {
             // JSON direto - detecta tipo pelo conteúdo
@@ -59,15 +60,17 @@ public class ExcelController {
                 if (firstItem instanceof Map) {
                     Map<?, ?> item = (Map<?, ?>) firstItem;
                     
-                    // Detecta tipo: avaliação (probabilidade+risco), resposta (risco), evento (faseProcesso), processo
-                    if (item.containsKey("probabilidade") && item.containsKey("risco")) {
-                        allSheets.putAll(AvaliacaoRiscoDataTransformer.transform(payload));
+                    // Detecta tipo: atividade (statusImplementacao+risco), avaliação (probabilidade+risco), resposta (risco), evento (faseProcesso), processo
+                    if (item.containsKey("statusImplementacao") && item.containsKey("risco")) {
+                        allSheets.putAll(AtividadeControleTransformer.transform(payload));
+                    } else if (item.containsKey("probabilidade") && item.containsKey("risco")) {
+                        allSheets.putAll(AvaliacaoRiscosTransformer.transform(payload));
                     } else if (item.containsKey("risco")) {
-                        allSheets.putAll(RespostaRiscoDataTransformer.transform(payload));
+                        allSheets.putAll(RespostaRiscosTransformer.transform(payload));
                     } else if (item.containsKey("faseProcesso")) {
-                        allSheets.putAll(RiscoDataTransformer.transform(payload));
+                        allSheets.putAll(IdentificacaoEventosTransformer.transform(payload));
                     } else {
-                        allSheets.putAll(ProcessoDataTransformer.transform(payload));
+                        allSheets.putAll(DadosProcessoTransformer.transform(payload));
                     }
                 }
             }
@@ -96,7 +99,8 @@ public class ExcelController {
             @org.springframework.web.bind.annotation.RequestParam(value = "procPath", required = false) String procPath,
             @org.springframework.web.bind.annotation.RequestParam(value = "riskPath", required = false) String riskPath,
             @org.springframework.web.bind.annotation.RequestParam(value = "eventoPath", required = false) String eventoPath,
-            @org.springframework.web.bind.annotation.RequestParam(value = "avaliacaoPath", required = false) String avaliacaoPathParam
+            @org.springframework.web.bind.annotation.RequestParam(value = "avaliacaoPath", required = false) String avaliacaoPathParam,
+            @org.springframework.web.bind.annotation.RequestParam(value = "atividadePath", required = false) String atividadePathParam
     ) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
 
@@ -105,6 +109,7 @@ public class ExcelController {
         Path riscosPath = Path.of(riskPath == null || riskPath.isBlank() ? "json/04-resposta-risco-controller.json" : riskPath);
         Path eventosPath = Path.of(eventoPath == null || eventoPath.isBlank() ? "json/02-risco-controller.json" : eventoPath);
         Path avaliacaoPath = Path.of(avaliacaoPathParam == null || avaliacaoPathParam.isBlank() ? "json/03.avalicao-risco-controle-controller.json" : avaliacaoPathParam);
+        Path atividadePath = Path.of(atividadePathParam == null || atividadePathParam.isBlank() ? "json/05-atividade-controle-controller.json" : atividadePathParam);
 
         if (!Files.exists(processosPath)) {
             return ResponseEntity.status(404).body(("Arquivo de processos não encontrado: " + processosPath).getBytes(StandardCharsets.UTF_8));
@@ -124,14 +129,14 @@ public class ExcelController {
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
         
         // Ordem correta: ETAPA 1 → ETAPA 2 → ETAPA 3 → ETAPA 4
-        allSheets.putAll(ProcessoDataTransformer.transform(processos));
+        allSheets.putAll(DadosProcessoTransformer.transform(processos));
         
         // ETAPA 2: Incluir eventos/riscos se arquivo existir
         if (Files.exists(eventosPath)) {
             String eventosJson = Files.readString(eventosPath, StandardCharsets.UTF_8);
             @SuppressWarnings("unchecked")
             Map<String, Object> eventos = mapper.readValue(eventosJson, Map.class);
-            allSheets.putAll(RiscoDataTransformer.transform(eventos));
+            allSheets.putAll(IdentificacaoEventosTransformer.transform(eventos));
         }
         
         // ETAPA 3: Incluir avaliação de riscos se arquivo existir
@@ -139,10 +144,18 @@ public class ExcelController {
             String avaliacaoJson = Files.readString(avaliacaoPath, StandardCharsets.UTF_8);
             @SuppressWarnings("unchecked")
             Map<String, Object> avaliacao = mapper.readValue(avaliacaoJson, Map.class);
-            allSheets.putAll(AvaliacaoRiscoDataTransformer.transform(avaliacao));
+            allSheets.putAll(AvaliacaoRiscosTransformer.transform(avaliacao));
         }
         
-        allSheets.putAll(RespostaRiscoDataTransformer.transform(respostasRisco));
+        allSheets.putAll(RespostaRiscosTransformer.transform(respostasRisco));
+        
+        // ETAPA 5: Incluir atividades de controle se arquivo existir
+        if (Files.exists(atividadePath)) {
+            String atividadeJson = Files.readString(atividadePath, StandardCharsets.UTF_8);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> atividade = mapper.readValue(atividadeJson, Map.class);
+            allSheets.putAll(AtividadeControleTransformer.transform(atividade));
+        }
 
         if (allSheets.isEmpty()) {
             return ResponseEntity.noContent().build();

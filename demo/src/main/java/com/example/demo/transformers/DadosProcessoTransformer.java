@@ -1,8 +1,8 @@
-package com.example.demo;
+package com.example.demo.transformers;
 
 import java.util.*;
 
-public class ProcessoDataTransformer {
+public class DadosProcessoTransformer {
 
     /**
      * Transforma o JSON em formato compatível com Excel.
