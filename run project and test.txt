@@ -39,6 +39,6 @@ O endpoint aceita um objeto JSON onde:
   - Cada objeto = conjunto chave-valor (colunas)
 
 
-
+curl.exe -X POST http://localhost:8080/export/xlsx/auto -o dados.xlsx
 
 
