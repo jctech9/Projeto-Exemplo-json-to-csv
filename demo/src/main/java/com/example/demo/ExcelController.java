@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.ProcessoDataTransformer;
 import com.example.demo.RespostaRiscoDataTransformer;
+import com.example.demo.RiscoDataTransformer;
+import com.example.demo.AvaliacaoRiscoDataTransformer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
@@ -57,9 +59,13 @@ public class ExcelController {
                 if (firstItem instanceof Map) {
                     Map<?, ?> item = (Map<?, ?>) firstItem;
                     
-                    // Se tem campo "risco" é resposta a riscos, senão é processo
-                    if (item.containsKey("risco")) {
+                    // Detecta tipo: avaliação (probabilidade+risco), resposta (risco), evento (faseProcesso), processo
+                    if (item.containsKey("probabilidade") && item.containsKey("risco")) {
+                        allSheets.putAll(AvaliacaoRiscoDataTransformer.transform(payload));
+                    } else if (item.containsKey("risco")) {
                         allSheets.putAll(RespostaRiscoDataTransformer.transform(payload));
+                    } else if (item.containsKey("faseProcesso")) {
+                        allSheets.putAll(RiscoDataTransformer.transform(payload));
                     } else {
                         allSheets.putAll(ProcessoDataTransformer.transform(payload));
                     }
@@ -84,17 +90,21 @@ public class ExcelController {
                 .body(bytes);
     }
 
-    // Endpoint automático: combina os dois arquivos JSON locais em um único payload
+    // Endpoint automático: combina os arquivos JSON locais em um único payload
     @PostMapping("/xlsx/auto")
     public ResponseEntity<byte[]> exportAuto(
             @org.springframework.web.bind.annotation.RequestParam(value = "procPath", required = false) String procPath,
-            @org.springframework.web.bind.annotation.RequestParam(value = "riskPath", required = false) String riskPath
+            @org.springframework.web.bind.annotation.RequestParam(value = "riskPath", required = false) String riskPath,
+            @org.springframework.web.bind.annotation.RequestParam(value = "eventoPath", required = false) String eventoPath,
+            @org.springframework.web.bind.annotation.RequestParam(value = "avaliacaoPath", required = false) String avaliacaoPathParam
     ) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
 
         // Caminhos padrão se não informados
-        Path processosPath = Path.of(procPath == null || procPath.isBlank() ? "json/processo-controller.json" : procPath);
-        Path riscosPath = Path.of(riskPath == null || riskPath.isBlank() ? "json/resposta-risco-controller.json" : riskPath);
+        Path processosPath = Path.of(procPath == null || procPath.isBlank() ? "json/01-processo-controller.json" : procPath);
+        Path riscosPath = Path.of(riskPath == null || riskPath.isBlank() ? "json/04-resposta-risco-controller.json" : riskPath);
+        Path eventosPath = Path.of(eventoPath == null || eventoPath.isBlank() ? "json/02-risco-controller.json" : eventoPath);
+        Path avaliacaoPath = Path.of(avaliacaoPathParam == null || avaliacaoPathParam.isBlank() ? "json/03.avalicao-risco-controle-controller.json" : avaliacaoPathParam);
 
         if (!Files.exists(processosPath)) {
             return ResponseEntity.status(404).body(("Arquivo de processos não encontrado: " + processosPath).getBytes(StandardCharsets.UTF_8));
@@ -112,7 +122,26 @@ public class ExcelController {
         Map<String, Object> respostasRisco = mapper.readValue(riscosJson, Map.class);
 
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
+        
+        // Ordem correta: ETAPA 1 → ETAPA 2 → ETAPA 3 → ETAPA 4
         allSheets.putAll(ProcessoDataTransformer.transform(processos));
+        
+        // ETAPA 2: Incluir eventos/riscos se arquivo existir
+        if (Files.exists(eventosPath)) {
+            String eventosJson = Files.readString(eventosPath, StandardCharsets.UTF_8);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> eventos = mapper.readValue(eventosJson, Map.class);
+            allSheets.putAll(RiscoDataTransformer.transform(eventos));
+        }
+        
+        // ETAPA 3: Incluir avaliação de riscos se arquivo existir
+        if (Files.exists(avaliacaoPath)) {
+            String avaliacaoJson = Files.readString(avaliacaoPath, StandardCharsets.UTF_8);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> avaliacao = mapper.readValue(avaliacaoJson, Map.class);
+            allSheets.putAll(AvaliacaoRiscoDataTransformer.transform(avaliacao));
+        }
+        
         allSheets.putAll(RespostaRiscoDataTransformer.transform(respostasRisco));
 
         if (allSheets.isEmpty()) {
