@@ -1,55 +1,39 @@
 package com.example.demo.transformers;
 
+import static com.example.demo.transformers.TransformerUtils.getContent;
+import static com.example.demo.transformers.TransformerUtils.getNestedString;
+import static com.example.demo.transformers.TransformerUtils.val;
 import java.util.*;
 
 public class AvaliacaoRiscosTransformer {
 
-    /**
-     * Transforma JSON de avaliação de riscos em formato Excel.
-     * Aba "ETAPA 3. AVALIAÇÃO DE RISCOS" com probabilidade, impacto e controles.
-     */
+    // Aba ETAPA 3: Probabilidade, Impacto e cálculos de risco
     public static Map<String, List<Map<String, Object>>> transform(Map<String, Object> input) {
         List<Map<String, Object>> rows = new ArrayList<>();
-        Object contentObj = input.get("content");
 
-        if (contentObj instanceof List<?> content) {
-            for (Object item : content) {
-                if (item instanceof Map<?, ?> avaliacao) {
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    
-                    // Extrai risco aninhado
-                    Object riscoObj = avaliacao.get("risco");
-                    
-                    // Ordem e nomes conforme imagem
-                    row.put("Evento de Risco", extrairRiscoNome(riscoObj));
-                    row.put("P", val(avaliacao.get("probabilidade"))); // Abreviação de Probabilidade
-                    row.put("Impacto", val(avaliacao.get("impacto")));
-                    row.put("I", val(avaliacao.get("impacto"))); // Abreviação de Impacto
-                    row.put("Risco Inerente (PxI)", calcularNivelRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
-                    row.put("Classificação do Risco Inerente", classificarRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
-                    row.put("Controles Preventivos (descrever)", val(avaliacao.get("controlesPreventivos")));
-                    row.put("Controles de Atenuação e recuperação (descrever)", val(avaliacao.get("controlesAtenuacao")));
-                    row.put("Avaliação dos Controles", ""); // Campo vazio para preenchimento
-                    row.put("FAC", val(avaliacao.get("fac")));
-                    row.put("Risco Residual", calcularNivelResidual(avaliacao.get("probabilidade"), avaliacao.get("impacto"), avaliacao.get("fac")));
-                    row.put("Classificação do Risco Residual", classificarRiscoResidual(avaliacao.get("probabilidade"), avaliacao.get("impacto"), avaliacao.get("fac")));
-                    row.put("Data da Última Avaliação", val(avaliacao.get("dataUltimaAvaliacao")));
-                    
-                    rows.add(row);
-                }
-            }
+        for (Map<String, Object> avaliacao : getContent(input)) {
+            Map<String, Object> row = new LinkedHashMap<>();
+
+            row.put("Evento de Risco", getNestedString(avaliacao, "risco", "nome"));
+            row.put("P", val(avaliacao.get("probabilidade"))); // Abreviação de Probabilidade
+            row.put("Impacto", val(avaliacao.get("impacto")));
+            row.put("I", val(avaliacao.get("impacto"))); // Abreviação de Impacto
+            row.put("Risco Inerente (PxI)", calcularNivelRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
+            row.put("Classificação do Risco Inerente", classificarRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
+            row.put("Controles Preventivos (descrever)", val(avaliacao.get("controlesPreventivos")));
+            row.put("Controles de Atenuação e recuperação (descrever)", val(avaliacao.get("controlesAtenuacao")));
+            row.put("Avaliação dos Controles", ""); // Campo vazio para preenchimento
+            row.put("FAC", val(avaliacao.get("fac")));
+            row.put("Risco Residual", calcularNivelResidual(avaliacao.get("probabilidade"), avaliacao.get("impacto"), avaliacao.get("fac")));
+            row.put("Classificação do Risco Residual", classificarRiscoResidual(avaliacao.get("probabilidade"), avaliacao.get("impacto"), avaliacao.get("fac")));
+            row.put("Data da Última Avaliação", val(avaliacao.get("dataUltimaAvaliacao")));
+
+            rows.add(row);
         }
 
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
         result.put("ETAPA 3. AVALIAÇÃO DE RISCOS", rows);
         return result;
-    }
-
-    private static String extrairRiscoNome(Object riscoObj) {
-        if (riscoObj instanceof Map<?, ?> risco) {
-            return val(risco.get("nome"));
-        }
-        return "";
     }
 
     private static String calcularNivelRisco(Object probObj, Object impactoObj) {
@@ -106,7 +90,4 @@ public class AvaliacaoRiscosTransformer {
         }
     }
 
-    private static String val(Object v) {
-        return v == null ? "" : String.valueOf(v);
-    }
 }

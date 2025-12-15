@@ -41,7 +41,7 @@ public class ExcelController {
     public ResponseEntity<byte[]> exportToXlsx(@RequestBody Map<String, Object> payload) throws IOException {
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
         
-        // Detecta automaticamente se é payload combinado ou JSON direto
+        // Detecta payload combinado ou JSON direto
         if (payload.containsKey("processos") || payload.containsKey("respostasRisco")) {
             // Payload combinado
             @SuppressWarnings("unchecked")
@@ -56,14 +56,14 @@ public class ExcelController {
                 allSheets.putAll(RespostaRiscosTransformer.transform(riscos));
             }
         } else if (payload.containsKey("content")) {
-            // JSON direto - detecta tipo pelo conteúdo
+            // JSON direto: detecta tipo pelo conteúdo
             Object content = payload.get("content");
             if (content instanceof List && !((List<?>) content).isEmpty()) {
                 Object firstItem = ((List<?>) content).get(0);
                 if (firstItem instanceof Map) {
                     Map<?, ?> item = (Map<?, ?>) firstItem;
                     
-                    // Detecta tipo: ocorrência (dataOcorrencia), atividade (statusImplementacao+risco), avaliação (probabilidade+risco), resposta (risco), evento (faseProcesso), processo
+                    // Heurística: ocorrência, atividade, avaliação, resposta, evento ou processo
                     if (item.containsKey("dataOcorrencia") && item.containsKey("descricao")) {
                         allSheets.putAll(OcorrenciaRiscoTransformer.transform(payload));
                     } else if (item.containsKey("statusImplementacao") && item.containsKey("risco")) {
@@ -98,7 +98,7 @@ public class ExcelController {
                 .body(bytes);
     }
 
-    // Endpoint automático: combina os arquivos JSON locais em um único payload
+    // Combina JSONs locais em um único payload
     @PostMapping("/xlsx/auto")
     public ResponseEntity<byte[]> exportAuto(
             @org.springframework.web.bind.annotation.RequestParam(value = "procPath", required = false) String procPath,
