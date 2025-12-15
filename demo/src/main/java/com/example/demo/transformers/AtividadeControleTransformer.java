@@ -45,16 +45,6 @@ public class AtividadeControleTransformer {
         return result;
     }
 
-    private static String extrairProcessoNome(Object riscoObj) {
-        if (riscoObj instanceof Map<?, ?> risco) {
-            Object processoObj = risco.get("processo");
-            if (processoObj instanceof Map<?, ?> processo) {
-                return val(processo.get("nome"));
-            }
-        }
-        return "";
-    }
-
     private static String extrairRiscoNome(Object riscoObj) {
         if (riscoObj instanceof Map<?, ?> risco) {
             return val(risco.get("nome"));

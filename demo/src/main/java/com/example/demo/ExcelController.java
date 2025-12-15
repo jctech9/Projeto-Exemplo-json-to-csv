@@ -197,51 +197,13 @@ public class ExcelController {
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
         
         try {
-            // ETAPA 1: Buscar processos
-            @SuppressWarnings("unchecked")
-            Map<String, Object> processos = restTemplate.getForObject(baseUrl + "/processos", Map.class);
-            if (processos != null) {
-                allSheets.putAll(DadosProcessoTransformer.transform(processos));
-            }
-            
-            // ETAPA 2: Buscar riscos
-            @SuppressWarnings("unchecked")
-            Map<String, Object> riscos = restTemplate.getForObject(baseUrl + "/riscos", Map.class);
-            if (riscos != null) {
-                allSheets.putAll(IdentificacaoEventosTransformer.transform(riscos));
-            }
-            
-            // ETAPA 3: Buscar avaliações de risco
-            @SuppressWarnings("unchecked")
-            Map<String, Object> avaliacoes = restTemplate.getForObject(baseUrl + "/avaliacoesRiscoControle", Map.class);
-            if (avaliacoes != null) {
-                allSheets.putAll(AvaliacaoRiscosTransformer.transform(avaliacoes));
-            }
-            
-            // ETAPA 4: Buscar respostas aos riscos
-            @SuppressWarnings("unchecked")
-            Map<String, Object> respostas = restTemplate.getForObject(baseUrl + "/respostasRisco", Map.class);
-            if (respostas != null) {
-                allSheets.putAll(RespostaRiscosTransformer.transform(respostas));
-            }
-            
-            // ETAPA 5: Buscar atividades de controle
-            @SuppressWarnings("unchecked")
-            Map<String, Object> atividades = restTemplate.getForObject(baseUrl + "/atividadeControles", Map.class);
-            if (atividades != null) {
-                allSheets.putAll(AtividadeControleTransformer.transform(atividades));
-            }
-            
-            // OCORRÊNCIAS: Buscar ocorrências de risco
-            try {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> ocorrencias = restTemplate.getForObject(baseUrl + "/ocorrenciasRisco", Map.class);
-                if (ocorrencias != null) {
-                    allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocorrencias));
-                }
-            } catch (Exception e) {
-                // Ignora se endpoint não existir
-            }
+            // Buscar dados das ETAPAs
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", DadosProcessoTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/riscos", IdentificacaoEventosTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/avaliacoesRiscoControle", AvaliacaoRiscosTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/respostasRisco", RespostaRiscosTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/atividadeControles", AtividadeControleTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/ocorrenciasRisco", OcorrenciaRiscoTransformer::transform);
             
         } catch (Exception e) {
             return ResponseEntity.status(500).body(("Erro ao buscar dados da API: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
@@ -252,7 +214,6 @@ public class ExcelController {
         }
 
         byte[] bytes = excelService.generateXlsx(allSheets);
-
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=dados.xlsx");
 
@@ -261,5 +222,18 @@ public class ExcelController {
                 .contentLength(bytes.length)
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(bytes);
+    }
+
+    private void addSheetIfAvailable(Map<String, List<Map<String, Object>>> allSheets, RestTemplate restTemplate, 
+            String baseUrl, String endpoint, java.util.function.Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = restTemplate.getForObject(baseUrl + endpoint, Map.class);
+            if (data != null) {
+                allSheets.putAll(transformer.apply(data));
+            }
+        } catch (Exception e) {
+            // Ignora se endpoint não existir
+        }
     }
 }

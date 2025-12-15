@@ -41,15 +41,21 @@ public class OcorrenciaRiscoTransformer {
         // Tentar extrair de diferentes campos possíveis
         Object eventoRiscoObj = ocorrencia.get("eventoRisco");
         if (eventoRiscoObj instanceof Map<?, ?> eventoRiscoMap) {
-            return val(eventoRiscoMap.get("evento"));
+            String evento = val(eventoRiscoMap.get("evento"));
+            if (!evento.isEmpty()) return evento;
         }
         
         Object riscoObj = ocorrencia.get("risco");
         if (riscoObj instanceof Map<?, ?> riscoMap) {
-            return val(riscoMap.get("evento"));
+            String evento = val(riscoMap.get("evento"));
+            if (!evento.isEmpty()) return evento;
+            // fallback adicional: alguns riscos usam "nome" em vez de "evento"
+            String nome = val(riscoMap.get("nome"));
+            if (!nome.isEmpty()) return nome;
         }
         
-        return "";
+        // fallback final: usa a própria descrição da ocorrência
+        return val(ocorrencia.get("descricao"));
     }
 
     private static String val(Object v) {
