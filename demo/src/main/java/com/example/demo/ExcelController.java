@@ -3,16 +3,19 @@ package com.example.demo;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.example.demo.transformers.DadosProcessoTransformer;
 import com.example.demo.transformers.RespostaRiscosTransformer;
 import com.example.demo.transformers.IdentificacaoEventosTransformer;
 import com.example.demo.transformers.AvaliacaoRiscosTransformer;
 import com.example.demo.transformers.AtividadeControleTransformer;
+import com.example.demo.transformers.OcorrenciaRiscoTransformer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
@@ -60,8 +63,10 @@ public class ExcelController {
                 if (firstItem instanceof Map) {
                     Map<?, ?> item = (Map<?, ?>) firstItem;
                     
-                    // Detecta tipo: atividade (statusImplementacao+risco), avaliação (probabilidade+risco), resposta (risco), evento (faseProcesso), processo
-                    if (item.containsKey("statusImplementacao") && item.containsKey("risco")) {
+                    // Detecta tipo: ocorrência (dataOcorrencia), atividade (statusImplementacao+risco), avaliação (probabilidade+risco), resposta (risco), evento (faseProcesso), processo
+                    if (item.containsKey("dataOcorrencia") && item.containsKey("descricao")) {
+                        allSheets.putAll(OcorrenciaRiscoTransformer.transform(payload));
+                    } else if (item.containsKey("statusImplementacao") && item.containsKey("risco")) {
                         allSheets.putAll(AtividadeControleTransformer.transform(payload));
                     } else if (item.containsKey("probabilidade") && item.containsKey("risco")) {
                         allSheets.putAll(AvaliacaoRiscosTransformer.transform(payload));
@@ -100,7 +105,8 @@ public class ExcelController {
             @org.springframework.web.bind.annotation.RequestParam(value = "riskPath", required = false) String riskPath,
             @org.springframework.web.bind.annotation.RequestParam(value = "eventoPath", required = false) String eventoPath,
             @org.springframework.web.bind.annotation.RequestParam(value = "avaliacaoPath", required = false) String avaliacaoPathParam,
-            @org.springframework.web.bind.annotation.RequestParam(value = "atividadePath", required = false) String atividadePathParam
+            @org.springframework.web.bind.annotation.RequestParam(value = "atividadePath", required = false) String atividadePathParam,
+            @org.springframework.web.bind.annotation.RequestParam(value = "ocorrenciaPath", required = false) String ocorrenciaPathParam
     ) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
 
@@ -110,6 +116,7 @@ public class ExcelController {
         Path eventosPath = Path.of(eventoPath == null || eventoPath.isBlank() ? "json/02-risco-controller.json" : eventoPath);
         Path avaliacaoPath = Path.of(avaliacaoPathParam == null || avaliacaoPathParam.isBlank() ? "json/03.avalicao-risco-controle-controller.json" : avaliacaoPathParam);
         Path atividadePath = Path.of(atividadePathParam == null || atividadePathParam.isBlank() ? "json/05-atividade-controle-controller.json" : atividadePathParam);
+        Path ocorrenciaPath = Path.of(ocorrenciaPathParam == null || ocorrenciaPathParam.isBlank() ? "json/ocorrencia-risco-controller.json" : ocorrenciaPathParam);
 
         if (!Files.exists(processosPath)) {
             return ResponseEntity.status(404).body(("Arquivo de processos não encontrado: " + processosPath).getBytes(StandardCharsets.UTF_8));
@@ -156,7 +163,90 @@ public class ExcelController {
             Map<String, Object> atividade = mapper.readValue(atividadeJson, Map.class);
             allSheets.putAll(AtividadeControleTransformer.transform(atividade));
         }
+        
+        // OCORRÊNCIAS: Incluir ocorrências de risco se arquivo existir
+        if (Files.exists(ocorrenciaPath)) {
+            String ocorrenciaJson = Files.readString(ocorrenciaPath, StandardCharsets.UTF_8);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> ocorrencia = mapper.readValue(ocorrenciaJson, Map.class);
+            allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocorrencia));
+        }
 
+        if (allSheets.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        byte[] bytes = excelService.generateXlsx(allSheets);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=dados.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(bytes.length)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(bytes);
+    }
+
+    // Endpoint para buscar dados via API externa e gerar Excel
+    @GetMapping("/xlsx/api")
+    public ResponseEntity<byte[]> exportFromApi(
+            @org.springframework.web.bind.annotation.RequestParam(value = "baseUrl", defaultValue = "http://localhost:8090") String baseUrl
+    ) throws IOException {
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
+        
+        try {
+            // ETAPA 1: Buscar processos
+            @SuppressWarnings("unchecked")
+            Map<String, Object> processos = restTemplate.getForObject(baseUrl + "/processos", Map.class);
+            if (processos != null) {
+                allSheets.putAll(DadosProcessoTransformer.transform(processos));
+            }
+            
+            // ETAPA 2: Buscar riscos
+            @SuppressWarnings("unchecked")
+            Map<String, Object> riscos = restTemplate.getForObject(baseUrl + "/riscos", Map.class);
+            if (riscos != null) {
+                allSheets.putAll(IdentificacaoEventosTransformer.transform(riscos));
+            }
+            
+            // ETAPA 3: Buscar avaliações de risco
+            @SuppressWarnings("unchecked")
+            Map<String, Object> avaliacoes = restTemplate.getForObject(baseUrl + "/avaliacoesRiscoControle", Map.class);
+            if (avaliacoes != null) {
+                allSheets.putAll(AvaliacaoRiscosTransformer.transform(avaliacoes));
+            }
+            
+            // ETAPA 4: Buscar respostas aos riscos
+            @SuppressWarnings("unchecked")
+            Map<String, Object> respostas = restTemplate.getForObject(baseUrl + "/respostasRisco", Map.class);
+            if (respostas != null) {
+                allSheets.putAll(RespostaRiscosTransformer.transform(respostas));
+            }
+            
+            // ETAPA 5: Buscar atividades de controle
+            @SuppressWarnings("unchecked")
+            Map<String, Object> atividades = restTemplate.getForObject(baseUrl + "/atividadeControles", Map.class);
+            if (atividades != null) {
+                allSheets.putAll(AtividadeControleTransformer.transform(atividades));
+            }
+            
+            // OCORRÊNCIAS: Buscar ocorrências de risco
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> ocorrencias = restTemplate.getForObject(baseUrl + "/ocorrenciasRisco", Map.class);
+                if (ocorrencias != null) {
+                    allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocorrencias));
+                }
+            } catch (Exception e) {
+                // Ignora se endpoint não existir
+            }
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(("Erro ao buscar dados da API: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
+        }
+        
         if (allSheets.isEmpty()) {
             return ResponseEntity.noContent().build();
         }

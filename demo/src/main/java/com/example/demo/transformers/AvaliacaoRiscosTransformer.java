@@ -22,10 +22,9 @@ public class AvaliacaoRiscosTransformer {
                     
                     // Ordem e nomes conforme imagem
                     row.put("Evento de Risco", extrairRiscoNome(riscoObj));
-                    row.put("Probabilidade", val(avaliacao.get("probabilidade")));
-                    row.put("P", ""); // Coluna vazia (será calculada no Excel se necessário)
+                    row.put("P", val(avaliacao.get("probabilidade"))); // Abreviação de Probabilidade
                     row.put("Impacto", val(avaliacao.get("impacto")));
-                    row.put("I", ""); // Coluna vazia
+                    row.put("I", val(avaliacao.get("impacto"))); // Abreviação de Impacto
                     row.put("Risco Inerente (PxI)", calcularNivelRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
                     row.put("Classificação do Risco Inerente", classificarRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
                     row.put("Controles Preventivos (descrever)", val(avaliacao.get("controlesPreventivos")));
