@@ -1,0 +1,487 @@
+{
+  "content": [
+    {
+      "@id": "1",
+      "id": 18,
+      "dataOcorrencia": "2025-12-17",
+      "descricao": "O Reitor(a) ou Diretor(a) falta ao evento sem prévio aviso, forçando a substituição por uma autoridade de menor escalão.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Manutenção da solenidade e da hierarquia da cerimônia, minimizando o impacto no prestígio.",
+      "resultados": "Definição e confirmação antecipada da Autoridade Substituta (Vice/Pró-Reitor) com inclusão no cerimonial de backup.",
+      "criadoEm": "2025-12-10T15:25:16.744937",
+      "atualizadoEm": "2025-12-10T15:25:16.744937",
+      "responsavelRegistro": {
+        "id": 110,
+        "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+        "nome": "Kauan Perdigão",
+        "email": "kauanperdigao531@gmail.com",
+        "nomeSocial": "Kauan Perdigão",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@id": "2",
+          "id": 5,
+          "nome": "Gabinete do Reitor",
+          "sigla": "GAB-UFC",
+          "codigo": "28775",
+          "criadoEm": "2025-11-26T17:12:59.876997",
+          "atualizadoEm": "2025-11-26T17:12:59.876997",
+          "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+          "isAdmin": false
+        }
+      }
+    },
+    {
+      "@id": "3",
+      "id": 19,
+      "dataOcorrencia": "2025-12-17",
+      "descricao": "O número de convidados excede a capacidade máxima do local, gerando desconforto, desorganização e risco de segurança.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Implementação de Controle de Acesso Rígido (QR Code/Digital) que bloqueia a entrada ao atingir 100% da capacidade.",
+      "resultados": "Garantia da segurança física dos presentes; Evita multas e interrupções por excesso de público.",
+      "criadoEm": "2025-12-10T15:32:07.37242",
+      "atualizadoEm": "2025-12-10T15:32:07.37242",
+      "responsavelRegistro": {
+        "id": 110,
+        "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+        "nome": "Kauan Perdigão",
+        "email": "kauanperdigao531@gmail.com",
+        "nomeSocial": "Kauan Perdigão",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "4",
+      "id": 20,
+      "dataOcorrencia": "2025-12-17",
+      "descricao": "Falha na identificação faz com que um formando retire o diploma de outro, causando extravio e necessidade de reemissão.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Exigência de Documento de Identidade com Foto e uso de sistema de Dupla Checagem no ponto de entrega.",
+      "resultados": "Zero extravios de diplomas no evento; Proteção da integridade do documento.",
+      "criadoEm": "2025-12-10T15:33:07.096564",
+      "atualizadoEm": "2025-12-10T15:33:07.096564",
+      "responsavelRegistro": {
+        "id": 110,
+        "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+        "nome": "Kauan Perdigão",
+        "email": "kauanperdigao531@gmail.com",
+        "nomeSocial": "Kauan Perdigão",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "5",
+      "id": 21,
+      "dataOcorrencia": "2025-12-10",
+      "descricao": "Uso de procuração ou documentos falsos por terceiros para retirada indevida de um diploma.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Validação de Autenticidade prévia de procurações e autenticação rigorosa de todas as identidades no local.",
+      "resultados": "Proteção da validade jurídica do diploma; Prevenção de responsabilidade legal por entrega indevida.",
+      "criadoEm": "2025-12-10T15:34:02.711264",
+      "atualizadoEm": "2025-12-10T15:34:02.711264",
+      "responsavelRegistro": {
+        "id": 110,
+        "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+        "nome": "Kauan Perdigão",
+        "email": "kauanperdigao531@gmail.com",
+        "nomeSocial": "Kauan Perdigão",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "6",
+      "id": 22,
+      "dataOcorrencia": "2025-12-10",
+      "descricao": "Som ou projeção param de funcionar durante a cerimônia, causando interrupção e confusão.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Teste de Equipamentos (Walk-through) completo 2h antes e garantia de Microfones e Cabos de Backup disponíveis.",
+      "resultados": "Continuidade da solenidade (interrupção máxima de 2 minutos); Evita a percepção de amadorismo na organização.",
+      "criadoEm": "2025-12-10T15:34:44.614701",
+      "atualizadoEm": "2025-12-10T15:34:44.614701",
+      "responsavelRegistro": {
+        "id": 110,
+        "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+        "nome": "Kauan Perdigão",
+        "email": "kauanperdigao531@gmail.com",
+        "nomeSocial": "Kauan Perdigão",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "7",
+      "id": 23,
+      "dataOcorrencia": "2025-12-10",
+      "descricao": "Erro de logística ou contagem faz com que formandos aptos fiquem sem o diploma no dia do evento.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Conferência de Aptidão Otimizada e Confronto Final de Listas 48h antes do evento.",
+      "resultados": "Garantia de que todos os formandos aptos recebam o diploma no momento da solenidade; Evita frustração e custo extra de entregas posteriores.",
+      "criadoEm": "2025-12-10T15:35:21.01594",
+      "atualizadoEm": "2025-12-10T15:35:21.01594",
+      "responsavelRegistro": {
+        "id": 110,
+        "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+        "nome": "Kauan Perdigão",
+        "email": "kauanperdigao531@gmail.com",
+        "nomeSocial": "Kauan Perdigão",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "8",
+      "id": 7,
+      "dataOcorrencia": "2025-12-03",
+      "descricao": "A bolsa é formalmente aprovada para um aluno que não cumpre algum pré-requisito obrigatório (ex: média mínima, período letivo correto, etc.).",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Implementar validação sistêmica automatizada dos pré-requisitos (CR, período, etc.) com bloqueio imediato de candidaturas não elegíveis.",
+      "resultados": "Redução a zero da incidência de bolsas concedidas indevidamente; Proteção do recurso público e da equidade.",
+      "criadoEm": "2025-12-10T15:07:28.274604",
+      "atualizadoEm": "2025-12-10T15:07:28.274614",
+      "responsavelRegistro": {
+        "id": 118,
+        "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+        "nome": "Mariana Pereira da Silva",
+        "email": "maris22003@gmail.com",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "9",
+      "id": 8,
+      "dataOcorrencia": "2025-12-03",
+      "descricao": "Um candidato utiliza documentos falsificados ou dados incorretos para manipular o resultado da análise socioeconômica e obter a bolsa.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Exigir o confronto de dados de renda com bases oficiais (ex: sistemas internos ou externos) e auditoria por amostragem de documentos.",
+      "resultados": "Eliminação de fraudes documentais; Reforço da integridade e da credibilidade do processo de seleção.",
+      "criadoEm": "2025-12-10T15:09:42.269853",
+      "atualizadoEm": "2025-12-10T15:09:42.269861",
+      "responsavelRegistro": {
+        "id": 118,
+        "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+        "nome": "Mariana Pereira da Silva",
+        "email": "maris22003@gmail.com",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "10",
+      "id": 9,
+      "dataOcorrencia": "2025-12-03",
+      "descricao": "O crédito do valor da bolsa na conta dos estagiários ocorre após a data limite estipulada (ex: após o 5º dia útil), devido a falhas internas no trâmite financeiro.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Estabelecer um cronograma rígido de deadlines internos e automatizar a geração e envio de lotes de pagamento ao setor financeiro.",
+      "resultados": "Pagamentos feitos sempre dentro do prazo estipulado; Aumento da satisfação dos estagiários e redução de reclamações.",
+      "criadoEm": "2025-12-10T15:10:24.820418",
+      "atualizadoEm": "2025-12-10T15:10:24.820425",
+      "responsavelRegistro": {
+        "id": 118,
+        "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+        "nome": "Mariana Pereira da Silva",
+        "email": "maris22003@gmail.com",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "11",
+      "id": 10,
+      "dataOcorrencia": "2025-12-03",
+      "descricao": "A comissão avaliadora utiliza critérios vagos ou pessoais em etapas como a entrevista, resultando na seleção de um candidato menos qualificado ou em recursos justificados.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Utilizar critérios de pontuação claros e objetivos no edital e garantir o treinamento e a não participação de membros da banca com relação próxima a candidatos.",
+      "resultados": "Seleção de candidatos mais qualificados por mérito objetivo; Diminuição dos recursos e questionamentos sobre o resultado.",
+      "criadoEm": "2025-12-10T15:11:16.27115",
+      "atualizadoEm": "2025-12-10T15:11:16.271158",
+      "responsavelRegistro": {
+        "id": 118,
+        "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+        "nome": "Mariana Pereira da Silva",
+        "email": "maris22003@gmail.com",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "12",
+      "id": 11,
+      "dataOcorrencia": "2025-12-03",
+      "descricao": "O recurso financeiro destinado especificamente ao pagamento das bolsas é utilizado indevidamente para cobrir outras despesas da instituição ou setor.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Manter contas bancárias segregadas e específicas para o recurso da bolsa, com acompanhamento e rastreabilidade rigorosos por parte da gestão.",
+      "resultados": "Rastreabilidade total do recurso da bolsa; Evita irregularidades na gestão financeira e responsabilidade legal.",
+      "criadoEm": "2025-12-10T15:12:01.643334",
+      "atualizadoEm": "2025-12-10T15:12:01.64334",
+      "responsavelRegistro": {
+        "id": 118,
+        "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+        "nome": "Mariana Pereira da Silva",
+        "email": "maris22003@gmail.com",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "13",
+      "id": 12,
+      "dataOcorrencia": "2025-12-03",
+      "descricao": "Documentos dos candidatos contendo dados pessoais e de renda são perdidos ou acessados por pessoas não autorizadas (físico ou digitalmente).",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Adotar sistema de armazenamento digital seguro (criptografado) dos documentos, limitando o acesso apenas a usuários autorizados (LGPD).",
+      "resultados": "Conformidade total com a LGPD; Zero perda ou vazamento de dados pessoais.",
+      "criadoEm": "2025-12-10T15:13:01.511837",
+      "atualizadoEm": "2025-12-10T15:13:01.511848",
+      "responsavelRegistro": {
+        "id": 118,
+        "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+        "nome": "Mariana Pereira da Silva",
+        "email": "maris22003@gmail.com",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "14",
+      "id": 13,
+      "dataOcorrencia": "2025-12-03",
+      "descricao": "A demanda por bolsas excede a oferta de vagas de estágio nas unidades acadêmicas ou administrativas, mantendo uma longa fila de espera.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Realizar levantamento anual de demanda e oferta de vagas junto às unidades, incentivando a criação de novas oportunidades de estágio.",
+      "resultados": "Aumento da oferta de vagas nas unidades; Redução da fila de espera e melhor aproveitamento da verba de bolsas.",
+      "criadoEm": "2025-12-10T15:13:35.875338",
+      "atualizadoEm": "2025-12-10T15:13:35.875349",
+      "responsavelRegistro": {
+        "id": 118,
+        "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+        "nome": "Mariana Pereira da Silva",
+        "email": "maris22003@gmail.com",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "15",
+      "id": 14,
+      "dataOcorrencia": "2025-12-03",
+      "descricao": "Um membro da comissão de seleção favorece ou aprova um candidato com o qual possui vínculo familiar ou pessoal próximo.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Instituir a Declaração de Conflito de Interesse obrigatória para todos os envolvidos no processo seletivo e de aprovação de bolsas.",
+      "resultados": "Garantia de que todas as aprovações sejam feitas por critérios técnicos; Proteção da ética e da reputação da gestão.",
+      "criadoEm": "2025-12-10T15:14:12.294687",
+      "atualizadoEm": "2025-12-10T15:14:12.294694",
+      "responsavelRegistro": {
+        "id": 118,
+        "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+        "nome": "Mariana Pereira da Silva",
+        "email": "maris22003@gmail.com",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "16",
+      "id": 15,
+      "dataOcorrencia": "2025-12-03",
+      "descricao": "O acompanhamento e a avaliação das tarefas do estagiário são negligenciados, levando à execução de funções de funcionário efetivo (risco trabalhista).",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Tornar obrigatória a entrega de Relatórios de Atividades detalhados (bimestrais/trimestrais) assinados pelo estagiário e pelo supervisor.",
+      "resultados": "Evita passivo trabalhista por vínculo empregatício; Garante que o estágio cumpra seu papel formativo.",
+      "criadoEm": "2025-12-10T15:14:43.275667",
+      "atualizadoEm": "2025-12-10T15:14:43.275676",
+      "responsavelRegistro": {
+        "id": 118,
+        "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+        "nome": "Mariana Pereira da Silva",
+        "email": "maris22003@gmail.com",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "17",
+      "id": 16,
+      "dataOcorrencia": "2025-12-03",
+      "descricao": "Uma nova lei, portaria ou norma é publicada e passa a vigorar, invalidando ou exigindo a reformulação dos contratos de bolsas em curso.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Designar um responsável pelo monitoramento contínuo da legislação pertinente (Leis e Portarias), com comunicação imediata de mudanças aos setores envolvidos.",
+      "resultados": "Segurança jurídica nos contratos ativos; Antecipação e adequação rápida a novas normas sem interrupção do processo.",
+      "criadoEm": "2025-12-10T15:15:15.841281",
+      "atualizadoEm": "2025-12-10T15:15:15.841292",
+      "responsavelRegistro": {
+        "id": 118,
+        "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+        "nome": "Mariana Pereira da Silva",
+        "email": "maris22003@gmail.com",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "18",
+      "id": 17,
+      "dataOcorrencia": "2025-12-15",
+      "descricao": "Formando recebe um diploma com erros de grafia, data ou curso, inutilizando o documento.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Implementação de Protocolo de Validação Tripla (Sistema, Setores e Aceite Formal do Formando).",
+      "resultados": "Redução a zero do índice de diplomas reemitidos; Economia de custos de retrabalho; Aumento imediato da satisfação.",
+      "criadoEm": "2025-12-10T15:24:17.300674",
+      "atualizadoEm": "2025-12-10T15:24:17.300674",
+      "responsavelRegistro": {
+        "id": 110,
+        "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+        "nome": "Kauan Perdigão",
+        "email": "kauanperdigao531@gmail.com",
+        "nomeSocial": "Kauan Perdigão",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "19",
+      "id": 24,
+      "dataOcorrencia": "2025-12-10",
+      "descricao": "Reclamações sobre atrasos ou má organização são amplificadas nas redes sociais ou mídia, gerando crise de imagem.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Elaboração de Plano de Comunicação e Crise com mensagens padronizadas de resposta rápida.",
+      "resultados": "Redução do dano reputacional; Resposta rápida e profissional, demonstrando controle da situação.",
+      "criadoEm": "2025-12-10T15:36:13.472638",
+      "atualizadoEm": "2025-12-10T15:36:13.472638",
+      "responsavelRegistro": {
+        "id": 110,
+        "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+        "nome": "Kauan Perdigão",
+        "email": "kauanperdigao531@gmail.com",
+        "nomeSocial": "Kauan Perdigão",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "20",
+      "id": 25,
+      "dataOcorrencia": "2025-12-10",
+      "descricao": "Acidentes (queda, mal súbito) com formandos ou convidados devido a falhas na infraestrutura ou falta de socorro.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Inspeção de Segurança prévia do local e presença obrigatória de Equipe de Primeiros Socorros (Bombeiros/Técnicos).",
+      "resultados": "Preservação da integridade física dos participantes; Minimização da responsabilidade civil da instituição.",
+      "criadoEm": "2025-12-10T15:36:49.555972",
+      "atualizadoEm": "2025-12-10T15:36:49.555972",
+      "responsavelRegistro": {
+        "id": 110,
+        "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+        "nome": "Kauan Perdigão",
+        "email": "kauanperdigao531@gmail.com",
+        "nomeSocial": "Kauan Perdigão",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    },
+    {
+      "@id": "21",
+      "id": 26,
+      "dataOcorrencia": "2025-12-10",
+      "descricao": "O local não é entregue no horário contratado, atrasando a montagem e, consequentemente, o início da cerimônia.",
+      "responsavelSolucao": "João Silva",
+      "solucao": "Cláusulas Contratuais Rígidas com multas por atraso e agendamento com \"Folga\" (Buffer) de tempo de 4h.",
+      "resultados": "Manutenção do cronograma do evento; Maior poder de negociação e penalização em caso de falha do fornecedor.",
+      "criadoEm": "2025-12-10T15:37:26.689181",
+      "atualizadoEm": "2025-12-10T15:37:26.689181",
+      "responsavelRegistro": {
+        "id": 110,
+        "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+        "nome": "Kauan Perdigão",
+        "email": "kauanperdigao531@gmail.com",
+        "nomeSocial": "Kauan Perdigão",
+        "papel": "unit",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      }
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "empty": true,
+      "sorted": false,
+      "unsorted": true
+    },
+    "offset": 0,
+    "paged": true,
+    "unpaged": false
+  },
+  "last": true,
+  "totalElements": 20,
+  "totalPages": 1,
+  "size": 20,
+  "number": 0,
+  "sort": {
+    "empty": true,
+    "sorted": false,
+    "unsorted": true
+  },
+  "first": true,
+  "numberOfElements": 20,
+  "empty": false
+}

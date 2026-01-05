@@ -1,0 +1,241 @@
+{
+  "content": [
+    {
+      "@id": "1",
+      "id": 6,
+      "nome": "Falta do autoestudo",
+      "faseProcesso": "execução",
+      "tipoRisco": "AMEACA",
+      "categoria": {
+        "id": 6,
+        "nome": "Integridade"
+      },
+      "tipoRiscoIntegridade": {
+        "id": 4,
+        "nome": "Entrega "
+      },
+      "causa": "dificuldades com as tecnologias utilizadas",
+      "consequencias": "perca de uma ambientação efetiva",
+      "criadoEm": "08/12/2025 09:25:48",
+      "atualizadoEm": "08/12/2025 09:25:48",
+      "processo": {
+        "@id": "2",
+        "id": 47,
+        "nome": "Homologação do Estágio",
+        "unidadeOrganizacional": {
+          "@id": "3",
+          "id": 1,
+          "nome": "Secretaria de Governança",
+          "sigla": "SECGOV",
+          "codigo": "237716",
+          "criadoEm": "26/11/2025 17:12:59",
+          "atualizadoEm": "26/11/2025 17:12:59",
+          "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+          "isAdmin": true
+        },
+        "responsavel": {
+          "id": 1,
+          "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+          "nome": "Mateus Braga Neto",
+          "email": "mateustaua27@gmail.com",
+          "papel": "secgov",
+          "ativo": true,
+          "unidadeOrganizacional": {
+            "@ref": "3"
+          }
+        },
+        "objetivosGerais": "Processo de entrega e execução de atividades inerentes a execução da atividade de estágio obrigatório",
+        "criadoEm": "08/12/2025 09:24:51",
+        "atualizadoEm": "08/12/2025 09:24:51"
+      }
+    },
+    {
+      "@id": "4",
+      "id": 8,
+      "nome": "Falta do autoestudo",
+      "faseProcesso": "execução",
+      "tipoRisco": "AMEACA",
+      "categoria": {
+        "id": 6,
+        "nome": "Integridade"
+      },
+      "tipoRiscoIntegridade": {
+        "id": 4,
+        "nome": "Entrega "
+      },
+      "causa": "Teste02",
+      "consequencias": "Teste02",
+      "criadoEm": "08/12/2025 16:38:38",
+      "atualizadoEm": "08/12/2025 16:38:24",
+      "processo": {
+        "@id": "5",
+        "id": 48,
+        "nome": "Test",
+        "unidadeOrganizacional": {
+          "@id": "6",
+          "id": 2,
+          "nome": "Colégio de Estudos Avançados",
+          "sigla": "CEA",
+          "codigo": "299409",
+          "criadoEm": "26/11/2025 17:12:59",
+          "atualizadoEm": "26/11/2025 17:12:59",
+          "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+          "isAdmin": false
+        },
+        "responsavel": {
+          "id": 1,
+          "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+          "nome": "Mateus Braga Neto",
+          "email": "mateustaua27@gmail.com",
+          "papel": "secgov",
+          "ativo": true,
+          "unidadeOrganizacional": {
+            "@ref": "3"
+          }
+        },
+        "objetivosGerais": "wwww",
+        "criadoEm": "08/12/2025 14:24:23",
+        "atualizadoEm": "08/12/2025 14:24:23"
+      },
+      "avaliacaoRiscoControle": {
+        "@id": "7",
+        "id": 28,
+        "probabilidade": 2,
+        "impacto": 2,
+        "fac": 1,
+        "controlesPreventivos": "mmmm",
+        "controlesAtenuacao": "kkkkkk",
+        "dataUltimaAvaliacao": "09/12/2025",
+        "risco": {
+          "@ref": "4"
+        }
+      }
+    },
+    {
+      "@id": "8",
+      "id": 7,
+      "nome": "Falta do autoestudo",
+      "faseProcesso": "execução",
+      "tipoRisco": "AMEACA",
+      "categoria": {
+        "id": 6,
+        "nome": "Integridade"
+      },
+      "tipoRiscoIntegridade": {
+        "id": 4,
+        "nome": "Entrega "
+      },
+      "causa": "Teste",
+      "consequencias": "Teste",
+      "criadoEm": "08/12/2025 16:31:52",
+      "atualizadoEm": "08/12/2025 16:31:41",
+      "processo": {
+        "@ref": "2"
+      }
+    },
+    {
+      "@id": "9",
+      "id": 1,
+      "nome": "Falta do autoestudo",
+      "faseProcesso": "execução",
+      "tipoRisco": "AMEACA",
+      "categoria": {
+        "id": 6,
+        "nome": "Integridade"
+      },
+      "tipoRiscoIntegridade": {
+        "id": 4,
+        "nome": "Entrega "
+      },
+      "causa": "Teste03",
+      "consequencias": "Teste 03",
+      "criadoEm": "09/12/2025 14:27:57",
+      "atualizadoEm": "09/12/2025 14:27:46",
+      "processo": {
+        "@ref": "2"
+      }
+    },
+    {
+      "@id": "10",
+      "id": 2,
+      "nome": "Falta do autoestudo",
+      "faseProcesso": "execução",
+      "tipoRisco": "AMEACA",
+      "categoria": {
+        "id": 6,
+        "nome": "Integridade"
+      },
+      "tipoRiscoIntegridade": {
+        "id": 4,
+        "nome": "Entrega "
+      },
+      "causa": "Teste 04",
+      "consequencias": "Teste 04",
+      "criadoEm": "09/12/2025 14:36:05",
+      "atualizadoEm": "09/12/2025 14:35:54",
+      "processo": {
+        "@ref": "2"
+      },
+      "avaliacaoRiscoControle": {
+        "@id": "11",
+        "id": 27,
+        "probabilidade": 1,
+        "impacto": 5,
+        "fac": 1,
+        "controlesPreventivos": "mm",
+        "controlesAtenuacao": "mmmm",
+        "dataUltimaAvaliacao": "09/12/2025",
+        "risco": {
+          "@ref": "10"
+        }
+      }
+    },
+    {
+      "@id": "12",
+      "id": 3,
+      "nome": "Falta do autoestudo",
+      "faseProcesso": "execução",
+      "tipoRisco": "AMEACA",
+      "categoria": {
+        "id": 6,
+        "nome": "Integridade"
+      },
+      "tipoRiscoIntegridade": {
+        "id": 4,
+        "nome": "Entrega "
+      },
+      "causa": "Teste 05",
+      "consequencias": "Teste 05",
+      "criadoEm": "09/12/2025 15:10:14",
+      "atualizadoEm": "09/12/2025 15:10:03",
+      "processo": {
+        "@ref": "5"
+      }
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "empty": true,
+      "sorted": false,
+      "unsorted": true
+    },
+    "offset": 0,
+    "paged": true,
+    "unpaged": false
+  },
+  "last": true,
+  "totalPages": 1,
+  "totalElements": 6,
+  "size": 20,
+  "number": 0,
+  "sort": {
+    "empty": true,
+    "sorted": false,
+    "unsorted": true
+  },
+  "first": true,
+  "numberOfElements": 6,
+  "empty": false
+}

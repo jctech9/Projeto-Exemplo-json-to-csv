@@ -1,0 +1,311 @@
+{
+  "content": [
+    {
+      "@id": "1",
+      "id": 47,
+      "nome": "Homologação do Estágio",
+      "unidadeOrganizacional": {
+        "@id": "2",
+        "id": 1,
+        "nome": "Secretaria de Governança",
+        "sigla": "SECGOV",
+        "codigo": "237716",
+        "criadoEm": "26/11/2025 17:12:59",
+        "atualizadoEm": "26/11/2025 17:12:59",
+        "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+        "isAdmin": true
+      },
+      "responsavel": {
+        "id": 1,
+        "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+        "nome": "Mateus Braga Neto",
+        "email": "mateustaua27@gmail.com",
+        "papel": "secgov",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      },
+      "objetivosGerais": "Processo de entrega e execução de atividades inerentes a execução da atividade de estágio obrigatório",
+      "criadoEm": "08/12/2025 09:24:51",
+      "atualizadoEm": "08/12/2025 09:24:51"
+    },
+    {
+      "@id": "3",
+      "id": 50,
+      "nome": "Teste",
+      "unidadeOrganizacional": {
+        "@ref": "2"
+      },
+      "responsavel": {
+        "id": 1,
+        "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+        "nome": "Mateus Braga Neto",
+        "email": "mateustaua27@gmail.com",
+        "papel": "secgov",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      },
+      "objetivosGerais": "Melhorar",
+      "criadoEm": "08/12/2025 16:30:05",
+      "atualizadoEm": "08/12/2025 16:30:01"
+    },
+    {
+      "@id": "4",
+      "id": 48,
+      "nome": "Test",
+      "unidadeOrganizacional": {
+        "@id": "5",
+        "id": 2,
+        "nome": "Colégio de Estudos Avançados",
+        "sigla": "CEA",
+        "codigo": "299409",
+        "criadoEm": "26/11/2025 17:12:59",
+        "atualizadoEm": "26/11/2025 17:12:59",
+        "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+        "isAdmin": false
+      },
+      "responsavel": {
+        "id": 1,
+        "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+        "nome": "Mateus Braga Neto",
+        "email": "mateustaua27@gmail.com",
+        "papel": "secgov",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      },
+      "objetivosGerais": "wwww",
+      "criadoEm": "08/12/2025 14:24:23",
+      "atualizadoEm": "08/12/2025 14:24:23"
+    },
+    {
+      "@id": "6",
+      "id": 49,
+      "nome": "Sars22",
+      "unidadeOrganizacional": {
+        "@id": "7",
+        "id": 163,
+        "nome": "Divisão de Planejamento e Avaliação de Projetos Pedagógicos",
+        "sigla": "DPI",
+        "codigo": "94245",
+        "unidadeOrganizacionalPai": {
+          "@id": "8",
+          "id": 105,
+          "nome": "Coordenadoria de Projetos e Acompanhamento Curricular",
+          "sigla": "COPAC",
+          "codigo": "94244",
+          "unidadeOrganizacionalPai": {
+            "@id": "9",
+            "id": 37,
+            "nome": "Pró-Reitoria de Graduação",
+            "sigla": "PROGRA",
+            "codigo": "28783",
+            "criadoEm": "26/11/2025 17:20:01",
+            "atualizadoEm": "26/11/2025 17:20:01",
+            "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+            "isAdmin": false
+          },
+          "criadoEm": "26/11/2025 17:59:23",
+          "atualizadoEm": "26/11/2025 17:59:23",
+          "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+          "isAdmin": false
+        },
+        "criadoEm": "26/11/2025 20:26:25",
+        "atualizadoEm": "26/11/2025 20:26:25",
+        "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+        "isAdmin": false
+      },
+      "responsavel": {
+        "id": 36,
+        "nome": "Vicente Barros Junior",
+        "email": "secgov.semuni1@ufc.br",
+        "papel": "secgov",
+        "cargo": "A definir",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "7"
+        }
+      },
+      "objetivosGerais": "Melhorar",
+      "criadoEm": "08/12/2025 15:38:58",
+      "atualizadoEm": "09/12/2025 13:51:03"
+    },
+    {
+      "@id": "10",
+      "id": 51,
+      "nome": "Teste 03",
+      "unidadeOrganizacional": {
+        "@ref": "5"
+      },
+      "responsavel": {
+        "id": 1,
+        "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+        "nome": "Mateus Braga Neto",
+        "email": "mateustaua27@gmail.com",
+        "papel": "secgov",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      },
+      "objetivosGerais": "Melhorar",
+      "criadoEm": "09/12/2025 14:32:38",
+      "atualizadoEm": "09/12/2025 14:32:36"
+    },
+    {
+      "@id": "11",
+      "id": 52,
+      "nome": "Teste 04",
+      "unidadeOrganizacional": {
+        "@ref": "2"
+      },
+      "responsavel": {
+        "id": 1,
+        "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+        "nome": "Mateus Braga Neto",
+        "email": "mateustaua27@gmail.com",
+        "papel": "secgov",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      },
+      "objetivosGerais": "Melhorar",
+      "criadoEm": "09/12/2025 14:33:36",
+      "atualizadoEm": "09/12/2025 14:33:35"
+    },
+    {
+      "@id": "12",
+      "id": 53,
+      "nome": "Teste 05",
+      "unidadeOrganizacional": {
+        "@ref": "2"
+      },
+      "responsavel": {
+        "id": 1,
+        "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+        "nome": "Mateus Braga Neto",
+        "email": "mateustaua27@gmail.com",
+        "papel": "secgov",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      },
+      "objetivosGerais": "teste",
+      "criadoEm": "09/12/2025 14:59:40",
+      "atualizadoEm": "09/12/2025 14:59:40"
+    },
+    {
+      "@id": "13",
+      "id": 54,
+      "nome": "Teste 06",
+      "unidadeOrganizacional": {
+        "@ref": "2"
+      },
+      "responsavel": {
+        "id": 1,
+        "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+        "nome": "Mateus Braga Neto",
+        "email": "mateustaua27@gmail.com",
+        "papel": "secgov",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      },
+      "objetivosGerais": "Melhorar",
+      "criadoEm": "09/12/2025 15:11:19",
+      "atualizadoEm": "09/12/2025 15:11:17"
+    },
+    {
+      "@id": "14",
+      "id": 55,
+      "nome": "Teste 07",
+      "unidadeOrganizacional": {
+        "@id": "15",
+        "id": 4,
+        "nome": "Coordenadoria Geral de Auditoria",
+        "sigla": "CGAUD",
+        "codigo": "84733",
+        "criadoEm": "26/11/2025 17:12:59",
+        "atualizadoEm": "26/11/2025 17:12:59",
+        "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+        "isAdmin": false
+      },
+      "responsavel": {
+        "id": 1,
+        "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+        "nome": "Mateus Braga Neto",
+        "email": "mateustaua27@gmail.com",
+        "papel": "secgov",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      },
+      "objetivosGerais": "teste07",
+      "criadoEm": "09/12/2025 16:01:05",
+      "atualizadoEm": "09/12/2025 16:01:01"
+    },
+    {
+      "@id": "16",
+      "id": 56,
+      "nome": "Teste 08",
+      "unidadeOrganizacional": {
+        "@id": "17",
+        "id": 3,
+        "nome": "Comissão Permanente de Processo Administrativo Disciplinar",
+        "sigla": "CPPAD",
+        "codigo": "315370",
+        "criadoEm": "26/11/2025 17:12:59",
+        "atualizadoEm": "26/11/2025 17:12:59",
+        "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+        "isAdmin": false
+      },
+      "responsavel": {
+        "id": 1,
+        "idKeycloak": "4abcc1d5-c26c-4b22-89c2-65d2141318c0",
+        "nome": "Mateus Braga Neto",
+        "email": "mateustaua27@gmail.com",
+        "papel": "secgov",
+        "ativo": true,
+        "unidadeOrganizacional": {
+          "@ref": "2"
+        }
+      },
+      "objetivosGerais": "teste08",
+      "criadoEm": "09/12/2025 16:01:07",
+      "atualizadoEm": "09/12/2025 16:01:03"
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "empty": true,
+      "sorted": false,
+      "unsorted": true
+    },
+    "offset": 0,
+    "paged": true,
+    "unpaged": false
+  },
+  "last": true,
+  "totalPages": 1,
+  "totalElements": 10,
+  "size": 20,
+  "number": 0,
+  "sort": {
+    "empty": true,
+    "sorted": false,
+    "unsorted": true
+  },
+  "first": true,
+  "numberOfElements": 10,
+  "empty": false
+}

@@ -3,7 +3,6 @@ target/
 
 
 *.csv
-*.json
 *.xlsx
 
 .mvn/wrapper/maven-wrapper.jar

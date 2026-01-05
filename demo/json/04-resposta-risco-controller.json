@@ -1,0 +1,1214 @@
+{
+  "content": [
+    {
+      "@id": "1",
+      "id": 17,
+      "risco": {
+        "@id": "2",
+        "id": 15,
+        "nome": "Concessão de bolsa a estudante não elegível (ex: não atende aos critérios de renda, carga horária, ou período letivo mínimo).",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 6,
+          "nome": "Integridade"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 2,
+          "nome": "Fraude"
+        },
+        "causa": "Falha na checagem e validação dos pré-requisitos (ex: Coeficiente de Rendimento não verificado); Uso de sistemas de filtragem ineficientes.",
+        "consequencias": "Desperdício de recurso público (bolsa concedida indevidamente); Questionamento sobre a transparência e equidade do processo.",
+        "criadoEm": "2025-12-10T14:08:45.088265",
+        "atualizadoEm": "2025-12-10T14:08:45.088274",
+        "processo": {
+          "@id": "3",
+          "id": 58,
+          "nome": "Concessão de bolsas de estágio",
+          "unidadeOrganizacional": {
+            "@id": "4",
+            "id": 5,
+            "nome": "Gabinete do Reitor",
+            "sigla": "GAB-UFC",
+            "codigo": "28775",
+            "criadoEm": "2025-11-26T17:12:59.876997",
+            "atualizadoEm": "2025-11-26T17:12:59.876997",
+            "tipoUnidade": "UNIDADE_ADMINISTRATIVA",
+            "isAdmin": false
+          },
+          "responsavel": {
+            "id": 118,
+            "idKeycloak": "969bb11e-e265-42f7-b290-5dbddcd9197d",
+            "nome": "Mariana Pereira da Silva",
+            "email": "maris22003@gmail.com",
+            "papel": "unit",
+            "ativo": true,
+            "unidadeOrganizacional": {
+              "@ref": "4"
+            }
+          },
+          "objetivosGerais": "Garantir a seleção e concessão de bolsas de estágio de forma transparente, equitativa e eficiente, promovendo a formação prática e o desenvolvimento profissional dos estudantes, em conformidade com as normas internas e a legislação vigente.",
+          "criadoEm": "2025-12-10T14:05:46.740903",
+          "atualizadoEm": "2025-12-10T14:05:46.740909"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "5",
+          "id": 42,
+          "probabilidade": 8,
+          "impacto": 10,
+          "fac": 0.2,
+          "controlesPreventivos": "Implementar validação sistêmica automatizada dos pré-requisitos (CR, período, etc.) com bloqueio imediato de candidaturas não elegíveis.",
+          "controlesAtenuacao": "Atenuação: Suspender o pagamento imediatamente após a detecção. Recuperação: Iniciar processo de ressarcimento dos valores pagos e redistribuir a vaga ao próximo elegível da lista de espera.",
+          "dataUltimaAvaliacao": "2025-12-03",
+          "risco": {
+            "@ref": "2"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "1"
+        },
+        "atividadeControle": {
+          "@id": "6",
+          "id": 1,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2026-01-05",
+          "dataTermino": "2026-01-23",
+          "gatilho": "Alerta Sistêmico: Auditoria pós-concessão identificar inconsistência no pré-requisito do bolsista (ex: aluno não está mais no período elegível).",
+          "acoesContingencia": "Atenuação: Suspender o pagamento imediatamente. Recuperação: Iniciar processo de ressarcimento dos valores pagos e redistribuir a vaga.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "2"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "Conformidade: Mitigar o risco de falha nos critérios, protegendo o recurso público e a transparência do processo."
+    },
+    {
+      "@id": "7",
+      "id": 18,
+      "risco": {
+        "@id": "8",
+        "id": 16,
+        "nome": "Fraude na documentação de comprovação de renda ou informações socioeconômicas para obter a bolsa.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 5,
+          "nome": "Imagem/reputação"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 3,
+          "nome": "Desvio de Conduta"
+        },
+        "causa": "Ausência de mecanismos de auditoria ou confronto de dados com bases oficiais (ex: Receita Federal); Falta de solicitação de documentos originais ou autenticados.",
+        "consequencias": "Concessão indevida de benefício a quem não precisa (prejuízo à equidade); Processos administrativos/legais de anulação da bolsa.",
+        "criadoEm": "2025-12-10T14:10:54.740426",
+        "atualizadoEm": "2025-12-10T14:10:54.740434",
+        "processo": {
+          "@ref": "3"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "9",
+          "id": 43,
+          "probabilidade": 5,
+          "impacto": 8,
+          "fac": 0.6,
+          "controlesPreventivos": "Exigir o confronto de dados de renda com bases oficiais (ex: sistemas internos ou externos) e auditoria por amostragem de documentos.",
+          "controlesAtenuacao": "Atenuação: Suspender a bolsa e notificar o setor jurídico/controle interno. Recuperação: Iniciar processo administrativo para anulação formal da bolsa e aplicar sanções disciplinares ao estudante.",
+          "dataUltimaAvaliacao": "2025-12-03",
+          "risco": {
+            "@ref": "8"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "7"
+        },
+        "atividadeControle": {
+          "@id": "10",
+          "id": 2,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2026-01-06",
+          "dataTermino": "2026-01-24",
+          "gatilho": "Detecção de Irregularidade: Setor de auditoria confirma a falsidade de um documento de renda após checagem.",
+          "acoesContingencia": "Atenuação: Suspender a bolsa e notificar o setor jurídico. Recuperação: Iniciar processo administrativo para anulação formal da bolsa e aplicar sanções disciplinares.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "8"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "Integridade: Mitigar o risco de fraude através de mecanismos de auditoria para proteger a integridade e a equidade na distribuição de bolsas."
+    },
+    {
+      "@id": "11",
+      "id": 19,
+      "risco": {
+        "@id": "12",
+        "id": 17,
+        "nome": "Atraso significativo no pagamento mensal das bolsas, causando prejuízo financeiro aos estagiários.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 3,
+          "nome": "Operacionais"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 2,
+          "nome": "Fraude"
+        },
+        "causa": "Ineficiência ou morosidade na tramitação interna dos documentos de pagamento; Falha na comunicação entre o Setor de Bolsas e o Setor Financeiro.",
+        "consequencias": "Prejuízo financeiro e desmotivação do estagiário; Reclamações e impacto negativo na imagem da instituição.",
+        "criadoEm": "2025-12-10T14:11:45.348843",
+        "atualizadoEm": "2025-12-10T14:11:45.348856",
+        "processo": {
+          "@ref": "3"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "13",
+          "id": 44,
+          "probabilidade": 8,
+          "impacto": 8,
+          "fac": 0.2,
+          "controlesPreventivos": "Estabelecer um cronograma rígido de deadlines internos e automatizar a geração e envio de lotes de pagamento ao setor financeiro.",
+          "controlesAtenuacao": "Atenuação: Emitir comunicado oficial (e-mail) aos estagiários afetados, informando a nova data e o motivo do atraso. Recuperação: Realizar o pagamento imediatamente e implementar um protocolo de pagamento prioritário no mês seguinte.",
+          "dataUltimaAvaliacao": "2025-12-03",
+          "risco": {
+            "@ref": "12"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "11"
+        },
+        "atividadeControle": {
+          "@id": "14",
+          "id": 3,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2026-01-07",
+          "dataTermino": "2026-01-25",
+          "gatilho": "Não Conformidade: O pagamento não é creditado na conta dos estagiários até o 5º dia útil do mês.",
+          "acoesContingencia": "Atenuação: Emitir comunicado oficial (e-mail) com a nova data e motivo do atraso. Recuperação: Realizar o pagamento imediatamente e emitir protocolo de pagamento prioritário no mês seguinte.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "12"
+          }
+        }
+      },
+      "opcaoTratamento": "EVITAR",
+      "justificativa": "Stakeholder: Mitigar o impacto financeiro no estagiário e o dano reputacional, otimizando a eficiência dos trâmites financeiros."
+    },
+    {
+      "@id": "15",
+      "id": 20,
+      "risco": {
+        "@id": "16",
+        "id": 19,
+        "nome": "Falha no processo seletivo (ex: critérios subjetivos ou inconsistentes) que favoreça indevidamente um candidato.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 6,
+          "nome": "Integridade"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 1,
+          "nome": "Corrupção"
+        },
+        "causa": "Inexistência de um edital claro e objetivo; Capacitação inadequada dos membros da comissão avaliadora.",
+        "consequencias": "Escolha de candidatos menos qualificados (ineficiência); Processos de recurso e questionamento por parte dos candidatos eliminados.",
+        "criadoEm": "2025-12-10T14:12:29.474974",
+        "atualizadoEm": "2025-12-10T14:12:29.475003",
+        "processo": {
+          "@ref": "3"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "17",
+          "id": 46,
+          "probabilidade": 10,
+          "impacto": 10,
+          "fac": 0.4,
+          "controlesPreventivos": "Utilizar critérios de pontuação claros e objetivos no edital e garantir o treinamento e a não participação de membros da banca com relação próxima a candidatos.",
+          "controlesAtenuacao": "Atenuação: Suspender o resultado da seleção e notificar os candidatos. Recuperação: Revisar e reaplicar as avaliações subjetivas com a correção dos critérios, ou convocar nova comissão avaliadora.",
+          "atualizadoEm": "2025-12-10T14:40:16.881787",
+          "dataUltimaAvaliacao": "2025-12-03",
+          "risco": {
+            "@ref": "16"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "15"
+        },
+        "atividadeControle": {
+          "@id": "18",
+          "id": 4,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2026-01-08",
+          "dataTermino": "2026-01-26",
+          "gatilho": "Recurso Aceito: Comissão de Recursos aceita um questionamento de candidato alegando subjetividade na pontuação.",
+          "acoesContingencia": "Atenuação: Suspender a homologação do resultado e notificar os candidatos. Recuperação: Revisar e reaplicar as avaliações subjetivas com a correção dos critérios, ou convocar nova comissão avaliadora.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "16"
+          }
+        }
+      },
+      "opcaoTratamento": "COMPARTILHAR",
+      "justificativa": "Equidade: Mitigar a subjetividade, garantindo a seleção dos candidatos mais qualificados através de critérios claros e objetivos."
+    },
+    {
+      "@id": "19",
+      "id": 21,
+      "risco": {
+        "@id": "20",
+        "id": 20,
+        "nome": "Desvio de finalidade do recurso da bolsa, utilizando a verba para outros fins que não o pagamento do estágio.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 6,
+          "nome": "Integridade"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 2,
+          "nome": "Fraude"
+        },
+        "causa": "Inexistência de contas específicas para o recurso; Falta de fiscalização rigorosa sobre a aplicação da verba no setor responsável.",
+        "consequencias": "Irregularidade na gestão financeira (não conformidade legal); Possibilidade de responsabilização dos gestores por má-aplicação de verbas.",
+        "criadoEm": "2025-12-10T14:14:30.99327",
+        "atualizadoEm": "2025-12-10T14:14:30.993277",
+        "processo": {
+          "@ref": "3"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "21",
+          "id": 47,
+          "probabilidade": 5,
+          "impacto": 8,
+          "fac": 0.6,
+          "controlesPreventivos": "Manter contas bancárias segregadas e específicas para o recurso da bolsa, com acompanhamento e rastreabilidade rigorosos por parte da gestão.",
+          "controlesAtenuacao": "Atenuação: Bloquear imediatamente a conta de onde o recurso foi desviado. Recuperação: Iniciar auditoria de emergência nas contas e responsabilizar o gestor pelo ressarcimento, conforme a lei.",
+          "dataUltimaAvaliacao": "2025-12-03",
+          "risco": {
+            "@ref": "20"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "19"
+        },
+        "atividadeControle": {
+          "@id": "22",
+          "id": 5,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2026-01-09",
+          "dataTermino": "2026-01-27",
+          "gatilho": "Alerta do Financeiro: O setor financeiro reporta uma transação não autorizada ou atípica na conta de recursos de bolsas.",
+          "acoesContingencia": "Atenuação: Bloquear imediatamente a conta e suspender novos desembolsos. Recuperação: Iniciar auditoria de emergência e responsabilizar o gestor pelo ressarcimento e sanções legais.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "20"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "Legalidade: O risco de desvio é inaceitável. Deve-se eliminar a causa, garantindo a segregação rigorosa e específica das contas para o recurso."
+    },
+    {
+      "@id": "23",
+      "id": 22,
+      "risco": {
+        "@id": "24",
+        "id": 22,
+        "nome": "Extravio ou perda de documentos sensíveis (ex: comprovantes de renda, histórico escolar) durante o processo de análise.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 3,
+          "nome": "Operacionais"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 3,
+          "nome": "Desvio de Conduta"
+        },
+        "causa": "Armazenamento inadequado (físico ou digital) dos documentos; Falta de protocolo de manuseio e arquivamento seguro.",
+        "consequencias": "Risco de vazamento de informações pessoais (Lei Geral de Proteção de Dados - LGPD); Necessidade de solicitar novos documentos aos candidatos (retrabalho e frustração).",
+        "criadoEm": "2025-12-10T14:15:07.05293",
+        "atualizadoEm": "2025-12-10T14:15:07.052934",
+        "processo": {
+          "@ref": "3"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "25",
+          "id": 48,
+          "probabilidade": 8,
+          "impacto": 10,
+          "fac": 0.2,
+          "controlesPreventivos": "Adotar sistema de armazenamento digital seguro (criptografado) dos documentos, limitando o acesso apenas a usuários autorizados (LGPD).",
+          "controlesAtenuacao": "Atenuação: Notificar os titulares dos dados afetados sobre o incidente de segurança (LGPD). Recuperação: Solicitar imediatamente novas cópias dos documentos e revisar o protocolo de segurança do armazenamento digital/físico.",
+          "dataUltimaAvaliacao": "2025-12-03",
+          "risco": {
+            "@ref": "24"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "23"
+        },
+        "atividadeControle": {
+          "@id": "26",
+          "id": 6,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2026-01-10",
+          "dataTermino": "2026-01-28",
+          "gatilho": "Incidente de Segurança: Confirmação de acesso não autorizado ao sistema de armazenamento ou extravio de pasta física.",
+          "acoesContingencia": "Atenuação: Notificar os titulares dos dados afetados sobre o incidente de segurança (LGPD). Recuperação: Solicitar imediatamente novas cópias dos documentos e revisar o protocolo de segurança do armazenamento.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "24"
+          }
+        }
+      },
+      "opcaoTratamento": "EVITAR",
+      "justificativa": "LGPD/Privacidade: Mitigar o risco de vazamento de dados e o retrabalho, implementando protocolos de segurança no armazenamento."
+    },
+    {
+      "@id": "27",
+      "id": 23,
+      "risco": {
+        "@id": "28",
+        "id": 24,
+        "nome": "Inexistência de vagas de estágio suficientes ou adequadas à área de formação dos estudantes.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 3,
+          "nome": "Operacionais"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 3,
+          "nome": "Desvio de Conduta"
+        },
+        "causa": "Planejamento inadequado da demanda de bolsas frente à oferta de vagas pelas unidades; Comunicação deficiente entre a Coordenação e as Unidades Acadêmicas.",
+        "consequencias": "Estagnação da fila de espera por bolsas; Desperdício do potencial do recurso (verba reservada não utilizada).",
+        "criadoEm": "2025-12-10T14:15:45.284004",
+        "atualizadoEm": "2025-12-10T14:15:45.284008",
+        "processo": {
+          "@ref": "3"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "29",
+          "id": 49,
+          "probabilidade": 5,
+          "impacto": 10,
+          "fac": 0.2,
+          "controlesPreventivos": "Realizar levantamento anual de demanda e oferta de vagas junto às unidades, incentivando a criação de novas oportunidades de estágio.",
+          "controlesAtenuacao": "Realizar levantamento anual de demanda e oferta de vagas junto às unidades, incentivando a criação de novas oportunidades de estágio.",
+          "dataUltimaAvaliacao": "2025-12-03",
+          "risco": {
+            "@ref": "28"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "27"
+        },
+        "atividadeControle": {
+          "@id": "30",
+          "id": 7,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2026-01-11",
+          "dataTermino": "2026-01-29",
+          "gatilho": "Vagas Ociosas: A taxa de ocupação das bolsas atinge abaixo de 70% por 3 meses consecutivos.",
+          "acoesContingencia": "Atenuação: Comunicar ativamente aos estudantes na fila de espera o prazo estimado para novas vagas. Recuperação: Iniciar campanha de sensibilização interna urgente para aumentar a oferta de vagas nas unidades.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "28"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "O custo/esforço para garantir vagas 100% ideais é alto. Deve-se aceitar o risco residual e focar em otimizar as vagas existentes."
+    },
+    {
+      "@id": "31",
+      "id": 24,
+      "risco": {
+        "@id": "32",
+        "id": 25,
+        "nome": "Nepotismo ou conflito de interesse na aprovação de bolsas para parentes ou pessoas com relação próxima ao gestor responsável.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 5,
+          "nome": "Imagem/reputação"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 3,
+          "nome": "Desvio de Conduta"
+        },
+        "causa": "Falta de declaração de impedimento ou de regras claras sobre conflito de interesse no processo de seleção.",
+        "consequencias": "Concessão de bolsas por critérios não meritocráticos (falta de integridade); Dano severo à reputação e à credibilidade do setor.",
+        "criadoEm": "2025-12-10T14:16:22.45238",
+        "atualizadoEm": "2025-12-10T14:16:22.452388",
+        "processo": {
+          "@ref": "3"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "33",
+          "id": 50,
+          "probabilidade": 5,
+          "impacto": 8,
+          "fac": 0.4,
+          "controlesPreventivos": "Instituir a Declaração de Conflito de Interesse obrigatória para todos os envolvidos no processo seletivo e de aprovação de bolsas.",
+          "controlesAtenuacao": "Suspender a bolsa do indivíduo afetado e o processo de aprovação. Recuperação: Conduzir investigação interna e aplicar as sanções disciplinares e éticas cabíveis ao gestor envolvido.",
+          "dataUltimaAvaliacao": "2025-12-03",
+          "risco": {
+            "@ref": "32"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "31"
+        },
+        "atividadeControle": {
+          "@id": "34",
+          "id": 8,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2026-01-12",
+          "dataTermino": "2026-01-30",
+          "gatilho": "Denúncia Comprovada: Recebimento e confirmação de denúncia sobre relação familiar ou próxima entre avaliador e candidato.",
+          "acoesContingencia": "Atenuação: Suspender a bolsa do indivíduo afetado e o processo de aprovação. Recuperação: Conduzir investigação interna e aplicar as sanções disciplinares e éticas cabíveis ao gestor envolvido.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "32"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "Integridade: Mitigar a ocorrência de favorecimento, exigindo declaração de impedimento e supervisão cruzada no processo de seleção."
+    },
+    {
+      "@id": "35",
+      "id": 25,
+      "risco": {
+        "@id": "36",
+        "id": 27,
+        "nome": "Dificuldade de fiscalização e comprovação das atividades do estagiário, caracterizando vínculo empregatício indevido.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 5,
+          "nome": "Imagem/reputação"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 3,
+          "nome": "Desvio de Conduta"
+        },
+        "causa": "Não obrigatoriedade de relatórios de atividades detalhados; Falta de treinamento dos supervisores quanto às normas de estágio.",
+        "consequencias": "Caracterização de vínculo empregatício perante a lei (risco trabalhista); Uso inadequado da mão de obra do estagiário.",
+        "criadoEm": "2025-12-10T14:17:27.891779",
+        "atualizadoEm": "2025-12-10T14:17:27.891787",
+        "processo": {
+          "@ref": "3"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "37",
+          "id": 45,
+          "probabilidade": 8,
+          "impacto": 8,
+          "fac": 0.2,
+          "controlesPreventivos": "Tornar obrigatória a entrega de Relatórios de Atividades detalhados (bimestrais/trimestrais) assinados pelo estagiário e pelo supervisor.",
+          "controlesAtenuacao": "Solicitar imediatamente um Relatório de Atividades detalhado com assinatura do supervisor. Recuperação: Iniciar processo de revisão de vínculo e adequação de contrato para evitar passivo trabalhista.",
+          "atualizadoEm": "2025-12-10T14:44:23.113546",
+          "dataUltimaAvaliacao": "2025-12-03",
+          "risco": {
+            "@ref": "36"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "35"
+        },
+        "atividadeControle": {
+          "@id": "38",
+          "id": 10,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2026-01-13",
+          "dataTermino": "2026-01-31",
+          "gatilho": "Alerta Jurídico: O setor jurídico sinaliza risco de passivo trabalhista em uma unidade que não entrega relatórios há mais de um semestre.",
+          "acoesContingencia": "Atenuação: Notificar e dar prazo de 5 dias para o supervisor entregar o relatório pendente. Recuperação: Iniciar processo de revisão de vínculo e adequação de contrato para evitar passivo trabalhista.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "36"
+          }
+        }
+      },
+      "opcaoTratamento": "EVITAR",
+      "justificativa": "Trabalhista: O risco de caracterizar vínculo empregatício é inaceitável. Deve-se eliminar a causa com relatórios obrigatórios e treinamento de supervisores."
+    },
+    {
+      "@id": "39",
+      "id": 26,
+      "risco": {
+        "@id": "40",
+        "id": 29,
+        "nome": "Alteração na legislação do estágio ou nas normas internas da instituição que invalide bolsas já concedidas, gerando insegurança jurídica.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 3,
+          "nome": "Operacionais"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 2,
+          "nome": "Fraude"
+        },
+        "causa": "Falha em monitorar e se antecipar a mudanças na legislação (ex: Portarias e Leis) que afetam a concessão de bolsas.",
+        "consequencias": "Insegurança jurídica nas bolsas ativas; Necessidade de suspensão ou alteração de contratos vigentes (instabilidade).",
+        "criadoEm": "2025-12-10T14:18:02.915123",
+        "atualizadoEm": "2025-12-10T14:18:02.915127",
+        "processo": {
+          "@ref": "3"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "41",
+          "id": 52,
+          "probabilidade": 2,
+          "impacto": 10,
+          "fac": 0.2,
+          "controlesPreventivos": "Designar um responsável pelo monitoramento contínuo da legislação pertinente (Leis e Portarias), com comunicação imediata de mudanças aos setores envolvidos.",
+          "controlesAtenuacao": "Emitir comunicado interno urgente sobre a mudança e suspender novos processos até a adequação. Recuperação: Realizar ajustes contratuais e documentais em todas as bolsas ativas para garantir a conformidade com a nova lei.",
+          "atualizadoEm": "2025-12-10T14:45:27.190358",
+          "dataUltimaAvaliacao": "2025-12-03",
+          "risco": {
+            "@ref": "40"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "39"
+        },
+        "atividadeControle": {
+          "@id": "42",
+          "id": 12,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2026-01-14",
+          "dataTermino": "2026-02-01",
+          "gatilho": "Publicação de Portaria: Publicação de nova lei ou portaria que afeta diretamente os critérios de concessão de bolsas.",
+          "acoesContingencia": "Atenuação: Emitir comunicado interno urgente sobre a mudança e suspender novos processos até a adequação. Recuperação: Realizar ajustes contratuais e documentais em todas as bolsas ativas para garantir a conformidade com a nova lei.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "40"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "Legalidade: Mitigar o risco de mudanças legais que invalidem bolsas já concedidas, garantindo segurança jurídica por meio de acompanhamento normativo e ajustes preventivos nos procedimentos."
+    },
+    {
+      "@id": "43",
+      "id": 27,
+      "risco": {
+        "@id": "44",
+        "id": 18,
+        "nome": "Entrega de diploma com dados incorretos (ex: nome do curso, data, nome do aluno).",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 4,
+          "nome": "Legal/de conformidade"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 4,
+          "nome": "Entrega "
+        },
+        "causa": "Falha humana na conferência final dos dados antes da impressão.",
+        "consequencias": "Necessidade de reimpressão, gerando custos adicionais e desperdício de tempo.",
+        "criadoEm": "2025-12-10T14:12:01.736863",
+        "atualizadoEm": "2025-12-10T14:12:01.736863",
+        "processo": {
+          "@id": "45",
+          "id": 59,
+          "nome": "Evento de entrega de diplomas de conclusão de curso",
+          "unidadeOrganizacional": {
+            "@ref": "4"
+          },
+          "responsavel": {
+            "id": 110,
+            "idKeycloak": "4d16509f-9b7c-4bf5-9c4e-0e1d71d59829",
+            "nome": "Kauan Perdigão",
+            "email": "kauanperdigao531@gmail.com",
+            "nomeSocial": "Kauan Perdigão",
+            "papel": "unit",
+            "ativo": true,
+            "unidadeOrganizacional": {
+              "@ref": "4"
+            }
+          },
+          "objetivosGerais": "Realizar o evento de entrega de diplomas de conclusão de curso de forma solene, segura e eficiente, garantindo que todos os formandos aptos recebam seu diploma em um prazo estabelecido, promovendo a satisfação da comunidade acadêmica e a imagem institucional da UFC.",
+          "criadoEm": "2025-12-10T14:08:55.123754",
+          "atualizadoEm": "2025-12-10T14:08:55.123754"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "46",
+          "id": 55,
+          "probabilidade": 8,
+          "impacto": 10,
+          "fac": 0.2,
+          "controlesPreventivos": "Realizar teste de som e projeção completo (walk-through) 2 horas antes do evento. Ter equipamento de backup essenciais (microfones e cabos) prontamente disponíveis.",
+          "controlesAtenuacao": "Acionar o plano B (microfone de mão de backup ou projetor reserva) em menos de 5 minutos. ",
+          "dataUltimaAvaliacao": "2025-12-10",
+          "risco": {
+            "@ref": "44"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "43"
+        },
+        "atividadeControle": {
+          "@id": "47",
+          "id": 15,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2025-12-17",
+          "dataTermino": "2025-12-15",
+          "gatilho": "Identificação de Erro: Formando notifica o erro no diploma durante ou logo após o evento.",
+          "acoesContingencia": "Atenuação: Guichê de Atendimento Rápido para registrar o erro. Recuperação: Priorizar o processo de reemissão em prazo máximo reduzido (ex: 15 dias).",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "44"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "Economia: Evitar os altos custos e o retrabalho de reimprimir, reemitir e registrar diplomas errados; Reputação: Proteger a credibilidade da UFC e a satisfação dos formandos; Legalidade: Garantir que o diploma seja válido legalmente, evitando problemas futuros para o aluno e a instituição."
+    },
+    {
+      "@id": "48",
+      "id": 28,
+      "risco": {
+        "@id": "49",
+        "id": 21,
+        "nome": "Não comparecimento (ausência) da autoridade máxima (Reitor/Diretor) na data marcada.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 5,
+          "nome": "Imagem/reputação"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 4,
+          "nome": "Entrega "
+        },
+        "causa": "Conflito de agenda não comunicado ou não priorizado na fase de planejamento e agendamento.",
+        "consequencias": "Perda da solenidade do evento, redução do prestígio institucional e frustração dos formandos.",
+        "criadoEm": "2025-12-10T14:14:43.257977",
+        "atualizadoEm": "2025-12-10T14:14:43.257977",
+        "processo": {
+          "@ref": "45"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "50",
+          "id": 56,
+          "probabilidade": 5,
+          "impacto": 10,
+          "fac": 0.2,
+          "controlesPreventivos": "Otimizar o protocolo de conferência de aptidão para reduzir a chance de erro de contagem final. Criar uma lista de urgência (Formandos Aptos) 48h antes do evento.",
+          "controlesAtenuacao": "Chamar apenas os formandos cujos diplomas estão presentes, comunicando os ausentes com extrema discrição e oferecendo um canal prioritário de contato.",
+          "dataUltimaAvaliacao": "2025-12-10",
+          "risco": {
+            "@ref": "49"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "48"
+        },
+        "atividadeControle": {
+          "@id": "51",
+          "id": 16,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2025-12-17",
+          "dataTermino": "2025-12-15",
+          "gatilho": "Ausência Confirmada: A autoridade máxima ou seu gabinete informa a ausência com menos de 24 horas de antecedência.",
+          "acoesContingencia": "Atenuação: Anunciar a substituição no início do evento com ênfase no motivo. Recuperação: Enviar carta formal da autoridade ausente aos formandos, reconhecendo a importância da solenidade.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "49"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "O custo/esforço de garantir 100% da presença é alto. O impacto é gerenciável (pode ser substituído pelo Vice ou outra autoridade), aceitando-se a perda de prestígio."
+    },
+    {
+      "@id": "52",
+      "id": 29,
+      "risco": {
+        "@id": "53",
+        "id": 23,
+        "nome": "Superlotação do local, excedendo a capacidade de segurança e conforto (falha no controle de convites).",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 3,
+          "nome": "Operacionais"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 4,
+          "nome": "Entrega "
+        },
+        "causa": "Cálculo incorreto da capacidade máxima ou falha na distribuição/controle de convites por formando.",
+        "consequencias": "Risco de segurança e pânico, necessidade de interrupção ou restrição de entrada, e multas por descumprimento de normas de segurança.",
+        "criadoEm": "2025-12-10T14:15:36.379785",
+        "atualizadoEm": "2025-12-10T14:15:36.379785",
+        "processo": {
+          "@ref": "45"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "54",
+          "id": 57,
+          "probabilidade": 5,
+          "impacto": 8,
+          "fac": 0.4,
+          "controlesPreventivos": "Elaborar um Plano de Comunicação e Crise, incluindo mensagens (scripts) de resposta rápida e padronizadas para social media e imprensa.",
+          "controlesAtenuacao": "Responder de forma empática e transparente em até 2 horas nas redes sociais, canalizando a reclamação para um contato privado.",
+          "dataUltimaAvaliacao": "2025-12-10",
+          "risco": {
+            "@ref": "53"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "52"
+        },
+        "atividadeControle": {
+          "@id": "55",
+          "id": 17,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2025-12-17",
+          "dataTermino": "2025-12-15",
+          "gatilho": "Limite Atingido: O sistema de controle de acesso atinge 95% da capacidade antes do horário de início da cerimônia.",
+          "acoesContingencia": "Atenuação: Designar segurança para interromper a entrada e comunicar o público com calma. Recuperação: Oferecer transmissão por streaming ao vivo para convidados barrados ou direcioná-los a uma sala de anexo.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "53"
+          }
+        }
+      },
+      "opcaoTratamento": "EVITAR",
+      "justificativa": "O risco de segurança física e multas é inaceitável. Deve-se eliminar a causa, garantindo um controle rigoroso de convites que não exceda a capacidade do local."
+    },
+    {
+      "@id": "56",
+      "id": 30,
+      "risco": {
+        "@id": "57",
+        "id": 26,
+        "nome": "Entrega do diploma ao formando errado devido à falha de identificação no momento da retirada.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 6,
+          "nome": "Integridade"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 2,
+          "nome": "Fraude"
+        },
+        "causa": "Falta de um protocolo rigoroso de identificação (ex: exigência de documento com foto) no ponto de entrega.",
+        "consequencias": "Diploma valioso entregue à pessoa errada, necessidade de reemissão (custo e atraso) e risco de extravio de documento.",
+        "criadoEm": "2025-12-10T14:16:41.966623",
+        "atualizadoEm": "2025-12-10T14:16:41.966623",
+        "processo": {
+          "@ref": "45"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "58",
+          "id": 58,
+          "probabilidade": 8,
+          "impacto": 8,
+          "fac": 0.2,
+          "controlesPreventivos": "Realizar inspeção de segurança prévia no local (pisos, iluminação, saídas de emergência) e exigir a presença de uma equipe de primeiros socorros/bombeiros durante todo o evento.",
+          "controlesAtenuacao": "Prestar o primeiro socorro imediatamente, isolar a área do acidente e garantir que o restante do evento possa prosseguir sem interrupção. ",
+          "dataUltimaAvaliacao": "2025-12-10",
+          "risco": {
+            "@ref": "57"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "56"
+        },
+        "atividadeControle": {
+          "@id": "59",
+          "id": 13,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2025-12-17",
+          "dataTermino": "2026-01-12",
+          "gatilho": "Reclamação de Extravio: Um formando alega que seu diploma não foi encontrado ou que foi entregue a outra pessoa.",
+          "acoesContingencia": "Atenuação: Interromper imediatamente a fila de entrega para revisão do protocolo. Recuperação: Acionar o seguro contra extravio/roubo e iniciar o processo de reemissão com investigação interna.",
+          "responsavelContingencia": "João Silva",
+          "atualizadoEm": "2025-12-10T15:11:25.093419",
+          "risco": {
+            "@ref": "57"
+          }
+        }
+      },
+      "opcaoTratamento": "COMPARTILHAR",
+      "justificativa": "O impacto financeiro de um extravio pode ser transferido parcialmente para um seguro (para extravios maiores) ou compartilhado com a empresa terceirizada responsável pela entrega e conferência de documentos."
+    },
+    {
+      "@id": "60",
+      "id": 31,
+      "risco": {
+        "@id": "61",
+        "id": 28,
+        "nome": "Tentativa de fraude (colação de grau por procuração falsa ou retirada de diploma por terceiros não autorizados).",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 6,
+          "nome": "Integridade"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 2,
+          "nome": "Fraude"
+        },
+        "causa": "Ausência de verificação da autenticidade da procuração ou de cruzamento de dados de identidade no ato da retirada.",
+        "consequencias": "Entrega indevida de documento público, risco de processo judicial e dano irreparável à integridade do processo de formatura.",
+        "criadoEm": "2025-12-10T14:17:40.619944",
+        "atualizadoEm": "2025-12-10T14:17:40.619944",
+        "processo": {
+          "@ref": "45"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "62",
+          "id": 51,
+          "probabilidade": 5,
+          "impacto": 8,
+          "fac": 0.6,
+          "controlesPreventivos": "Definir e confirmar, com antecedência de 90 dias, o nome da autoridade substituta e incluí-lo no cerimonial de backup.",
+          "controlesAtenuacao": "Anunciar a substituição no início do evento com ênfase no motivo. ",
+          "dataUltimaAvaliacao": "2025-12-10",
+          "risco": {
+            "@ref": "61"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "60"
+        },
+        "atividadeControle": {
+          "@id": "63",
+          "id": 18,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2025-12-17",
+          "dataTermino": "2025-12-15",
+          "gatilho": "Suspeita Confirmada: A equipe de segurança ou protocolo identifica documentação visivelmente falsa (procuração, identidade) no momento da entrega.",
+          "acoesContingencia": "Atenuação: Acionar a segurança interna para isolar o indivíduo suspeito e notificar imediatamente o setor jurídico. Recuperação: Documentar a tentativa de fraude para fins legais e revisar o protocolo de segurança.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "61"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "O risco à integridade e a possível responsabilidade legal são altos. A mitigação (protocolos de autenticação) é necessária para proteger a validade jurídica do processo."
+    },
+    {
+      "@id": "64",
+      "id": 32,
+      "risco": {
+        "@id": "65",
+        "id": 30,
+        "nome": "Falha técnica nos equipamentos de som ou projeção durante a solenidade (microfones, telões, iluminação).",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 3,
+          "nome": "Operacionais"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 3,
+          "nome": "Desvio de Conduta"
+        },
+        "causa": "Falta de um check-list de testes e walk-through antes do evento e uso de equipamentos sem manutenção preventiva.",
+        "consequencias": "Interrupção do evento, dificuldades na comunicação com o público e percepção de amadorismo na organização.",
+        "criadoEm": "2025-12-10T14:19:57.345789",
+        "atualizadoEm": "2025-12-10T14:19:57.345789",
+        "processo": {
+          "@ref": "45"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "66",
+          "id": 53,
+          "probabilidade": 10,
+          "impacto": 10,
+          "fac": 0.4,
+          "controlesPreventivos": "Exigir documento de identidade oficial com foto no ato da entrega e implementar sistema de dupla checagem (lê o RG, lê o QR code do diploma) antes da retirada.",
+          "controlesAtenuacao": "Interromper imediatamente a fila de entrega ao notar o erro. ",
+          "dataUltimaAvaliacao": "2025-12-10",
+          "risco": {
+            "@ref": "65"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "64"
+        },
+        "atividadeControle": {
+          "@id": "67",
+          "id": 19,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2025-12-17",
+          "dataTermino": "2025-12-15",
+          "gatilho": "Falha Total: Interrupção do som, luz principal ou projeção por mais de 2 minutos durante a cerimônia.",
+          "acoesContingencia": "Atenuação: Acionar o plano B (microfone de mão de backup ou projetor reserva). Recuperação: Comunicar o público com calma e retomar a solenidade usando o equipamento reserva o mais rápido possível.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "65"
+          }
+        }
+      },
+      "opcaoTratamento": "ACEITAR",
+      "justificativa": "O impacto é temporário e o custo de ter sistemas de backup completos (redundância total) para tudo pode ser muito alto, sendo mais eficiente aceitar o risco e ter ações de recuperação rápidas."
+    },
+    {
+      "@id": "68",
+      "id": 33,
+      "risco": {
+        "@id": "69",
+        "id": 31,
+        "nome": "O número de diplomas prontos para entrega é menor que o número de formandos aptos confirmados.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 3,
+          "nome": "Operacionais"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 4,
+          "nome": "Entrega "
+        },
+        "causa": "Erro na contagem final dos formandos aptos ou atraso na fase de impressão e registro da documentação final.",
+        "consequencias": "Um grupo de formandos fica sem o diploma no dia, gerando frustração, indignação e necessidade de organizar uma entrega posterior urgente.",
+        "criadoEm": "2025-12-10T14:20:47.996868",
+        "atualizadoEm": "2025-12-10T14:20:47.996868",
+        "processo": {
+          "@ref": "45"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "70",
+          "id": 54,
+          "probabilidade": 5,
+          "impacto": 8,
+          "fac": 0.6,
+          "controlesPreventivos": "Criar um cadastro prévio de procurações com verificação de autenticidade (via cartório/sistema). Exigir autenticação rigorosa de todas as identidades (formando ou procurador) no local.",
+          "controlesAtenuacao": "Acionar a segurança interna para isolar o indivíduo suspeito e notificar a autoridade competente (polícia civil/setor jurídico).",
+          "dataUltimaAvaliacao": "2025-12-10",
+          "risco": {
+            "@ref": "69"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "68"
+        },
+        "atividadeControle": {
+          "@id": "71",
+          "id": 20,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2025-12-17",
+          "dataTermino": "2026-01-12",
+          "gatilho": "Divergência: A contagem final na manhã do evento revela diplomas faltantes para formandos aptos.",
+          "acoesContingencia": "Atenuação: Chamar apenas os formandos cujos diplomas estão presentes, comunicando os ausentes com extrema discrição. Recuperação: Iniciar imediatamente a impressão urgente dos diplomas faltantes e organizar uma entrega especial prioritária.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "69"
+          }
+        }
+      },
+      "opcaoTratamento": "ACEITAR",
+      "justificativa": "Embora cause frustração, o custo da urgência e do esforço logístico extra de produzir 100% de backup físico é alto. A mitigação de erro humano (conferência tripla de aptos) é a prioridade, aceitando-se o risco residual."
+    },
+    {
+      "@id": "72",
+      "id": 34,
+      "risco": {
+        "@id": "73",
+        "id": 32,
+        "nome": "Divulgação de notícias negativas ou reclamações públicas (ex: em redes sociais) sobre a má organização ou atrasos excessivos.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "OPORTUNIDADE",
+        "categoria": {
+          "id": 5,
+          "nome": "Imagem/reputação"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 4,
+          "nome": "Entrega "
+        },
+        "causa": "Má gestão do tempo no cronograma do evento ou falta de comunicação clara com o público sobre os atrasos.",
+        "consequencias": "Dano significativo e viral à imagem e reputação da UFC na mídia e redes sociais.",
+        "criadoEm": "2025-12-10T14:21:50.916998",
+        "atualizadoEm": "2025-12-10T14:21:50.916998",
+        "processo": {
+          "@ref": "45"
+        },
+        "respostaRisco": {
+          "@ref": "72"
+        },
+        "atividadeControle": {
+          "@id": "74",
+          "id": 21,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2025-12-17",
+          "dataTermino": "2026-01-12",
+          "gatilho": "Viralização: Identificação de mais de 10 reclamações negativas similares ou uma matéria na imprensa com tom desfavorável.",
+          "acoesContingencia": "Atenuação: Responder de forma empática e transparente em até 2 horas nas redes sociais, canalizando a reclamação para um contato privado. Recuperação: Publicar uma nota oficial de esclarecimento e pedido de desculpas pela autoridade máxima, detalhando as ações corretivas.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "73"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "O dano reputacional é de alto impacto e longo prazo. Ações de mitigação (ex: comunicação e gerenciamento de crises) são essenciais para reduzir a velocidade e o alcance das reclamações."
+    },
+    {
+      "@id": "75",
+      "id": 35,
+      "risco": {
+        "@id": "76",
+        "id": 33,
+        "nome": "Ocorrência de acidentes ou incidentes físicos com convidados ou formandos nas dependências do local do evento.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 5,
+          "nome": "Imagem/reputação"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 3,
+          "nome": "Desvio de Conduta"
+        },
+        "causa": "Falha na inspeção de segurança do local (ex: piso escorregadio) ou ausência de equipe de primeiros socorros.",
+        "consequencias": "Lesões ou danos à saúde de convidados, interrupção do evento e responsabilidade civil da instituição.",
+        "criadoEm": "2025-12-10T14:22:35.319576",
+        "atualizadoEm": "2025-12-10T14:22:35.319576",
+        "processo": {
+          "@ref": "45"
+        },
+        "avaliacaoRiscoControle": {
+          "@id": "77",
+          "id": 59,
+          "probabilidade": 2,
+          "impacto": 10,
+          "fac": 0.2,
+          "controlesPreventivos": "Incluir cláusulas contratuais rigorosas com o fornecedor do espaço que preveem multas por atraso na entrega/liberação. Agendar o espaço com uma folga de 4 horas antes do horário de montagem.",
+          "controlesAtenuacao": "Utilizar o tempo de buffer para manter o cronograma. ",
+          "dataUltimaAvaliacao": "2025-12-10",
+          "risco": {
+            "@ref": "76"
+          }
+        },
+        "respostaRisco": {
+          "@ref": "75"
+        },
+        "atividadeControle": {
+          "@id": "78",
+          "id": 22,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2025-12-17",
+          "dataTermino": "2026-01-12",
+          "gatilho": "Acidente Grave: Ocorrência de lesão que exige atendimento médico de urgência ou evacuação do local.",
+          "acoesContingencia": "Atenuação: Prestar o primeiro socorro imediatamente, isolar a área do acidente e garantir que o restante do evento possa prosseguir. Recuperação: Acionar o seguro de responsabilidade civil, preencher o relatório de ocorrência e acompanhar o estado de saúde da vítima.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "76"
+          }
+        }
+      },
+      "opcaoTratamento": "EVITAR",
+      "justificativa": "O risco de danos físicos graves aos convidados ou formandos e a responsabilidade civil são inaceitáveis. Deve-se eliminar a causa (ex: inspecionando o local e exigindo laudos de segurança)."
+    },
+    {
+      "@id": "79",
+      "id": 36,
+      "risco": {
+        "@id": "80",
+        "id": 34,
+        "nome": "Atraso na liberação ou entrega do espaço físico (auditório/teatro) para a montagem no dia do evento.",
+        "faseProcesso": "Planejamento",
+        "tipoRisco": "AMEACA",
+        "categoria": {
+          "id": 3,
+          "nome": "Operacionais"
+        },
+        "tipoRiscoIntegridade": {
+          "id": 3,
+          "nome": "Desvio de Conduta"
+        },
+        "causa": "Conflito de agendamento do espaço com outro evento anterior ou atraso na liberação pela equipe do local.",
+        "consequencias": "Atraso no início da solenidade, execução apressada da montagem e possíveis falhas operacionais devido à falta de tempo de teste.",
+        "criadoEm": "2025-12-10T14:23:16.221549",
+        "atualizadoEm": "2025-12-10T14:23:16.221549",
+        "processo": {
+          "@ref": "45"
+        },
+        "respostaRisco": {
+          "@ref": "79"
+        },
+        "atividadeControle": {
+          "@id": "81",
+          "id": 14,
+          "statusImplementacao": "NAOIMPLEMENTADO",
+          "responsavelTratamento": "João Silva",
+          "dataInicio": "2025-12-17",
+          "dataTermino": "2025-12-15",
+          "gatilho": "Atraso na Liberação: O espaço não é liberado para a equipe de montagem 1 hora após o horário contratado.",
+          "acoesContingencia": "Atenuação: Utilizar o tempo de buffer para manter o cronograma. Recuperação: Acionar imediatamente as multas contratuais e mobilizar uma equipe extra de montagem para acelerar o processo e minimizar o atraso no início do evento.",
+          "responsavelContingencia": "João Silva",
+          "risco": {
+            "@ref": "80"
+          }
+        }
+      },
+      "opcaoTratamento": "MITIGAR",
+      "justificativa": "O atraso afeta todo o cronograma e a qualidade da montagem. A mitigação (ex: cláusulas contratuais rígidas e pré-agendamento de folga) é necessária para reduzir a probabilidade de ocorrência."
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "empty": true,
+      "sorted": false,
+      "unsorted": true
+    },
+    "offset": 0,
+    "paged": true,
+    "unpaged": false
+  },
+  "last": true,
+  "totalElements": 20,
+  "totalPages": 1,
+  "size": 20,
+  "number": 0,
+  "sort": {
+    "empty": true,
+    "sorted": false,
+    "unsorted": true
+  },
+  "first": true,
+  "numberOfElements": 20,
+  "empty": false
+}
