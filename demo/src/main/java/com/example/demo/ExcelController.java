@@ -98,86 +98,32 @@ public class ExcelController {
                 .body(bytes);
     }
 
-    // Combina JSONs locais em um único payload
+    // Busca JSONs via API e gera Excel
     @PostMapping("/xlsx/auto")
     public ResponseEntity<byte[]> exportAuto(
-            @org.springframework.web.bind.annotation.RequestParam(value = "procPath", required = false) String procPath,
-            @org.springframework.web.bind.annotation.RequestParam(value = "riskPath", required = false) String riskPath,
-            @org.springframework.web.bind.annotation.RequestParam(value = "eventoPath", required = false) String eventoPath,
-            @org.springframework.web.bind.annotation.RequestParam(value = "avaliacaoPath", required = false) String avaliacaoPathParam,
-            @org.springframework.web.bind.annotation.RequestParam(value = "atividadePath", required = false) String atividadePathParam,
-            @org.springframework.web.bind.annotation.RequestParam(value = "ocorrenciaPath", required = false) String ocorrenciaPathParam
+            @org.springframework.web.bind.annotation.RequestParam(value = "baseUrl", defaultValue = "http://localhost:8090") String baseUrl
     ) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        // Caminhos padrão se não informados
-        Path processosPath = Path.of(procPath == null || procPath.isBlank() ? "json/01-processo-controller.json" : procPath);
-        Path riscosPath = Path.of(riskPath == null || riskPath.isBlank() ? "json/04-resposta-risco-controller.json" : riskPath);
-        Path eventosPath = Path.of(eventoPath == null || eventoPath.isBlank() ? "json/02-risco-controller.json" : eventoPath);
-        Path avaliacaoPath = Path.of(avaliacaoPathParam == null || avaliacaoPathParam.isBlank() ? "json/03.avalicao-risco-controle-controller.json" : avaliacaoPathParam);
-        Path atividadePath = Path.of(atividadePathParam == null || atividadePathParam.isBlank() ? "json/05-atividade-controle-controller.json" : atividadePathParam);
-        Path ocorrenciaPath = Path.of(ocorrenciaPathParam == null || ocorrenciaPathParam.isBlank() ? "json/ocorrencia-risco-controller.json" : ocorrenciaPathParam);
-
-        if (!Files.exists(processosPath)) {
-            return ResponseEntity.status(404).body(("Arquivo de processos não encontrado: " + processosPath).getBytes(StandardCharsets.UTF_8));
-        }
-        if (!Files.exists(riscosPath)) {
-            return ResponseEntity.status(404).body(("Arquivo de riscos não encontrado: " + riscosPath).getBytes(StandardCharsets.UTF_8));
-        }
-
-        String processosJson = Files.readString(processosPath, StandardCharsets.UTF_8);
-        String riscosJson = Files.readString(riscosPath, StandardCharsets.UTF_8);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> processos = mapper.readValue(processosJson, Map.class);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> respostasRisco = mapper.readValue(riscosJson, Map.class);
-
+        RestTemplate restTemplate = new RestTemplate();
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
         
-        // Ordem correta: ETAPA 1 → ETAPA 2 → ETAPA 3 → ETAPA 4
-        allSheets.putAll(DadosProcessoTransformer.transform(processos));
-        
-        // ETAPA 2: Incluir eventos/riscos se arquivo existir
-        if (Files.exists(eventosPath)) {
-            String eventosJson = Files.readString(eventosPath, StandardCharsets.UTF_8);
-            @SuppressWarnings("unchecked")
-            Map<String, Object> eventos = mapper.readValue(eventosJson, Map.class);
-            allSheets.putAll(IdentificacaoEventosTransformer.transform(eventos));
+        try {
+            // Ordem correta: ETAPA 1 → ETAPA 2 → ETAPA 3 → ETAPA 4 → ETAPA 5 → OCORRÊNCIAS
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", DadosProcessoTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/riscos", IdentificacaoEventosTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/avaliacoesRiscoControle", AvaliacaoRiscosTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/respostasRisco", RespostaRiscosTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/atividadeControles", AtividadeControleTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/ocorrenciasRisco", OcorrenciaRiscoTransformer::transform);
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(("Erro ao buscar dados da API: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
         }
         
-        // ETAPA 3: Incluir avaliação de riscos se arquivo existir
-        if (Files.exists(avaliacaoPath)) {
-            String avaliacaoJson = Files.readString(avaliacaoPath, StandardCharsets.UTF_8);
-            @SuppressWarnings("unchecked")
-            Map<String, Object> avaliacao = mapper.readValue(avaliacaoJson, Map.class);
-            allSheets.putAll(AvaliacaoRiscosTransformer.transform(avaliacao));
-        }
-        
-        allSheets.putAll(RespostaRiscosTransformer.transform(respostasRisco));
-        
-        // ETAPA 5: Incluir atividades de controle se arquivo existir
-        if (Files.exists(atividadePath)) {
-            String atividadeJson = Files.readString(atividadePath, StandardCharsets.UTF_8);
-            @SuppressWarnings("unchecked")
-            Map<String, Object> atividade = mapper.readValue(atividadeJson, Map.class);
-            allSheets.putAll(AtividadeControleTransformer.transform(atividade));
-        }
-        
-        // OCORRÊNCIAS: Incluir ocorrências de risco se arquivo existir
-        if (Files.exists(ocorrenciaPath)) {
-            String ocorrenciaJson = Files.readString(ocorrenciaPath, StandardCharsets.UTF_8);
-            @SuppressWarnings("unchecked")
-            Map<String, Object> ocorrencia = mapper.readValue(ocorrenciaJson, Map.class);
-            allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocorrencia));
-        }
-
         if (allSheets.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
         byte[] bytes = excelService.generateXlsx(allSheets);
-
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=dados.xlsx");
 

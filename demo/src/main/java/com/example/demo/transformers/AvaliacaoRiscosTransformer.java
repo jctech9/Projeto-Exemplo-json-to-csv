@@ -53,10 +53,10 @@ public class AvaliacaoRiscosTransformer {
             int impacto = Integer.parseInt(String.valueOf(impactoObj));
             int nivel = prob * impacto;
             
-            if (nivel <= 25) return "BAIXO";
-            else if (nivel <= 50) return "MÉDIO";
-            else if (nivel <= 75) return "ALTO";
-            else return "CRÍTICO";
+            if (nivel < 10) return "BAIXO";
+            else if (nivel < 40) return "MÉDIO";
+            else if (nivel < 80) return "ALTO";
+            else return "EXTREMO";
         } catch (Exception e) {
             return "";
         }
