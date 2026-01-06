@@ -22,7 +22,7 @@ public class AvaliacaoRiscosTransformer {
             row.put("Classificação do Risco Inerente", classificarRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
             row.put("Controles Preventivos (descrever)", val(avaliacao.get("controlesPreventivos")));
             row.put("Controles de Atenuação e recuperação (descrever)", val(avaliacao.get("controlesAtenuacao")));
-            row.put("Avaliação dos Controles", ""); // Campo vazio para preenchimento
+            row.put("Avaliação dos Controles", mapearAvaliacaoControles(avaliacao.get("fac")));
             row.put("FAC", val(avaliacao.get("fac")));
             row.put("Risco Residual", calcularNivelResidual(avaliacao.get("probabilidade"), avaliacao.get("impacto"), avaliacao.get("fac")));
             row.put("Classificação do Risco Residual", classificarRiscoResidual(avaliacao.get("probabilidade"), avaliacao.get("impacto"), avaliacao.get("fac")));
@@ -34,6 +34,20 @@ public class AvaliacaoRiscosTransformer {
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
         result.put("ETAPA 3. AVALIAÇÃO DE RISCOS", rows);
         return result;
+    }
+
+    private static String mapearAvaliacaoControles(Object facObj) {
+        try {
+            double fac = Double.parseDouble(String.valueOf(facObj));
+            
+            if (fac <= 0.2) return "Forte";
+            else if (fac <= 0.4) return "Satisfatório";
+            else if (fac <= 0.6) return "Mediano";
+            else if (fac <= 0.8) return "Fraco";
+            else return "Inexistente";
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private static String calcularNivelRisco(Object probObj, Object impactoObj) {
@@ -81,10 +95,10 @@ public class AvaliacaoRiscosTransformer {
             double fac = Double.parseDouble(String.valueOf(facObj));
             double residual = prob * impacto * fac;
             
-            if (residual <= 12.5) return "BAIXO";
-            else if (residual <= 25) return "MÉDIO";
-            else if (residual <= 37.5) return "ALTO";
-            else return "CRÍTICO";
+            if (residual < 10) return "BAIXO";
+            else if (residual < 40) return "MÉDIO";
+            else if (residual < 80) return "ALTO";
+            else return "EXTREMO";
         } catch (Exception e) {
             return "";
         }
