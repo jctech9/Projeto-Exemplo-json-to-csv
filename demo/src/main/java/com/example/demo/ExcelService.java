@@ -1,6 +1,8 @@
 package com.example.demo;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -26,11 +28,18 @@ public class ExcelService {
                 List<String> headerList = new ArrayList<>(headers);
 
                 int r = 0;
+                // Estilo somente para cabeçalho em negrito
+                CellStyle headerStyle = wb.createCellStyle();
+                Font headerFont = wb.createFont();
+                headerFont.setBold(true);
+                headerStyle.setFont(headerFont);
+
                 // Linha de cabeçalho
                 Row headerRow = sheet.createRow(r++);
                 for (int c = 0; c < headerList.size(); c++) {
                     Cell cell = headerRow.createCell(c);
                     cell.setCellValue(headerList.get(c));
+                    cell.setCellStyle(headerStyle);
                 }
                 // Linhas de dados
                 for (Map<String, Object> row : rows) {
@@ -42,9 +51,9 @@ public class ExcelService {
                     }
                 }
                 
-                // Ajustar largura das colunas
+                // Ajustar largura das colunas automaticamente conforme conteúdo
                 for (int c = 0; c < headerList.size(); c++) {
-                    sheet.setColumnWidth(c, 9000);
+                    sheet.autoSizeColumn(c, true);
                 }
             }
             
