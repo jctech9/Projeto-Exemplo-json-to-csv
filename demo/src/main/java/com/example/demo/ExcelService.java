@@ -43,7 +43,7 @@ public class ExcelService {
                 }
 
                 for (int c = 0; c < headerList.size(); c++) {
-                    sheet.setColumnWidth(c, 7000);
+                    sheet.setColumnWidth(c, 9000);
                 }
             }
 

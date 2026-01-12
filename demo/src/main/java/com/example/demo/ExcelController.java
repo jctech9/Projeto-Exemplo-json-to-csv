@@ -107,7 +107,7 @@ public class ExcelController {
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
         
         try {
-            // Ordem correta: ETAPA 1 → ETAPA 2 → ETAPA 3 → ETAPA 4 → ETAPA 5 → OCORRÊNCIAS
+            // Ordem correta: ETAPA 1 -> ETAPA 2 -> ETAPA 3 -> ETAPA 4 -> ETAPA 5 -> OCORRENCIAS
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", DadosProcessoTransformer::transform);
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/riscos", IdentificacaoEventosTransformer::transform);
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/avaliacoesRiscoControle", AvaliacaoRiscosTransformer::transform);
