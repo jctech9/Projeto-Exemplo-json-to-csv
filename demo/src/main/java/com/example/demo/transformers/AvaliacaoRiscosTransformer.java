@@ -15,9 +15,9 @@ public class AvaliacaoRiscosTransformer {
             Map<String, Object> row = new LinkedHashMap<>();
 
             row.put("Evento de Risco", getNestedString(avaliacao, "risco", "nome"));
-            row.put("P", val(avaliacao.get("probabilidade"))); // Abreviação de Probabilidade
+            row.put("P", val(avaliacao.get("probabilidade"))); 
             row.put("Impacto", val(avaliacao.get("impacto")));
-            row.put("I", val(avaliacao.get("impacto"))); // Abreviação de Impacto
+            row.put("I", val(avaliacao.get("impacto"))); 
             row.put("Risco Inerente (PxI)", calcularNivelRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
             row.put("Classificação do Risco Inerente", classificarRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
             row.put("Controles Preventivos (descrever)", val(avaliacao.get("controlesPreventivos")));

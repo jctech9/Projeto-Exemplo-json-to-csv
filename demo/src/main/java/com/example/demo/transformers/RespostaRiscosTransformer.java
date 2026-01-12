@@ -15,7 +15,7 @@ public class RespostaRiscosTransformer {
         for (Map<String, Object> respostaRisco : getContent(input)) {
             Map<String, Object> row = new LinkedHashMap<>();
             Map<String, Object> risco = asMap(respostaRisco.get("risco"));
-
+            // Extrai informações do risco associado
             if (risco != null) {
                 row.put("Processo", getNestedString(risco, "processo", "nome"));
                 row.put("Fase", val(risco.get("faseProcesso")));
@@ -31,7 +31,7 @@ public class RespostaRiscosTransformer {
 
             rows.add(row);
         }
-
+        
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
         result.put("ETAPA 4. RESPOSTA AOS RISCOS", rows);
         return result;
