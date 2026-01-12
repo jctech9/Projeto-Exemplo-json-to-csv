@@ -12,13 +12,13 @@ import java.util.*;
 
 @Service
 public class ExcelService {
-
+    // Gera um arquivo XLSX em bytes a partir dos dados das etapas
     public byte[] generateXlsx(Map<String, List<Map<String, Object>>> etapas) throws IOException {
         try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             for (Map.Entry<String, List<Map<String, Object>>> entry : etapas.entrySet()) {
                 XSSFSheet sheet = wb.createSheet(entry.getKey());
                 List<Map<String, Object>> rows = entry.getValue();
-
+                // Cabeçalhos: coletar todas as chaves únicas
                 LinkedHashSet<String> headers = new LinkedHashSet<>();
                 for (Map<String, Object> row : rows) {
                     headers.addAll(row.keySet());
@@ -42,9 +42,9 @@ public class ExcelService {
                     }
                 }
                 
-                // Ajustar largura das colunas automaticamente conforme conteúdo
+                // Ajustar largura das colunas
                 for (int c = 0; c < headerList.size(); c++) {
-                    sheet.autoSizeColumn(c, true);
+                    sheet.setColumnWidth(c, 9000);
                 }
             }
             

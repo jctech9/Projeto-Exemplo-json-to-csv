@@ -8,17 +8,18 @@ public final class TransformerUtils {
     private TransformerUtils() {
         // utilitário, não instanciar
     }
-
+    
+    // Retorna uma string vazia para valores nulos
     public static String val(Object v) {
         return v == null ? "" : String.valueOf(v);
     }
-
+    // Converte um objeto em mapa
     @SuppressWarnings("unchecked")
     public static Map<String, Object> asMap(Object v) {
         return v instanceof Map<?, ?> m ? (Map<String, Object>) m : null;
     }
 
-    /** Retorna a lista content já filtrada para Map. */
+    // Retorna a lista content já filtrada para Map.
     @SuppressWarnings("unchecked")
     public static List<Map<String, Object>> getContent(Map<String, Object> input) {
         Object contentObj = input.get("content");
@@ -30,7 +31,7 @@ public final class TransformerUtils {
         return out;
     }
 
-    /** Navegação segura em mapas aninhados. */
+    // Navegação segura em mapas aninhados.
     @SuppressWarnings("unchecked")
     public static String getNestedString(Map<String, Object> map, String... path) {
         Object curr = map;

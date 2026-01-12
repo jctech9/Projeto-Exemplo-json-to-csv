@@ -111,18 +111,18 @@ public class ExcelController {
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", DadosProcessoTransformer::transform);
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/riscos", IdentificacaoEventosTransformer::transform);
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/avaliacoesRiscoControle", AvaliacaoRiscosTransformer::transform);
-            //addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/respostasRisco", RespostaRiscosTransformer::transform);
-            //addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/atividadeControles", AtividadeControleTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/respostasRisco", RespostaRiscosTransformer::transform);
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/atividadeControles", AtividadeControleTransformer::transform);
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/ocorrenciasRisco", OcorrenciaRiscoTransformer::transform);
             
         } catch (Exception e) {
             return ResponseEntity.status(500).body(("Erro ao buscar dados da API: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
         }
-        
+        // Se nenhuma aba foi detectada, retorna 204 (sem conteúdo)
         if (allSheets.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-
+        // Gerar Excel
         byte[] bytes = excelService.generateXlsx(allSheets);
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=dados.xlsx");
