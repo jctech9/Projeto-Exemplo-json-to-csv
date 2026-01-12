@@ -1,33 +1,32 @@
 
-1. INICIAR O SERVIDOR SPRING BOOT - Windows
 
-Comando:
-  .\mvnw spring-boot:run
+1. INICIAR SERVIDOR NO WINDOWS
+   .\mvnw spring-boot:run
 
+2. EXPORTAR JSON LOCAL
+   curl.exe -X POST http://localhost:8080/export/xlsx ^
+     -H "Content-Type: application/json" ^
+     -d "@json/01-processo-controller.json" ^
+     -o saida.xlsx
 
-2. TESTE COM ARQUIVO JSON LOCAL
+3. EXPORTAR JSON REMOTO (API)
+   curl.exe -X POST http://localhost:8080/export/xlsx/auto -o saida.xlsx
 
-Comando:
-  curl.exe -X POST http://localhost:8080/export/xlsx `
-    -H "Content-Type: application/json" `
-    -d "@formatoPadrao.json" `
-    -o dados.xlsx
+4. FORMATO JSON
+   {
+     "NomeAba1": [
+       {"coluna1": "valor1", "coluna2": "valor2"},
+       {"coluna1": "valor3", "coluna2": "valor4"}
+     ],
+     "NomeAba2": [...]
+   }
 
-Resultado:
-  - Arquivo "dados.xlsx" gerado na pasta demo
+ENDPOINTS:
+  POST /export/xlsx      - JSON no body
+  POST /export/xlsx/auto - JSON de API externa
 
-
-3. TESTE COM ARQUIVO JSON REMOTO VIA API
-
-curl.exe -X POST http://localhost:8080/export/xlsx/auto -o dados.xlsx
-
-
-4. FORMATO JSON ACEITO - ExcelService.java
-
-O endpoint aceita um objeto JSON onde:
-  - Cada chave = nome da aba no Excel
-  - Cada valor = array de objetos (linhas da aba)
-  - Cada objeto = conjunto chave-valor (colunas)
-
+LOCALIZAÇÃO:
+  Projeto: demo/
+  JSONs exemplo: demo/json/
 
 
