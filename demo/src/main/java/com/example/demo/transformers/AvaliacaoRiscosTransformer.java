@@ -35,7 +35,7 @@ public class AvaliacaoRiscosTransformer {
         result.put("ETAPA 3. AVALIAÇÃO DE RISCOS", rows);
         return result;
     }
-
+    // Mapeia o valor FAC 
     private static String mapearAvaliacaoControles(Object facObj) {
         try {
             double fac = Double.parseDouble(String.valueOf(facObj));
@@ -49,7 +49,7 @@ public class AvaliacaoRiscosTransformer {
             return "";
         }
     }
-
+    // Calcula o nível de risco inerente (P x I)
     private static String calcularNivelRisco(Object probObj, Object impactoObj) {
         try {
             int prob = Integer.parseInt(String.valueOf(probObj));
@@ -60,7 +60,7 @@ public class AvaliacaoRiscosTransformer {
             return "";
         }
     }
-
+    // Classifica o risco inerente com base no nível
     private static String classificarRisco(Object probObj, Object impactoObj) {
         try {
             int prob = Integer.parseInt(String.valueOf(probObj));
@@ -75,7 +75,7 @@ public class AvaliacaoRiscosTransformer {
             return "";
         }
     }
-
+    // Calcula o nível de risco residual (P x I x FAC)
     private static String calcularNivelResidual(Object probObj, Object impactoObj, Object facObj) {
         try {
             int prob = Integer.parseInt(String.valueOf(probObj));
@@ -87,7 +87,7 @@ public class AvaliacaoRiscosTransformer {
             return "";
         }
     }
-
+    // Classifica o risco residual com base no nível
     private static String classificarRiscoResidual(Object probObj, Object impactoObj, Object facObj) {
         try {
             int prob = Integer.parseInt(String.valueOf(probObj));

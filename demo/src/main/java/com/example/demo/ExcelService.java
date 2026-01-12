@@ -32,7 +32,7 @@ public class ExcelService {
                     Cell cell = headerRow.createCell(c);
                     cell.setCellValue(headerList.get(c));
                 }
-
+                // Linhas de dados
                 for (Map<String, Object> row : rows) {
                     Row dataRow = sheet.createRow(r++);
                     for (int c = 0; c < headerList.size(); c++) {
@@ -41,12 +41,13 @@ public class ExcelService {
                         cell.setCellValue(val == null ? "" : String.valueOf(val));
                     }
                 }
-
+                
+                // Ajustar largura das colunas
                 for (int c = 0; c < headerList.size(); c++) {
                     sheet.setColumnWidth(c, 9000);
                 }
             }
-
+            
             wb.write(out);
             return out.toByteArray();
         }
