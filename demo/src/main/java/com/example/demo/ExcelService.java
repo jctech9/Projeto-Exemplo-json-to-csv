@@ -42,9 +42,9 @@ public class ExcelService {
                     }
                 }
                 
-                // Ajustar largura das colunas
+                // Ajustar largura das colunas automaticamente conforme conteúdo
                 for (int c = 0; c < headerList.size(); c++) {
-                    sheet.setColumnWidth(c, 9000);
+                    sheet.autoSizeColumn(c, true);
                 }
             }
             
