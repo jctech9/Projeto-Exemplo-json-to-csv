@@ -28,18 +28,23 @@ public class ExcelService {
                 List<String> headerList = new ArrayList<>(headers);
 
                 int r = 0;
-                // Estilo somente para cabeçalho em negrito
+                
+                // ==================== ESTILIZAÇÃO DOS CABEÇALHOS ====================
+                // Cria um estilo personalizado para os cabeçalhos
                 CellStyle headerStyle = wb.createCellStyle();
+                // Cria uma fonte em negrito
                 Font headerFont = wb.createFont();
                 headerFont.setBold(true);
+                // Aplica a fonte ao estilo
                 headerStyle.setFont(headerFont);
+                
 
                 // Linha de cabeçalho
                 Row headerRow = sheet.createRow(r++);
                 for (int c = 0; c < headerList.size(); c++) {
                     Cell cell = headerRow.createCell(c);
                     cell.setCellValue(headerList.get(c));
-                    cell.setCellStyle(headerStyle);
+                    cell.setCellStyle(headerStyle); // Aplica o estilo ao cabeçalho
                 }
                 // Linhas de dados
                 for (Map<String, Object> row : rows) {
