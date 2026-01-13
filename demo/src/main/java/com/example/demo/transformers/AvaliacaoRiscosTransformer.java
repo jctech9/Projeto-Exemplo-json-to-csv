@@ -3,9 +3,13 @@ package com.example.demo.transformers;
 import static com.example.demo.transformers.TransformerUtils.getContent;
 import static com.example.demo.transformers.TransformerUtils.getNestedString;
 import static com.example.demo.transformers.TransformerUtils.val;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class AvaliacaoRiscosTransformer {
+
+    private static final DateTimeFormatter FORMATTER_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     // Aba ETAPA 3: Probabilidade, Impacto e cálculos de risco
     public static Map<String, List<Map<String, Object>>> transform(Map<String, Object> input) {
@@ -26,7 +30,7 @@ public class AvaliacaoRiscosTransformer {
             row.put("FAC", val(avaliacao.get("fac")));
             row.put("Risco Residual", calcularNivelResidual(avaliacao.get("probabilidade"), avaliacao.get("impacto"), avaliacao.get("fac")));
             row.put("Classificação do Risco Residual", classificarRiscoResidual(avaliacao.get("probabilidade"), avaliacao.get("impacto"), avaliacao.get("fac")));
-            row.put("Data da Última Avaliação", val(avaliacao.get("dataUltimaAvaliacao")));
+            row.put("Data da Última Avaliação", formatarData(avaliacao.get("dataUltimaAvaliacao")));
 
             rows.add(row);
         }
@@ -35,6 +39,7 @@ public class AvaliacaoRiscosTransformer {
         result.put("ETAPA 3. AVALIAÇÃO DE RISCOS", rows);
         return result;
     }
+  
     // Mapeia o valor FAC 
     private static String mapearAvaliacaoControles(Object facObj) {
         try {
@@ -101,6 +106,16 @@ public class AvaliacaoRiscosTransformer {
             else return "EXTREMO";
         } catch (Exception e) {
             return "";
+        }
+    }
+    // Formata a data no padrão dd/MM/yyyy
+    private static String formatarData(Object data) {
+        if (data == null || data.toString().isEmpty()) return "";
+        try {
+            LocalDate date = LocalDate.parse(data.toString());
+            return date.format(FORMATTER_BR);
+        } catch (Exception e) {
+            return val(data); // retorna o valor original se não conseguir converter
         }
     }
 
