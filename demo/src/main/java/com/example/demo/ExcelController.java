@@ -99,6 +99,7 @@ public class ExcelController {
                 .body(bytes);
     }
 
+/*
     // Busca JSONs localmente da pasta json/ e gera Excel
     @PostMapping("/xlsx/auto")
     public ResponseEntity<byte[]> exportAuto() throws IOException {
@@ -151,27 +152,46 @@ public class ExcelController {
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(bytes);
     }
-
-    // Endpoint para buscar dados via API externa e gerar Excel
-    @GetMapping("/xlsx/api")
+*/
+    // Endpoint para buscar dados via API externa e gerar Excel com ID fornecido
+    @PostMapping("/xlsx/api")
     public ResponseEntity<byte[]> exportFromApi(
-            @org.springframework.web.bind.annotation.RequestParam(value = "baseUrl", defaultValue = "http://localhost:8090") String baseUrl
+            @org.springframework.web.bind.annotation.RequestParam(value = "baseUrl", defaultValue = "http://localhost:8090") String baseUrl,
+            @RequestBody(required = false) Map<String, Integer> body
     ) throws IOException {
         RestTemplate restTemplate = new RestTemplate();
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
-        java.util.concurrent.atomic.AtomicInteger mainProcessId = new java.util.concurrent.atomic.AtomicInteger(-1);
+        
+        // Se o ID for passado no corpo, usa ele. Senão inicia com -1 para capturar o primeiro
+        java.util.concurrent.atomic.AtomicInteger mainProcessId = new java.util.concurrent.atomic.AtomicInteger(
+            (body != null && body.containsKey("id")) ? body.get("id") : -1
+        );
         
         try {
-            // Buscar dados das ETAPAs
+            // Se já temos um ID específico, filtramos processos por esse ID também
+            // Se mainProcessId for -1, a lógica interna do lambda vai capturar o primeiro ID que encontrar
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", data -> {
                 List<Map<String, Object>> content = getList(data);
                 if (content != null && !content.isEmpty()) {
-                    Map<String, Object> first = content.get(0);
-                    Object id = first.get("id");
-                    if (id instanceof Number) {
-                        mainProcessId.set(((Number) id).intValue());
+                    if (mainProcessId.get() == -1) {
+                         // Lógica antiga: pega o primeiro
+                        Map<String, Object> first = content.get(0);
+                        Object id = first.get("id");
+                        if (id instanceof Number) {
+                            mainProcessId.set(((Number) id).intValue());
+                        }
+                        data.put("content", java.util.Collections.singletonList(first));
+                    } else {
+                        // Nova lógica: Filtra pelo ID fornecido no POST
+                        List<Map<String, Object>> filteredInfo = new java.util.ArrayList<>();
+                        for (Map<String, Object> p : content) {
+                             if (checkId(p, mainProcessId.get(), new java.util.HashMap<>())) { // Cache vazio, check direto
+                                 filteredInfo.add(p);
+                                 break; // Assume 1 processo por ID
+                             }
+                        }
+                        data.put("content", filteredInfo);
                     }
-                    data.put("content", java.util.Collections.singletonList(first));
                 }
                 return DadosProcessoTransformer.transform(data);
             });
@@ -202,6 +222,7 @@ public class ExcelController {
                 .body(bytes);
     }
 
+/*
     private void addSheetIfFileExists(Map<String, List<Map<String, Object>>> allSheets, ObjectMapper objectMapper,
             Path jsonFolder, String filename, java.util.function.Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer) {
         try {
@@ -218,7 +239,7 @@ public class ExcelController {
             // Ignora se arquivo não existir
         }
     }
-
+*/
     private void addSheetIfAvailable(Map<String, List<Map<String, Object>>> allSheets, RestTemplate restTemplate, 
             String baseUrl, String endpoint, java.util.function.Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer) {
         try {
