@@ -1,32 +1,17 @@
 
+ANTES DE EXECUTAR O PROJETO, É PRECISO ESTÁ LOGADO NO SISTEMA GESTÃO DE RISCOS
 
-1. INICIAR SERVIDOR NO WINDOWS
+OS COMANDOS ABAIXO SÃO PARA WINDOWS 
+
+1. INICIAR SERVIDOR NO WINDOWS- dentro da pasta do projeto demo execute: no powwershell
    .\mvnw spring-boot:run
 
-2. EXPORTAR JSON LOCAL
-   curl.exe -X POST http://localhost:8080/export/xlsx ^
-     -H "Content-Type: application/json" ^
-     -d "@json/01-processo-controller.json" ^
-     -o saida.xlsx
+2. EXPORTAR JSON REMOTO (API)
+   
+  2.1. EXPORTAR JSON REMOTO (API) PASSANDO ID
+    curl -X POST "http://localhost:8080/export/xlsx/api" -H "Content-Type: application/json" -d "{\"id\": 63}" -o "saida.xlsx"
 
-3. EXPORTAR JSON REMOTO (API)
-   curl.exe -X POST http://localhost:8080/export/xlsx/auto -o saida.xlsx
-
-4. FORMATO JSON
-   {
-     "NomeAba1": [
-       {"coluna1": "valor1", "coluna2": "valor2"},
-       {"coluna1": "valor3", "coluna2": "valor4"}
-     ],
-     "NomeAba2": [...]
-   }
-
-ENDPOINTS:
-  POST /export/xlsx      - JSON no body
-  POST /export/xlsx/auto - JSON de API externa
-
-LOCALIZAÇÃO:
-  Projeto: demo/
-  JSONs exemplo: demo/json/
-
-
+------------------TODO------------------
+falhas encontradas:
+1.validação de valore nulos vindos do json (PROVAVEL FALHA, ALGUNS CAMPOS PODEM VIREM NULOS)
+2.personalizar estilo do xlsx
