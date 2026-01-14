@@ -20,6 +20,7 @@ import com.example.demo.transformers.OcorrenciaRiscoTransformer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -98,25 +99,26 @@ public class ExcelController {
                 .body(bytes);
     }
 
-    // Busca JSONs via API e gera Excel
+    // Busca JSONs localmente da pasta json/ e gera Excel
     @PostMapping("/xlsx/auto")
-    public ResponseEntity<byte[]> exportAuto(
-            @org.springframework.web.bind.annotation.RequestParam(value = "baseUrl", defaultValue = "http://localhost:8090") String baseUrl
-    ) throws IOException {
-        RestTemplate restTemplate = new RestTemplate();
+    public ResponseEntity<byte[]> exportAuto() throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
         
         try {
+            // Define o caminho da pasta json (relativo ao projeto)
+            Path jsonFolder = Paths.get("json");
+            
             // Ordem correta: ETAPA 1 -> ETAPA 2 -> ETAPA 3 -> ETAPA 4 -> ETAPA 5 -> OCORRENCIAS
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", DadosProcessoTransformer::transform);
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/riscos", IdentificacaoEventosTransformer::transform);
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/avaliacoesRiscoControle", AvaliacaoRiscosTransformer::transform);
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/respostasRisco", RespostaRiscosTransformer::transform);
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/atividadeControles", AtividadeControleTransformer::transform);
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/ocorrenciasRisco", OcorrenciaRiscoTransformer::transform);
+            addSheetIfFileExists(allSheets, objectMapper, jsonFolder, "01-processo-controller.json", DadosProcessoTransformer::transform);
+            addSheetIfFileExists(allSheets, objectMapper, jsonFolder, "02-risco-controller.json", IdentificacaoEventosTransformer::transform);
+            addSheetIfFileExists(allSheets, objectMapper, jsonFolder, "03.avalicao-risco-controle-controller.json", AvaliacaoRiscosTransformer::transform);
+            addSheetIfFileExists(allSheets, objectMapper, jsonFolder, "04-resposta-risco-controller.json", RespostaRiscosTransformer::transform);
+            addSheetIfFileExists(allSheets, objectMapper, jsonFolder, "05-atividade-controle-controller.json", AtividadeControleTransformer::transform);
+            addSheetIfFileExists(allSheets, objectMapper, jsonFolder, "ocorrencia-risco-controller.json", OcorrenciaRiscoTransformer::transform);
             
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(("Erro ao buscar dados da API: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
+            return ResponseEntity.status(500).body(("Erro ao ler arquivos JSON locais: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
         }
         // Se nenhuma aba foi detectada, retorna 204 (sem conteúdo)
         if (allSheets.isEmpty()) {
@@ -168,6 +170,23 @@ public class ExcelController {
                 .contentLength(bytes.length)
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(bytes);
+    }
+
+    private void addSheetIfFileExists(Map<String, List<Map<String, Object>>> allSheets, ObjectMapper objectMapper,
+            Path jsonFolder, String filename, java.util.function.Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer) {
+        try {
+            Path filePath = jsonFolder.resolve(filename);
+            if (Files.exists(filePath)) {
+                String jsonContent = new String(Files.readAllBytes(filePath), StandardCharsets.UTF_8);
+                @SuppressWarnings("unchecked")
+                Map<String, Object> data = objectMapper.readValue(jsonContent, Map.class);
+                if (data != null) {
+                    allSheets.putAll(transformer.apply(data));
+                }
+            }
+        } catch (Exception e) {
+            // Ignora se arquivo não existir
+        }
     }
 
     private void addSheetIfAvailable(Map<String, List<Map<String, Object>>> allSheets, RestTemplate restTemplate, 
