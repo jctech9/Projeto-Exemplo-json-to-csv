@@ -16,6 +16,7 @@ import com.example.demo.transformers.IdentificacaoEventosTransformer;
 import com.example.demo.transformers.AvaliacaoRiscosTransformer;
 import com.example.demo.transformers.AtividadeControleTransformer;
 import com.example.demo.transformers.OcorrenciaRiscoTransformer;
+import com.example.demo.transformers.RefResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
@@ -40,6 +41,9 @@ public class ExcelController {
 
     @PostMapping("/xlsx")
     public ResponseEntity<byte[]> exportToXlsx(@RequestBody Map<String, Object> payload) throws IOException {
+        // Hidrata @ref antes da transformação
+        RefResolver.resolve(payload);
+
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
         
         // Detecta payload combinado ou JSON direto
@@ -197,11 +201,60 @@ public class ExcelController {
             });
             
             // Demais etapas filtradas
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/riscos", filterByProcess(IdentificacaoEventosTransformer::transform, mainProcessId));
+            // Riscos: filtra por processo e coleta os IDs dos riscos filtrados para usar nas ocorrências
+            java.util.Set<Integer> riscoIdsDoProcesso = new java.util.HashSet<>();
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/riscos", data -> {
+                // Aplica o filtro por processo
+                if (mainProcessId.get() != -1) {
+                    List<Map<String, Object>> content = getList(data);
+                    if (content != null) {
+                        List<Map<String, Object>> filtered = new java.util.ArrayList<>();
+                        Map<String, Integer> refCache = new java.util.HashMap<>();
+                        for (Map<String, Object> item : content) {
+                            if (isRelatedToProcess(item, mainProcessId.get(), refCache)) {
+                                filtered.add(item);
+                                // Coleta o ID do risco
+                                Object riscoId = item.get("id");
+                                if (riscoId instanceof Number) {
+                                    riscoIdsDoProcesso.add(((Number) riscoId).intValue());
+                                }
+                            }
+                        }
+                        data.put("content", filtered);
+                    }
+                }
+                return IdentificacaoEventosTransformer.transform(data);
+            });
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/avaliacoesRiscoControle", filterByProcess(AvaliacaoRiscosTransformer::transform, mainProcessId));
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/respostasRisco", filterByProcess(RespostaRiscosTransformer::transform, mainProcessId));
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/atividadeControles", filterByProcess(AtividadeControleTransformer::transform, mainProcessId));
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/ocorrenciasRisco", filterByProcess(OcorrenciaRiscoTransformer::transform, mainProcessId));
+            
+            // Ocorrências de Risco: busca por cada risco do processo usando /ocorrenciasRisco/risco/{riscoId}
+            if (!riscoIdsDoProcesso.isEmpty()) {
+                List<Map<String, Object>> todasOcorrencias = new java.util.ArrayList<>();
+                for (Integer riscoId : riscoIdsDoProcesso) {
+                    try {
+                        String url = baseUrl + "/ocorrenciasRisco/risco/" + riscoId + "?page=0&size=999999";
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> ocData = restTemplate.getForObject(url, Map.class);
+                        if (ocData != null) {
+                            List<Map<String, Object>> ocContent = getList(ocData);
+                            if (ocContent != null) {
+                                todasOcorrencias.addAll(ocContent);
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[EXPORT] Erro ao buscar ocorrências do risco " + riscoId + ": " + e.getMessage());
+                    }
+                }
+                if (!todasOcorrencias.isEmpty()) {
+                    Map<String, Object> ocPayload = new LinkedHashMap<>();
+                    ocPayload.put("content", todasOcorrencias);
+                    // Hidrata @ref antes da transformação
+                    RefResolver.resolve(ocPayload);
+                    allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocPayload));
+                }
+            }
             
         } catch (Exception e) {
             return ResponseEntity.status(500).body(("Erro ao buscar dados da API: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
@@ -247,6 +300,8 @@ public class ExcelController {
             @SuppressWarnings("unchecked")
             Map<String, Object> data = restTemplate.getForObject(url, Map.class);
             if (data != null) {
+                // Hidrata @ref antes da transformação
+                RefResolver.resolve(data);
                 allSheets.putAll(transformer.apply(data));
             }
         } catch (Exception e) {
