@@ -243,13 +243,14 @@ public class ExcelController {
     private void addSheetIfAvailable(Map<String, List<Map<String, Object>>> allSheets, RestTemplate restTemplate, 
             String baseUrl, String endpoint, java.util.function.Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer) {
         try {
+            String url = baseUrl + endpoint + "?page=0&size=999999";
             @SuppressWarnings("unchecked")
-            Map<String, Object> data = restTemplate.getForObject(baseUrl + endpoint, Map.class);
+            Map<String, Object> data = restTemplate.getForObject(url, Map.class);
             if (data != null) {
                 allSheets.putAll(transformer.apply(data));
             }
         } catch (Exception e) {
-            // Ignora se endpoint não existir
+            System.err.println("[EXPORT] Erro ao buscar " + endpoint + ": " + e.getMessage());
         }
     }
 
@@ -309,6 +310,12 @@ public class ExcelController {
                  Map<String, Object> proc = (Map<String, Object>) procViaRisco;
                  if (checkId(proc, pid, refCache)) return true;
             }
+        }
+
+        // Se o item não tem link direto com processo nem risco.processo,
+        // inclui o item (ex: ocorrências de risco que não possuem essa associação)
+        if (procObj == null && riscoObj == null) {
+            return true;
         }
         return false;
     }
