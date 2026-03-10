@@ -1,9 +1,9 @@
 package com.example.demo;
 
+import com.example.demo.service.ExcelService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,10 +17,6 @@ import com.example.demo.transformers.AvaliacaoRiscosTransformer;
 import com.example.demo.transformers.AtividadeControleTransformer;
 import com.example.demo.transformers.OcorrenciaRiscoTransformer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.util.LinkedHashMap;
