@@ -10,11 +10,23 @@ public class IdentificacaoEventosTransformer {
     // Aba ETAPA 2: Identificação e categorização de riscos
     public static Map<String, List<Map<String, Object>>> transform(Map<String, Object> input) {
         List<Map<String, Object>> rows = new ArrayList<>();
-
+        String ultimoProcessoIdentificado = "";
         for (Map<String, Object> risco : getContent(input)) {
             Map<String, Object> row = new LinkedHashMap<>();
 
-            row.put("Processo", getNestedString(risco, "processo", "nome"));
+
+            String nomeProcesso = getNestedString(risco, "processo", "nome");
+
+            // LÓGICA DE REPETIÇÃO:
+            // Se o nome vier nulo ou vazio do backend, usamos o último que guardamos
+            if (nomeProcesso == null || nomeProcesso.isEmpty()) {
+                nomeProcesso = ultimoProcessoIdentificado;
+            } else {
+                // Se encontramos um nome novo, atualizamos a variável de memória
+                ultimoProcessoIdentificado = nomeProcesso;
+            }
+
+            row.put("Processo", nomeProcesso);
             row.put("Fase", val(risco.get("faseProcesso")));
             row.put("Evento de Risco (indicar)", val(risco.get("nome")));
             row.put("Tipo de Risco", val(risco.get("tipoRisco")));

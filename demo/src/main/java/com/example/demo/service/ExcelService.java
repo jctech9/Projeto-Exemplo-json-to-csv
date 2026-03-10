@@ -11,6 +11,11 @@ import java.util.*;
 
 @Service
 public class ExcelService {
+    private final IdentificacaoEventosService identificacaoEventosService;
+
+    public  ExcelService(IdentificacaoEventosService identificacaoEventosService) {
+        this.identificacaoEventosService = identificacaoEventosService;
+    }
 
     public byte[] generateXlsx(Map<String, List<Map<String, Object>>> etapas) throws IOException {
 
@@ -29,8 +34,15 @@ public class ExcelService {
             for (Map.Entry<String, List<Map<String, Object>>> entry : etapas.entrySet()) {
 
                 String sheetName = entry.getKey();
-                XSSFSheet sheet = wb.createSheet(sheetName);
                 List<Map<String, Object>> rows = entry.getValue();
+
+                if(sheetName.contains("ETAPA 2")) {
+                    identificacaoEventosService.generateSheet(wb, sheetName, rows);
+                    continue;
+                }
+
+                XSSFSheet sheet = wb.createSheet(sheetName);
+
 
                 LinkedHashSet<String> headers = new LinkedHashSet<>();
                 for (Map<String, Object> row : rows) {
@@ -263,7 +275,24 @@ public class ExcelService {
                 }
 
                 for (int c = 0; c < headerList.size(); c++) {
-                    sheet.autoSizeColumn(c);
+
+                    String header = headerList.get(c);
+
+                    if (header.equals("P") || header.equals("I") || header.equals("FAC")) {
+                        sheet.setColumnWidth(c, 1500);
+                    }
+                    else if (header.contains("Classificação") || header.contains("Avaliação") || header.contains("Data Última Avaliação")) {
+                        sheet.setColumnWidth(c, 8000);
+                    }
+                    else if (header.contains("Evento de Risco")) {
+                        sheet.setColumnWidth(c, 30000);
+                    }
+                    else if (header.contains("Controles Preventivos") || header.contains("Controles de Atenuação e recuperação")) {
+                        sheet.setColumnWidth(c, 20000);
+                    }
+                    else {
+                        sheet.setColumnWidth(c, 4500);
+                    }
                 }
             }
 
