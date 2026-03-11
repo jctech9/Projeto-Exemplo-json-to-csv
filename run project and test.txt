@@ -1,4 +1,3 @@
-
 ANTES DE EXECUTAR O PROJETO, É PRECISO ESTÁ LOGADO NO SISTEMA GESTÃO DE RISCOS
 
 OS COMANDOS ABAIXO SÃO PARA WINDOWS 
@@ -11,7 +10,14 @@ OS COMANDOS ABAIXO SÃO PARA WINDOWS
   2.1. EXPORTAR JSON REMOTO (API) PASSANDO ID
     curl -X POST "http://localhost:8080/export/xlsx/api" -H "Content-Type: application/json" -d "{\"id\": 63}" -o "saida.xlsx"
 
+-------------REQUISIÇÃO VIA URL-----------------
+http://localhost:8080/export/xlsx/api?id=76
+
+
 ------------------TODO------------------
 falhas encontradas:
-1.validação de valore nulos vindos do json (PROVAVEL FALHA, ALGUNS CAMPOS PODEM VIREM NULOS)
+
 2.personalizar estilo do xlsx
+
+
+
