@@ -157,6 +157,20 @@ public class ExcelController {
                 .body(bytes);
     }
 */
+    // Endpoint GET para abrir no navegador: /export/xlsx/api?id=63
+    @GetMapping("/xlsx/api")
+    public ResponseEntity<byte[]> exportFromApiGet(
+            @org.springframework.web.bind.annotation.RequestParam(value = "baseUrl", defaultValue = "http://localhost:8090") String baseUrl,
+            @org.springframework.web.bind.annotation.RequestParam(value = "id", required = false) Integer id
+    ) throws IOException {
+        Map<String, Integer> body = null;
+        if (id != null) {
+            body = new java.util.HashMap<>();
+            body.put("id", id);
+        }
+        return exportFromApi(baseUrl, body);
+    }
+
     // Endpoint para buscar dados via API externa e gerar Excel com ID fornecido
     @PostMapping("/xlsx/api")
     public ResponseEntity<byte[]> exportFromApi(
