@@ -35,20 +35,14 @@ public class OcorrenciaRiscoTransformer {
     }
 
     private static String extrairEventoRisco(Map<?, ?> ocorrencia) {
-        // Tentar extrair de diferentes campos possíveis
-        Map<String, Object> eventoRisco = asMap(ocorrencia.get("eventoRisco"));
-        String evento = eventoRisco == null ? "" : val(eventoRisco.get("evento"));
-        if (!evento.isEmpty()) return evento;
-
+        // Extrair nome do risco associado à ocorrência
         Map<String, Object> risco = asMap(ocorrencia.get("risco"));
         if (risco != null) {
-            String ev = val(risco.get("evento"));
-            if (!ev.isEmpty()) return ev;
             String nome = val(risco.get("nome"));
             if (!nome.isEmpty()) return nome;
         }
 
-        // fallback final: usa a própria descrição da ocorrência
+        // fallback: usa a própria descrição da ocorrência
         return val(ocorrencia.get("descricao"));
     }
     

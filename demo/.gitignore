@@ -4,6 +4,7 @@ target/
 
 *.csv
 *.xlsx
+*.bat
 
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
