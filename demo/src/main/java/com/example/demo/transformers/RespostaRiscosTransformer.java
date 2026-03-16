@@ -12,6 +12,8 @@ public class RespostaRiscosTransformer {
     public static Map<String, List<Map<String, Object>>> transform(Map<String, Object> input) {
         List<Map<String, Object>> rows = new ArrayList<>();
 
+        String ultimoProcesso = "";
+
         for (Map<String, Object> respostaRisco : getContent(input)) {
             Map<String, Object> row = new LinkedHashMap<>();
             Map<String, Object> risco = asMap(respostaRisco.get("risco"));
@@ -21,7 +23,7 @@ public class RespostaRiscosTransformer {
                 row.put("Fase", val(risco.get("faseProcesso")));
                 row.put("Evento de Risco", val(risco.get("nome")));
             } else {
-                row.put("Processo", "");
+                row.put("Processo", ultimoProcesso);
                 row.put("Fase", "");
                 row.put("Evento de Risco", "");
             }
