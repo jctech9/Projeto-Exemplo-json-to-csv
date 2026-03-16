@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.*;
 import org.springframework.stereotype.Service;
 
@@ -88,7 +87,6 @@ public class ExcelService {
                 for (Map<String, Object> rowData : rows) {
 
                     Row dataRow = sheet.createRow(r++);
-                    int rowNum = dataRow.getRowNum() + 1;
 
                     for (int c = 0; c < headerList.size(); c++) {
 
