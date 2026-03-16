@@ -12,10 +12,13 @@ import java.util.*;
 @Service
 public class AvaliacaoRiscosService {
 
-    public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows, XSSFColor npiPink) {
+    public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
 
         XSSFSheet sheet = wb.createSheet(sheetName);
         int r = 0;
+
+        byte[] rgbPink = new byte[]{(byte) 230, (byte) 145, (byte) 145};
+        XSSFColor npiPink = new XSSFColor(rgbPink, null);
 
         // ----- estilo rosa -----
         XSSFCellStyle pinkStyle = wb.createCellStyle();
