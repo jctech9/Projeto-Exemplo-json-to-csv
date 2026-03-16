@@ -11,10 +11,13 @@ import java.util.*;
 
 @Service
 public class ExcelService {
+    private final RespostaRiscosService respostaRiscosService;
     private final IdentificacaoEventosService identificacaoEventosService;
 
-    public  ExcelService(IdentificacaoEventosService identificacaoEventosService) {
+    public  ExcelService(IdentificacaoEventosService identificacaoEventosService,
+                         RespostaRiscosService respostaRiscosService) {
         this.identificacaoEventosService = identificacaoEventosService;
+        this.respostaRiscosService = respostaRiscosService;
     }
 
     public byte[] generateXlsx(Map<String, List<Map<String, Object>>> etapas) throws IOException {
@@ -38,6 +41,10 @@ public class ExcelService {
 
                 if(sheetName.contains("ETAPA 2")) {
                     identificacaoEventosService.generateSheet(wb, sheetName, rows);
+                    continue;
+                }
+                if(sheetName.contains("ETAPA 4")){
+                    respostaRiscosService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
