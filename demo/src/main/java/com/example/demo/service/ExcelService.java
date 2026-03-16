@@ -13,11 +13,13 @@ import java.util.*;
 public class ExcelService {
     private final RespostaRiscosService respostaRiscosService;
     private final IdentificacaoEventosService identificacaoEventosService;
+    private final AtividadesControleService atividadesControleService;
 
     public  ExcelService(IdentificacaoEventosService identificacaoEventosService,
-                         RespostaRiscosService respostaRiscosService) {
+                         RespostaRiscosService respostaRiscosService, AtividadesControleService atividadesControleService) {
         this.identificacaoEventosService = identificacaoEventosService;
         this.respostaRiscosService = respostaRiscosService;
+        this.atividadesControleService = atividadesControleService;
     }
 
     public byte[] generateXlsx(Map<String, List<Map<String, Object>>> etapas) throws IOException {
@@ -45,6 +47,10 @@ public class ExcelService {
                 }
                 if(sheetName.contains("ETAPA 4")){
                     respostaRiscosService.generateSheet(wb, sheetName, rows);
+                    continue;
+                }
+                if(sheetName.contains("ETAPA 5")){
+                    atividadesControleService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
@@ -307,6 +313,7 @@ public class ExcelService {
             return out.toByteArray();
         }
     }
+
 
     private CellStyle createRGBStyle(XSSFWorkbook wb, byte[] rgb) {
 

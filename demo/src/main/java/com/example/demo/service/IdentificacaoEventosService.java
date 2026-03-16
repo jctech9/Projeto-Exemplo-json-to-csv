@@ -60,6 +60,8 @@ public class IdentificacaoEventosService {
         dataStyleCenter.setVerticalAlignment(VerticalAlignment.CENTER);
         dataStyleCenter.setWrapText(false);
 
+
+
         // Estilo à Esquerda (Processo, Evento, Causas, Consequências)
         CellStyle dataStyleLeft = wb.createCellStyle();
         applyBorders(dataStyleLeft);
@@ -74,7 +76,13 @@ public class IdentificacaoEventosService {
                 String headerName = headerList.get(c);
                 Cell cell = dataRow.createCell(c);
                 Object val = rowData.get(headerName);
-                cell.setCellValue(val == null ? "" : String.valueOf(val));
+                String text = val == null ? "" : String.valueOf(val);
+
+                if(!text.isEmpty()){
+                    text = text.substring(0,1).toUpperCase() + text.substring(1).toLowerCase();
+                }
+
+                cell.setCellValue(text);
 
                 // Aplica o estilo baseado no nome da coluna
                 if (headerName.equalsIgnoreCase("Processo") ||
@@ -99,9 +107,10 @@ public class IdentificacaoEventosService {
         int colCat = headers.indexOf("Categoria");
         int colIntegridade = headers.indexOf("Tipo de Risco de Integridade");
 
+
         if (colTipo != -1) applySelect(sheet, helper, new String[]{"Ameaça", "Oportunidade"}, colTipo);
-        if (colCat != -1) applySelect(sheet, helper, new String[]{"Integridade", "Estratégicos", "Operacionais", "Imagem/reputação", "Financeiro/conformidade"}, colCat);
-        if (colIntegridade != -1) applySelect(sheet, helper, new String[]{"Fraude", "Corrupção", "Desvio de Conduta", "Nepotismo"}, colIntegridade);
+        if (colCat != -1) applySelect(sheet, helper, new String[]{"Estratégico", "Financeiro/orçamentário", "Operacionais", "Legal/de conformidade", "Imagem/reputação", "Integridade"}, colCat);
+        if (colIntegridade != -1) applySelect(sheet, helper, new String[]{"Corrupção", "Fraude", "Desvio de conduta"}, colIntegridade);
     }
 
     private void applySelect(XSSFSheet sheet, DataValidationHelper helper, String[] opts, int col) {

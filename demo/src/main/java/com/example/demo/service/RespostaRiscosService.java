@@ -76,6 +76,8 @@ public class RespostaRiscosService {
             cell.setCellStyle(headerStyle);
         }
 
+        CellStyle textStyle = wb.createCellStyle();
+        textStyle.setAlignment(HorizontalAlignment.LEFT);
         // ---------- DADOS ----------
         for(Map<String,Object> rowData : rows){
 
@@ -90,8 +92,13 @@ public class RespostaRiscosService {
             dataRow.createCell(2)
                     .setCellValue(String.valueOf(rowData.getOrDefault("Evento de Risco","")));
 
-            dataRow.createCell(3)
-                    .setCellValue(String.valueOf(rowData.getOrDefault("Opção de Tratamento","")));
+
+
+            Cell cellTratamento = dataRow.createCell(3);
+            cellTratamento.setCellValue(
+                    String.valueOf(rowData.getOrDefault("Opção de Tratamento",""))
+            );
+            cellTratamento.setCellStyle(textStyle);
 
             dataRow.createCell(4)
                     .setCellValue(String.valueOf(
@@ -100,20 +107,24 @@ public class RespostaRiscosService {
                                     ""
                             )
                     ));
+
+            String opcao = String.valueOf(
+                    rowData.getOrDefault("Opção de Tratamento","")
+            );
+
+            if(!opcao.isEmpty()){
+                opcao = opcao.substring(0,1).toUpperCase() +
+                        opcao.substring(1).toLowerCase();
+            }
+
+            cellTratamento.setCellValue(opcao);
         }
 
         // ---------- DROPDOWN ----------
         DataValidationHelper helper = sheet.getDataValidationHelper();
 
-        String[] opcoes = {
-                "Aceitar",
-                "Mitigar",
-                "Compartilhar",
-                "Evitar"
-        };
-
         DataValidationConstraint constraint =
-                helper.createExplicitListConstraint(opcoes);
+                helper.createExplicitListConstraint(OPCOES_TRATAMENTO);
 
         CellRangeAddressList addressList =
                 new CellRangeAddressList(2,1000,3,3);
@@ -131,6 +142,15 @@ public class RespostaRiscosService {
         sheet.setColumnWidth(1,6000);
         sheet.setColumnWidth(2,22000);
         sheet.setColumnWidth(3,7000);
-        sheet.setColumnWidth(4,30000);
+        sheet.setColumnWidth(4,50000);
     }
+
+    private static final String[] OPCOES_TRATAMENTO = {
+            "Aceitar",
+            "Mitigar",
+            "Compartilhar",
+            "Evitar"
+    };
+
+
 }
