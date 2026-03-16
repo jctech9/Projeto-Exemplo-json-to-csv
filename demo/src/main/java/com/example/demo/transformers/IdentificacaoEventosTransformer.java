@@ -39,7 +39,7 @@ public class IdentificacaoEventosTransformer {
         }
 
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
-        result.put("ETAPA 2. IDENTIFICAÇÃO DE EVENTOS", rows);
+        result.put("ETAPA 2. IDENTIF. DE EVENTOS", rows);
         return result;
     }
 

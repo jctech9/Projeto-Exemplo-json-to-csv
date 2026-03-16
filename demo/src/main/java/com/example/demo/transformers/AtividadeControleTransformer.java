@@ -25,8 +25,8 @@ public class AtividadeControleTransformer {
             row.put("Data prevista para início da implementação", formatarData(atividade.get("dataInicio")));
             row.put("Data prevista para o fim da implementação", formatarData(atividade.get("dataTermino")));
             row.put("Status", val(atividade.get("statusImplementacao")));
-            row.put("Ações preventivas (descrever)", val(atividade.get("gatilho")));
-            row.put("Monitoramento", ""); 
+            row.put("Ações preventivas (descrever)", val(atividade.get("acoesPreventivas")));
+            row.put("Monitoramento", val(atividade.get("monitoramentoAcoesPreventivas")));
 
             row.put("Gatilho (descrever)", val(atividade.get("gatilho")));
             row.put("Ações de Contingência (descrever)", val(atividade.get("acoesContingencia")));
