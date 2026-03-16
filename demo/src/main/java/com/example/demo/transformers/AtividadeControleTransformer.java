@@ -25,6 +25,8 @@ public class AtividadeControleTransformer {
             row.put("Data prevista para início da implementação", formatarData(atividade.get("dataInicio")));
             row.put("Data prevista para o fim da implementação", formatarData(atividade.get("dataTermino")));
             row.put("Status", val(atividade.get("statusImplementacao")));
+           
+           // SEM RETORNO DO JSON-------------------------
             row.put("Ações preventivas (descrever)", val(atividade.get("acoesPreventivas")));
             row.put("Monitoramento", val(atividade.get("monitoramentoAcoesPreventivas")));
 

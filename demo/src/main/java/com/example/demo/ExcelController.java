@@ -119,27 +119,19 @@ public class ExcelController {
         RestTemplate restTemplate = new RestTemplate();
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
         
-        // Se o ID for passado no corpo, usa ele. Senão inicia com -1 para capturar o primeiro
+        // Se o ID for passado no corpo, usa ele. Sem ID, não aplica filtro por processo.
         java.util.concurrent.atomic.AtomicInteger mainProcessId = new java.util.concurrent.atomic.AtomicInteger(
             (body != null && body.containsKey("id")) ? body.get("id") : -1
         );
         
         try {
-            // Se já temos um ID específico, filtramos processos por esse ID também
-            // Se mainProcessId for -1, a lógica interna do lambda vai capturar o primeiro ID que encontrar
+            // Se houver ID específico, filtra processos por esse ID.
+            // Sem ID, mantém a lista completa de processos.
             addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", data -> {
                 List<Map<String, Object>> content = getList(data);
                 if (content != null && !content.isEmpty()) {
-                    if (mainProcessId.get() == -1) {
-                         // Lógica antiga: pega o primeiro
-                        Map<String, Object> first = content.get(0);
-                        Object id = first.get("id");
-                        if (id instanceof Number) {
-                            mainProcessId.set(((Number) id).intValue());
-                        }
-                        data.put("content", java.util.Collections.singletonList(first));
-                    } else {
-                        // Nova lógica: Filtra pelo ID fornecido no POST
+                    if (mainProcessId.get() != -1) {
+                        // Filtra pelo ID fornecido no POST
                         List<Map<String, Object>> filteredInfo = new java.util.ArrayList<>();
                         for (Map<String, Object> p : content) {
                              if (checkId(p, mainProcessId.get(), new java.util.HashMap<>())) { // Cache vazio, check direto
