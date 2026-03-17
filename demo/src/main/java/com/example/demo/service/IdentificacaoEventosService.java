@@ -81,6 +81,9 @@ public class IdentificacaoEventosService {
                 if(!text.isEmpty()){
                     text = text.substring(0,1).toUpperCase() + text.substring(1).toLowerCase();
                 }
+                if (text.equalsIgnoreCase("Ameaca")) {
+                    text = "Ameaça";
+                }
 
                 cell.setCellValue(text);
 

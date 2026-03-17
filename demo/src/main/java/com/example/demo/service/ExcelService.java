@@ -25,6 +25,7 @@ public class ExcelService {
     private final AvaliacaoRiscosService avaliacaoRiscosService;
     private final RespostaRiscosService respostaRiscosService;
     private final AtividadesControleService atividadesControleService;
+    private final OcorrenciaRiscoService ocorrenciaRiscoService;
 
     public ExcelService(
             DadosProcessoService dadosProcessoService,
@@ -38,6 +39,7 @@ public class ExcelService {
         this.avaliacaoRiscosService = avaliacaoRiscosService;
         this.respostaRiscosService = respostaRiscosService;
         this.atividadesControleService = atividadesControleService;
+        this.ocorrenciaRiscoService = ocorrenciaRiscoService;
     }
 
     public byte[] generateXlsx(Map<String, List<Map<String, Object>>> etapas) throws IOException {
