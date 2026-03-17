@@ -11,8 +11,8 @@
 	<groupId>com.example</groupId>
 	<artifactId>demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Json to Excel Exporter</name>
-	<description>Converts JSON responses to XLSX format with automatic schema detection</description>
+	<name>Risk Excel Exporter</name>
+	<description>Exports risk management data to XLSX using payloads and API integration</description>
 	<properties>
 		<java.version>21</java.version>
 	</properties>
