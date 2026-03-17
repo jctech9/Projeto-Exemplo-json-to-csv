@@ -24,9 +24,7 @@ public class AtividadeControleTransformer {
             row.put("Responsável pelo Tratamento", val(atividade.get("responsavelTratamento")));
             row.put("Data prevista para início da implementação", formatarData(atividade.get("dataInicio")));
             row.put("Data prevista para o fim da implementação", formatarData(atividade.get("dataTermino")));
-            row.put("Status", val(atividade.get("statusImplementacao")));
-           
-           // SEM RETORNO DO JSON-------------------------
+            row.put("Status", mapearStatusImplementacao(atividade.get("statusImplementacao")));
             row.put("Ações preventivas (descrever)", val(atividade.get("acoesPreventivas")));
             row.put("Monitoramento", val(atividade.get("monitoramentoAcoesPreventivas")));
 
@@ -35,6 +33,8 @@ public class AtividadeControleTransformer {
             row.put("Responsável", val(atividade.get("responsavelContingencia")));
 
             rows.add(row);
+
+
         }
 
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
@@ -42,11 +42,37 @@ public class AtividadeControleTransformer {
         return result;
     }
 
+    private static String mapearStatusImplementacao(Object statusObj) {
+        if (statusObj == null) return "Não implementado";
+        String status = String.valueOf(statusObj).toUpperCase();
+
+        // Converte os valores do banco para o padrão da planilha
+        return switch (status) {
+            case "IMPLEMENTADO" -> "Implementado";
+            case "EM_IMPLEMENTACAO", "EMIMPLEMENTACAO" -> "Em implementação";
+            default -> "Não implementado"; // Caso seja NAO_IMPLEMENTADO ou nulo
+        };
+    }
+
     private static String extrairOpcaoTratamento(Map<String, Object> risco) {
         if (risco == null) return "";
+
         Map<String, Object> resposta = asMap(risco.get("respostaRisco"));
-        return resposta == null ? "" : val(resposta.get("opcaoTratamento"));
+        if (resposta == null) return "";
+
+        String opcao = val(resposta.get("opcaoTratamento"));
+
+        return formatarTexto(opcao);
     }
+
+    private static String formatarTexto(String texto) {
+        if (texto == null || texto.isEmpty()) return "";
+
+        texto = texto.toLowerCase();
+
+        return texto.substring(0, 1).toUpperCase() + texto.substring(1);
+    }
+
     // Formata a data no padrão dd/MM/yyyy
     private static String formatarData(Object data) {
         if (data == null || data.toString().isEmpty()) return "";

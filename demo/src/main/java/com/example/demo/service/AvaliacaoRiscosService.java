@@ -1,13 +1,28 @@
 package com.example.demo.service;
 
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataValidation;
+import org.apache.poi.ss.usermodel.DataValidationConstraint;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
-import org.apache.poi.ss.util.CellReference;
-import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class AvaliacaoRiscosService {
@@ -15,236 +30,290 @@ public class AvaliacaoRiscosService {
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
 
         XSSFSheet sheet = wb.createSheet(sheetName);
-        int r = 0;
 
         byte[] rgbPink = new byte[]{(byte) 230, (byte) 145, (byte) 145};
-        XSSFColor npiPink = new XSSFColor(rgbPink, null);
+        XSSFColor headerColor = new XSSFColor(rgbPink, null);
 
-        // ----- estilo rosa -----
-        XSSFCellStyle pinkStyle = wb.createCellStyle();
-        pinkStyle.setFillForegroundColor(npiPink);
-        pinkStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        pinkStyle.setAlignment(HorizontalAlignment.CENTER);
-        pinkStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        applyBorders(pinkStyle);
+        CellStyle styleExtremo = createRGBStyle(wb, new byte[]{(byte) 255, 0, 0});
+        CellStyle styleAlto = createRGBStyle(wb, new byte[]{(byte) 255, (byte) 192, 0});
+        CellStyle styleMedio = createRGBStyle(wb, new byte[]{(byte) 255, (byte) 255, 0});
+        CellStyle styleBaixo = createRGBStyle(wb, new byte[]{(byte) 146, (byte) 208, 80});
 
-        Font font = wb.createFont();
-        font.setBold(true);
-        pinkStyle.setFont(font);
-
-        // ----- cabeçalho -----
-        Row row1 = sheet.createRow(r++);
-        Row row2 = sheet.createRow(r++);
-
-        createVerticalHeader(row1,row2,0,"Evento de Risco",pinkStyle,sheet);
-        createMergedGroup(row1,1,5,"Avaliação dos Riscos",pinkStyle,sheet);
-        createVerticalHeader(row1,row2,6,"Classificação do Risco Inerente",pinkStyle,sheet);
-        createMergedGroup(row1,7,10,"Avaliação dos Controles",pinkStyle,sheet);
-        createMergedGroup(row1,11,12,"Risco Residual",pinkStyle,sheet);
-        createVerticalHeader(row1,row2,13,"Data da Última Avaliação",pinkStyle,sheet);
-
-        // ----- headers -----
         LinkedHashSet<String> headers = new LinkedHashSet<>();
-        for (Map<String,Object> row : rows) headers.addAll(row.keySet());
-        List<String> headerList = new ArrayList<>(headers);
-
-        for(int c=0;c<headerList.size();c++){
-            Cell cell = row2.getCell(c);
-            if(cell==null) cell=row2.createCell(c);
-            cell.setCellValue(headerList.get(c));
-            cell.setCellStyle(pinkStyle);
+        for (Map<String, Object> row : rows) {
+            headers.addAll(row.keySet());
         }
 
-        // ----- índices das colunas -----
-        int colProb = headerList.indexOf("Probabilidade");
-        int colImpacto = headerList.indexOf("Impacto");
-        int colRiscoInerente = headerList.indexOf("Risco Inerente (PxI)");
-        int colClassInerente = headerList.indexOf("Classificação do Risco Inerente");
+        List<String> headerList = new ArrayList<>(headers);
+        int r = 0;
 
-        int colAvaliacao = headerList.indexOf("Avaliação dos Controles");
-        int colFAC = headerList.indexOf("FAC");
+        Row groupRow = sheet.createRow(r++);
+        createGroupHeader(wb, groupRow, 0, 6, "Avaliação dos Riscos", headerColor, sheet);
+        createGroupHeader(wb, groupRow, 7, 9, "Avaliação dos Controles", headerColor, sheet);
+        createGroupHeader(wb, groupRow, 10, 13, "Risco Residual", headerColor, sheet);
 
-        int colRiscoResidual = headerList.indexOf("Risco Residual");
-        int colClassResidual = headerList.indexOf("Classificação do Risco Residual");
+        XSSFCellStyle headerStyle = wb.createCellStyle();
+        headerStyle.setFillForegroundColor(headerColor);
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        applyBorders(headerStyle);
 
-        // ----- dados -----
-        for(Map<String,Object> rowData : rows){
+        Font headerFont = wb.createFont();
+        headerFont.setBold(true);
+        headerStyle.setFont(headerFont);
+
+        Row headerRow = sheet.createRow(r++);
+        for (int c = 0; c < headerList.size(); c++) {
+            Cell cell = headerRow.createCell(c);
+            cell.setCellValue(headerList.get(c));
+            cell.setCellStyle(headerStyle);
+        }
+
+        CellStyle defaultDataStyle = wb.createCellStyle();
+        applyBorders(defaultDataStyle);
+        defaultDataStyle.setAlignment(HorizontalAlignment.LEFT);
+        defaultDataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        for (Map<String, Object> rowData : rows) {
 
             Row dataRow = sheet.createRow(r++);
-            int rowNum = dataRow.getRowNum()+1;
+            int rowNum = dataRow.getRowNum() + 1;
 
-            for(int c=0;c<headerList.size();c++){
+            for (int c = 0; c < headerList.size(); c++) {
 
                 String columnName = headerList.get(c);
                 Cell cell = dataRow.createCell(c);
-                Object val=rowData.get(columnName);
-                String strVal = val==null?"":String.valueOf(val);
+                Object val = rowData.get(columnName);
+                String strVal = val == null ? "" : String.valueOf(val);
 
-                if(c==colRiscoInerente){
-                    String p = colLetter(colProb);
-                    String i = colLetter(colImpacto);
-                    cell.setCellFormula(p+rowNum+"*"+i+rowNum);
-                }
-
-                else if(c==colFAC){
-                    String av = colLetter(colAvaliacao);
+                if (columnName.equalsIgnoreCase("Risco Inerente (PxI)")) {
+                    cell.setCellFormula("C" + rowNum + "*E" + rowNum);
+                } else if (columnName.equalsIgnoreCase("Risco Residual")) {
+                    cell.setCellFormula("F" + rowNum + "*K" + rowNum);
+                } else if (columnName.equalsIgnoreCase("P")) {
                     cell.setCellFormula(
-                            "IF("+av+rowNum+"=\"Forte\",0.2,"+
-                                    "IF("+av+rowNum+"=\"Satisfatório\",0.4,"+
-                                    "IF("+av+rowNum+"=\"Mediano\",0.6,"+
-                                    "IF("+av+rowNum+"=\"Fraco\",0.8,1))))");
-                }
-
-                else if(c==colRiscoResidual){
-                    String iner = colLetter(colRiscoInerente);
-                    String fac = colLetter(colFAC);
-                    cell.setCellFormula(iner+rowNum+"*"+fac+rowNum);
-                }
-
-                else if(c==colClassInerente){
-                    String iner = colLetter(colRiscoInerente);
+                            "IF(B" + rowNum + "=\"Muito alta\",10," +
+                                    "IF(B" + rowNum + "=\"Alta\",8," +
+                                    "IF(B" + rowNum + "=\"Média\",5," +
+                                    "IF(B" + rowNum + "=\"Baixa\",2," +
+                                    "IF(B" + rowNum + "=\"Muito baixa\",1,0)))))"
+                    );
+                } else if (columnName.equalsIgnoreCase("I")) {
                     cell.setCellFormula(
-                            "IF("+iner+rowNum+"=0,\"\",IF("+iner+rowNum+
-                                    "<10,\"Risco Baixo\",IF("+iner+rowNum+
-                                    "<40,\"Risco Médio\",IF("+iner+rowNum+
-                                    "<80,\"Risco Alto\",\"Risco Extremo\"))))");
-                }
-
-                else if(c==colClassResidual){
-                    String res = colLetter(colRiscoResidual);
+                            "IF(D" + rowNum + "=\"Muito alto\",10," +
+                                    "IF(D" + rowNum + "=\"Alto\",8," +
+                                    "IF(D" + rowNum + "=\"Médio\",5," +
+                                    "IF(D" + rowNum + "=\"Baixo\",2," +
+                                    "IF(D" + rowNum + "=\"Muito baixo\",1,0)))))"
+                    );
+                } else if (columnName.equalsIgnoreCase("FAC")) {
                     cell.setCellFormula(
-                            "IF("+res+rowNum+"=0,\"\",IF("+res+rowNum+
-                                    "<10,\"Risco Baixo\",IF("+res+rowNum+
-                                    "<40,\"Risco Médio\",IF("+res+rowNum+
-                                    "<80,\"Risco Alto\",\"Risco Extremo\"))))");
-                }
-
-                else{
-                    try{
-                        double num = Double.parseDouble(strVal.replace(",","."));
+                            "IF(J" + rowNum + "=\"Forte\",0.2," +
+                                    "IF(J" + rowNum + "=\"Satisfatório\",0.4," +
+                                    "IF(J" + rowNum + "=\"Mediano\",0.6," +
+                                    "IF(J" + rowNum + "=\"Fraco\",0.8,1))))"
+                    );
+                } else if (columnName.equalsIgnoreCase("Classificação do Risco Inerente")) {
+                    cell.setCellFormula(
+                            "IF(F" + rowNum + "=0,\"\",IF(F" + rowNum +
+                                    "<10,\"Risco Baixo\",IF(F" + rowNum +
+                                    "<40,\"Risco Médio\",IF(F" + rowNum +
+                                    "<80,\"Risco Alto\",\"Risco Extremo\"))))"
+                    );
+                } else if (columnName.equalsIgnoreCase("Classificação do Risco Residual")) {
+                    cell.setCellFormula(
+                            "IF(L" + rowNum + "=0,\"\",IF(L" + rowNum +
+                                    "<10,\"Risco Baixo\",IF(L" + rowNum +
+                                    "<40,\"Risco Médio\",IF(L" + rowNum +
+                                    "<80,\"Risco Alto\",\"Risco Extremo\"))))"
+                    );
+                } else {
+                    try {
+                        double num = Double.parseDouble(strVal.replace(",", "."));
                         cell.setCellValue(num);
-                    }catch(Exception e){
+                    } catch (Exception e) {
                         cell.setCellValue(strVal);
                     }
                 }
 
-                CellStyle dataStyle = wb.createCellStyle();
-                applyBorders(dataStyle);
-                dataStyle.setAlignment(HorizontalAlignment.CENTER);
-                cell.setCellStyle(dataStyle);
+                if (columnName.equalsIgnoreCase("Classificação do Risco Inerente")) {
+                    applyClassificationStyle(cell, rowData, styleExtremo, styleAlto, styleMedio, styleBaixo, false);
+                } else if (columnName.equalsIgnoreCase("Classificação do Risco Residual")) {
+                    applyClassificationStyle(cell, rowData, styleExtremo, styleAlto, styleMedio, styleBaixo, true);
+                } else {
+                    cell.setCellStyle(defaultDataStyle);
+                }
             }
         }
 
-        applyConditionalFormatting(sheet, headerList);
-        setupValidation(sheet, headerList);
-
-        for(int c=0;c<headerList.size();c++) sheet.autoSizeColumn(c);
+        setupValidations(sheet, headerList);
+        setColumnWidths(sheet, headerList);
     }
 
-    // ---------- helpers ----------
+    private void applyClassificationStyle(
+            Cell cell,
+            Map<String, Object> rowData,
+            CellStyle styleExtremo,
+            CellStyle styleAlto,
+            CellStyle styleMedio,
+            CellStyle styleBaixo,
+            boolean residual
+    ) {
 
-    private String colLetter(int col){
-        return CellReference.convertNumToColString(col);
-    }
+        double risco = 0;
 
-    private void applyConditionalFormatting(XSSFSheet sheet,List<String> headers){
+        try {
+            double riscoInerente = Double.parseDouble(
+                    String.valueOf(rowData.get("Risco Inerente (PxI)")).replace(",", ".")
+            );
 
-        SheetConditionalFormatting scf = sheet.getSheetConditionalFormatting();
+            if (residual) {
+                double fac = 1;
+                String avaliacao = String.valueOf(rowData.get("Avaliação dos Controles"));
 
-        int col1=headers.indexOf("Classificação do Risco Inerente");
-        int col2=headers.indexOf("Classificação do Risco Residual");
+                if (avaliacao.equalsIgnoreCase("Forte")) {
+                    fac = 0.2;
+                } else if (avaliacao.equalsIgnoreCase("Satisfatório")) {
+                    fac = 0.4;
+                } else if (avaliacao.equalsIgnoreCase("Mediano")) {
+                    fac = 0.6;
+                } else if (avaliacao.equalsIgnoreCase("Fraco")) {
+                    fac = 0.8;
+                }
 
-        int[] cols={col1,col2};
+                risco = riscoInerente * fac;
+            } else {
+                risco = riscoInerente;
+            }
+        } catch (Exception ignored) {
+            risco = 0;
+        }
 
-        for(int col:cols){
-            if(col==-1) continue;
-
-            createRule(scf, sheet, col, "\"Risco Extremo\"", new byte[]{(byte)255,0,0});
-            createRule(scf, sheet, col, "\"Risco Alto\"", new byte[]{(byte)255,(byte)192,0});
-            createRule(scf, sheet, col, "\"Risco Médio\"", new byte[]{(byte)255,(byte)255,0});
-            createRule(scf, sheet, col, "\"Risco Baixo\"", new byte[]{(byte)146,(byte)208,80});
+        if (risco >= 80) {
+            cell.setCellStyle(styleExtremo);
+        } else if (risco >= 40) {
+            cell.setCellStyle(styleAlto);
+        } else if (risco >= 10) {
+            cell.setCellStyle(styleMedio);
+        } else {
+            cell.setCellStyle(styleBaixo);
         }
     }
 
-    private void createRule(SheetConditionalFormatting scf, XSSFSheet sheet, int col, String value, byte[] rgb){
+    private void setupValidations(XSSFSheet sheet, List<String> headers) {
 
-        ConditionalFormattingRule rule =
-                scf.createConditionalFormattingRule(ComparisonOperator.EQUAL, value);
+        DataValidationHelper helper = sheet.getDataValidationHelper();
 
-        PatternFormatting pattern = rule.createPatternFormatting();
-        pattern.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+        int colImpacto = headers.indexOf("Impacto");
+        if (colImpacto != -1) {
+            applySelect(sheet, helper,
+                    new String[]{"Muito baixo", "Baixo", "Médio", "Alto", "Muito alto"},
+                    colImpacto);
+        }
 
-        // cria a cor corretamente para conditional formatting
+        int colAvaliacao = headers.indexOf("Avaliação dos Controles");
+        if (colAvaliacao != -1) {
+            applySelect(sheet, helper,
+                    new String[]{"Inexistente", "Fraco", "Mediano", "Satisfatório", "Forte"},
+                    colAvaliacao);
+        }
+
+        int colProbabilidade = headers.indexOf("Probabilidade");
+        if (colProbabilidade != -1) {
+            applySelect(sheet, helper,
+                    new String[]{"Muito baixa", "Baixa", "Média", "Alta", "Muito alta"},
+                    colProbabilidade);
+        }
+    }
+
+    private void applySelect(XSSFSheet sheet, DataValidationHelper helper, String[] opts, int col) {
+        DataValidationConstraint constraint = helper.createExplicitListConstraint(opts);
+        CellRangeAddressList addressList = new CellRangeAddressList(2, 1000, col, col);
+        DataValidation validation = helper.createValidation(constraint, addressList);
+        validation.setSuppressDropDownArrow(true);
+        validation.setShowErrorBox(true);
+        sheet.addValidationData(validation);
+    }
+
+    private void setColumnWidths(XSSFSheet sheet, List<String> headers) {
+        for (int c = 0; c < headers.size(); c++) {
+            String header = headers.get(c);
+
+            if (header.equals("P") || header.equals("I") || header.equals("FAC")) {
+                sheet.setColumnWidth(c, 1500);
+            } else if (header.contains("Classificação")) {
+                sheet.setColumnWidth(c, 9000);
+            } else if (header.contains("Evento de Risco")) {
+                sheet.setColumnWidth(c, 30000);
+            } else if (header.contains("Data da Última Avaliação") || header.contains("Data")) {
+                sheet.setColumnWidth(c, 6500);
+            } else if (header.contains("Avaliação dos Controles")) {
+                sheet.setColumnWidth(c, 8000);
+            } else if (header.contains("Controles Preventivos")
+                    || header.contains("Controles de Atenuação e recuperação")) {
+                sheet.setColumnWidth(c, 20000);
+            } else {
+                sheet.setColumnWidth(c, 5000);
+            }
+        }
+    }
+
+    private CellStyle createRGBStyle(XSSFWorkbook wb, byte[] rgb) {
+
+        XSSFCellStyle style = wb.createCellStyle();
         XSSFColor color = new XSSFColor(rgb, null);
 
-        ((XSSFConditionalFormattingRule) rule)
-                .getPatternFormatting()
-                .setFillBackgroundColor(color);
+        style.setFillForegroundColor(color);
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setAlignment(HorizontalAlignment.LEFT);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        applyBorders(style);
 
-        CellRangeAddress[] regions = { new CellRangeAddress(2,1000,col,col) };
-
-        scf.addConditionalFormatting(regions, rule);
+        return style;
     }
 
-    private void setupValidation(XSSFSheet sheet,List<String> headers){
+    private void createGroupHeader(
+            XSSFWorkbook wb,
+            Row row,
+            int start,
+            int end,
+            String text,
+            XSSFColor color,
+            XSSFSheet sheet
+    ) {
 
-        DataValidationHelper helper=sheet.getDataValidationHelper();
+        XSSFCellStyle style = wb.createCellStyle();
+        style.setFillForegroundColor(color);
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        applyBorders(style);
 
-        int impacto=headers.indexOf("Impacto");
-        int controle=headers.indexOf("Avaliação dos Controles");
+        Font font = wb.createFont();
+        font.setBold(true);
+        style.setFont(font);
 
-        if(impacto!=-1){
-            applySelect(sheet,helper,
-                    new String[]{"Muito baixo","Baixo","Médio","Alto","Muito alto"},
-                    impacto);
-        }
-
-        if(controle!=-1){
-            applySelect(sheet,helper,
-                    new String[]{"Inexistente","Fraco","Mediano","Satisfatório","Forte"},
-                    controle);
-        }
-    }
-
-    private void applySelect(XSSFSheet sheet,DataValidationHelper helper,String[] opts,int col){
-
-        DataValidationConstraint c=helper.createExplicitListConstraint(opts);
-
-        CellRangeAddressList addr=new CellRangeAddressList(2,1000,col,col);
-
-        DataValidation v=helper.createValidation(c,addr);
-        v.setSuppressDropDownArrow(true);
-        v.setShowErrorBox(true);
-
-        sheet.addValidationData(v);
-    }
-
-    private void applyBorders(CellStyle s){
-        s.setBorderBottom(BorderStyle.THIN);
-        s.setBorderTop(BorderStyle.THIN);
-        s.setBorderLeft(BorderStyle.THIN);
-        s.setBorderRight(BorderStyle.THIN);
-    }
-
-    private void createVerticalHeader(Row r1,Row r2,int col,String text,CellStyle style,XSSFSheet sheet){
-
-        Cell cell=r1.createCell(col);
-        cell.setCellValue(text);
-        cell.setCellStyle(style);
-
-        if(r2.getCell(col)==null) r2.createCell(col).setCellStyle(style);
-
-        sheet.addMergedRegion(new CellRangeAddress(r1.getRowNum(),r1.getRowNum()+1,col,col));
-    }
-
-    private void createMergedGroup(Row row,int start,int end,String text,CellStyle style,XSSFSheet sheet){
-
-        for(int i=start;i<=end;i++){
-            Cell cell=row.createCell(i);
-            if(i==start) cell.setCellValue(text);
+        for (int i = start; i <= end; i++) {
+            Cell cell = row.createCell(i);
+            if (i == start) {
+                cell.setCellValue(text);
+            }
             cell.setCellStyle(style);
         }
 
-        sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(),row.getRowNum(),start,end));
+        sheet.addMergedRegion(new CellRangeAddress(
+                row.getRowNum(),
+                row.getRowNum(),
+                start,
+                end
+        ));
+    }
+
+    private void applyBorders(CellStyle style) {
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
     }
 }
