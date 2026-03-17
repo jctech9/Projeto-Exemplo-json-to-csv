@@ -32,7 +32,8 @@ public class ExcelService {
             IdentificacaoEventosService identificacaoEventosService,
             AvaliacaoRiscosService avaliacaoRiscosService,
             RespostaRiscosService respostaRiscosService,
-            AtividadesControleService atividadesControleService
+            AtividadesControleService atividadesControleService,
+            OcorrenciaRiscoService ocorrenciaRiscoService
     ) {
         this.dadosProcessoService = dadosProcessoService;
         this.identificacaoEventosService = identificacaoEventosService;
@@ -74,6 +75,10 @@ public class ExcelService {
 
                 if (sheetName.contains("ETAPA 5")) {
                     atividadesControleService.generateSheet(wb, sheetName, rows);
+                    continue;
+                }
+                if(sheetName.contains("OCORRÊNCIAS DE RISCO")){
+                    ocorrenciaRiscoService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
