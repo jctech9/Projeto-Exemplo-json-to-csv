@@ -24,7 +24,6 @@ public class RespostaRiscosService {
 
         int r = 0;
 
-        // ---------- HEADER PRINCIPAL ----------
         Row titleRow = sheet.createRow(r++);
 
         XSSFCellStyle titleStyle = wb.createCellStyle();
@@ -50,7 +49,6 @@ public class RespostaRiscosService {
                 4
         ));
 
-        // ---------- HEADERS ----------
         Row headerRow = sheet.createRow(r++);
 
         String[] headers = {
@@ -90,7 +88,6 @@ public class RespostaRiscosService {
         dataStyleCenter.setVerticalAlignment(VerticalAlignment.CENTER);
         applyBorders(dataStyleCenter);
 
-        // ---------- DADOS ----------
         for(Map<String,Object> rowData : rows){
 
             Row dataRow = sheet.createRow(r++);
@@ -99,17 +96,14 @@ public class RespostaRiscosService {
             cell0.setCellValue(String.valueOf(rowData.getOrDefault("Processo","")));
             cell0.setCellStyle(dataStyleLeft);
 
-            // Coluna 1: Fase
             Cell cell1 = dataRow.createCell(1);
             cell1.setCellValue(String.valueOf(rowData.getOrDefault("Fase","")));
             cell1.setCellStyle(dataStyleCenter);
 
-            // Coluna 2: Evento de Risco
             Cell cell2 = dataRow.createCell(2);
             cell2.setCellValue(String.valueOf(rowData.getOrDefault("Evento de Risco","")));
             cell2.setCellStyle(dataStyleLeft);
 
-            // Coluna 3: Opção de Tratamento (Formatação de Texto)
             Cell cell3 = dataRow.createCell(3);
             String opcao = String.valueOf(rowData.getOrDefault("Opção de Tratamento",""));
             if(!opcao.isEmpty()){
@@ -118,7 +112,7 @@ public class RespostaRiscosService {
             cell3.setCellValue(opcao);
             cell3.setCellStyle(dataStyleCenter);
 
-            // Coluna 4: Justificativa
+
             Cell cell4 = dataRow.createCell(4);
             cell4.setCellValue(String.valueOf(rowData.getOrDefault("Justificativa da escolha da opção de tratamento","")));
             cell4.setCellStyle(dataStyleLeft);
@@ -127,7 +121,6 @@ public class RespostaRiscosService {
 
 
 
-        // ---------- DROPDOWN ----------
         DataValidationHelper helper = sheet.getDataValidationHelper();
 
         DataValidationConstraint constraint =
