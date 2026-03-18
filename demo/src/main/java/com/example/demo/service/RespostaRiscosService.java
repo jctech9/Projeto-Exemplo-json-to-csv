@@ -19,8 +19,8 @@ public class RespostaRiscosService {
 
         XSSFSheet sheet = wb.createSheet(sheetName);
 
-        byte[] rgbYellow = new byte[]{(byte)235,(byte)217,(byte)102};
-        XSSFColor headerColor = new XSSFColor(rgbYellow,null);
+        byte[] rgbYellow = new byte[]{(byte) 255, (byte) 255, (byte) 0};
+        XSSFColor headerColor = new XSSFColor(rgbYellow, null);
 
         int r = 0;
 
