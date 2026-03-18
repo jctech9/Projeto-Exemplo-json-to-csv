@@ -23,6 +23,7 @@ public class OcorrenciaRiscoService {
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         headerStyle.setAlignment(HorizontalAlignment.CENTER);
         headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerStyle.setWrapText(true);
         applyBorders(headerStyle);
         Font boldFont = wb.createFont();
         boldFont.setBold(true);
@@ -54,10 +55,25 @@ public class OcorrenciaRiscoService {
         List<String> headerList = new ArrayList<>(headers);
 
         Row row2 = sheet.createRow(r++);
+        row2.setHeightInPoints(35);
         for (int c = 0; c < headerList.size(); c++) {
             Cell cell = row2.createCell(c);
             cell.setCellValue(headerList.get(c));
             cell.setCellStyle(headerStyle);
+
+            String hName = headerList.get(c);
+
+            if (hName.equalsIgnoreCase("Descrição da Ocorrência")) {
+                cell.setCellValue("Descrição da Ocorrência\n(descrever)");
+            } else if (hName.equalsIgnoreCase("Responsável pela Solução")) {
+                cell.setCellValue("Responsável pela\nSolução");
+            } else if (hName.equalsIgnoreCase("Solução")) {
+                cell.setCellValue("Solução\n(descrever)");
+            } else if (hName.equalsIgnoreCase("Resultados (descrever)")) {
+                cell.setCellValue("Resultados\n(descrever)");
+            } else {
+                cell.setCellValue(hName);
+            }
         }
 
         // 4. Preenchimento de Dados
@@ -87,10 +103,10 @@ public class OcorrenciaRiscoService {
                 sheet.setColumnWidth(i, 18000);
             }
             else if (h.contains("Evento") || h.contains("Resultados")) {
-                sheet.setColumnWidth(i, 29000);
+                sheet.setColumnWidth(i, 20000);
             }
             else if (h.contains("Responsável")) {
-                sheet.setColumnWidth(i, 9000);
+                sheet.setColumnWidth(i, 7000);
             }
             else {
                 sheet.setColumnWidth(i, 7000);
