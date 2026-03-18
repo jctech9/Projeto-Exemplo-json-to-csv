@@ -53,7 +53,6 @@ public class IdentificacaoEventosService {
 
         // 4. DEFINIÇÃO DOS ESTILOS DE DADOS (Criados uma vez para evitar corromper o arquivo)
 
-        // Estilo Centralizado (Fase, Tipos, Categoria)
         CellStyle dataStyleCenter = wb.createCellStyle();
         applyBorders(dataStyleCenter);
         dataStyleCenter.setAlignment(HorizontalAlignment.CENTER);
@@ -62,10 +61,9 @@ public class IdentificacaoEventosService {
 
 
 
-        // Estilo à Esquerda (Processo, Evento, Causas, Consequências)
         CellStyle dataStyleLeft = wb.createCellStyle();
         applyBorders(dataStyleLeft);
-        dataStyleLeft.setAlignment(HorizontalAlignment.LEFT); // ALINHAMENTO À ESQUERDA
+        dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
         dataStyleLeft.setVerticalAlignment(VerticalAlignment.CENTER);
         dataStyleLeft.setWrapText(false);
 
@@ -99,7 +97,6 @@ public class IdentificacaoEventosService {
             }
         }
 
-        // 6. Configurações Finais
         setupValidations(sheet, headerList);
         setColumnWidths(sheet, headerList);
     }
