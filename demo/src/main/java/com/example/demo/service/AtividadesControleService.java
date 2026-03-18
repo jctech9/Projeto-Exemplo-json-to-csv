@@ -64,7 +64,7 @@ public class AtividadesControleService {
 
             // CORREÇÃO: Se o título for longo, alinha à esquerda para não "comer" o início
             if (hName.contains("Responsável") || hName.contains("Data") || hName.contains("Evento")) {
-                cell.setCellStyle(greyStyleLeft);
+                cell.setCellStyle(greyStyle);
             } else {
                 cell.setCellStyle(greyStyle);
             }
