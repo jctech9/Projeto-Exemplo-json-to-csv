@@ -73,18 +73,26 @@ public class AtividadesControleService {
         // 4. Preenchimento de Dados
         for (Map<String, Object> rowData : rows) {
             Row dataRow = sheet.createRow(r++);
+            int rowNum = dataRow.getRowNum() + 1;
             for (int c = 0; c < headerList.size(); c++) {
                 String headerName = headerList.get(c);
                 Cell cell = dataRow.createCell(c);
                 Object val = rowData.get(headerName);
-                cell.setCellValue(val == null ? "" : String.valueOf(val));
 
-                // Alinhamento à esquerda para descrições
-                if (headerName.contains("Evento") || headerName.contains("Ações") || headerName.contains("Gatilho")
-                || headerName.contains("Monitoramento")) {
-                    cell.setCellStyle(dataStyleLeft);
-                } else {
+                if (headerName.equalsIgnoreCase("Opção de Tratamento")) {
+                    // Aponta para a Coluna D (índice 3) da planilha "ETAPA 4. RESPOSTA AOS RISCOS"
+                    String formula = "'ETAPA 4. RESPOSTA AOS RISCOS'!D" + rowNum;
+                    cell.setCellFormula(formula);
                     cell.setCellStyle(dataStyleCenter);
+                } else {
+                    cell.setCellValue(val == null ? "" : String.valueOf(val));
+                    // Alinhamento à esquerda para descrições
+                    if (headerName.contains("Evento") || headerName.contains("Ações") || headerName.contains("Gatilho")
+                            || headerName.contains("Monitoramento")) {
+                        cell.setCellStyle(dataStyleLeft);
+                    } else {
+                        cell.setCellStyle(dataStyleCenter);
+                    }
                 }
             }
         }
@@ -147,7 +155,7 @@ public class AtividadesControleService {
         for (int i = 0; i < headers.size(); i++) {
             String h = headers.get(i);
             if (h.contains("Evento") || h.contains("Ações") || h.contains("Gatilho") || h.contains("Monitoramento")) sheet.setColumnWidth(i, 15000);
-            else if (h.contains("Data"))  {
+            else if (h.contains("Data") || h.contains("Responsável"))  {
                 sheet.setColumnWidth(i, 10000);
             } else sheet.setColumnWidth(i, 6000);
         }
