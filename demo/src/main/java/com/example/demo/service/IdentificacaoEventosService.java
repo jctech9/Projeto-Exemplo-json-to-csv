@@ -11,6 +11,8 @@ import java.util.*;
 @Service
 public class IdentificacaoEventosService {
 
+    private static final String PROCESSO_REFERENCE_FORMULA = "'ETAPA 1. DADOS DO PROCESSO'!A$5";
+
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
 
@@ -49,9 +51,6 @@ public class IdentificacaoEventosService {
         headerRow.setHeightInPoints(35);
         for (int c = 0; c < headerList.size(); c++) {
             Cell cell = headerRow.createCell(c);
-            cell.setCellValue(headerList.get(c));
-            cell.setCellStyle(blueStyle);
-
             String headerName = headerList.get(c);
 
             if (headerName.equalsIgnoreCase("Evento de Risco (indicar)")) {
@@ -91,20 +90,26 @@ public class IdentificacaoEventosService {
             for (int c = 0; c < headerList.size(); c++) {
                 String headerName = headerList.get(c);
                 Cell cell = dataRow.createCell(c);
-                Object val = rowData.get(headerName);
-                String text = val == null ? "" : String.valueOf(val);
+                boolean isProcessoColumn = headerName.equalsIgnoreCase("Processo");
 
-                if(!text.isEmpty()){
-                    text = text.substring(0,1).toUpperCase() + text.substring(1).toLowerCase();
-                }
-                if (text.equalsIgnoreCase("Ameaca")) {
-                    text = "Ameaça";
-                }
+                if (isProcessoColumn) {
+                    cell.setCellFormula(PROCESSO_REFERENCE_FORMULA);
+                } else {
+                    Object val = rowData.get(headerName);
+                    String text = val == null ? "" : String.valueOf(val);
 
-                cell.setCellValue(text);
+                    if(!text.isEmpty()){
+                        text = text.substring(0,1).toUpperCase() + text.substring(1).toLowerCase();
+                    }
+                    if (text.equalsIgnoreCase("Ameaca")) {
+                        text = "Ameaça";
+                    }
+
+                    cell.setCellValue(text);
+                }
 
                 // Aplica o estilo baseado no nome da coluna
-                if (headerName.equalsIgnoreCase("Processo") ||
+                if (isProcessoColumn ||
                         headerName.contains("Evento") ||
                         headerName.contains("Causas") ||
                         headerName.contains("Consequências")) {
