@@ -26,6 +26,7 @@ public class AtividadesControleService {
         greyStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         greyStyle.setAlignment(HorizontalAlignment.CENTER);
         greyStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        greyStyle.setWrapText(true);
         applyBorders(greyStyle);
         Font boldFont = wb.createFont();
         boldFont.setBold(true);
@@ -46,6 +47,7 @@ public class AtividadesControleService {
         // 2. Criar Cabeçalho Duplo (Linha 1: Títulos de Grupo)
         Row row1 = sheet.createRow(r++);
         Row row2 = sheet.createRow(r++);
+        row2.setHeightInPoints(35);
 
         // Plano de Tratamento (Colunas A até G)
         createGroupHeader(row1, 0, 7, "Plano de Tratamento", greyStyle, sheet);
@@ -61,6 +63,24 @@ public class AtividadesControleService {
             Cell cell = row2.createCell(c);
             String hName = headerList.get(c);
             cell.setCellValue(hName);
+
+            if (hName.equalsIgnoreCase("Opção de Tratamento")) {
+                cell.setCellValue("Opção de\nTratamento");
+            } else if (hName.equalsIgnoreCase("Responsável pelo Tratamento")) {
+                cell.setCellValue("Responsável pelo\nTratamento");
+            } else if (hName.equalsIgnoreCase("Data prevista para início da implementação")) {
+                cell.setCellValue("Data prevista para início\nda implementação");
+            } else if (hName.equalsIgnoreCase("Data prevista para o fim da implementação")) {
+                cell.setCellValue("Data prevista para o fim\nda implementação");
+            } else if (hName.equalsIgnoreCase("Ações preventivas (descrever)")) {
+                cell.setCellValue("Ações preventivas\n(descrever)");
+            } else if (hName.equalsIgnoreCase("Gatilho (descrever)")) {
+                cell.setCellValue("Gatilho\n(descrever)");
+            } else if (hName.equalsIgnoreCase("Ações de Contingência (descrever)")) {
+                cell.setCellValue("Ações de Contingência\n(descrever)");
+            } else {
+                cell.setCellValue(hName);
+            }
 
             if (hName.contains("Responsável") || hName.contains("Data") || hName.contains("Evento")) {
                 cell.setCellStyle(greyStyle);
@@ -92,6 +112,8 @@ public class AtividadesControleService {
                         cell.setCellStyle(dataStyleCenter);
                     }
                 }
+
+
             }
         }
 
@@ -154,7 +176,7 @@ public class AtividadesControleService {
             String h = headers.get(i);
             if (h.contains("Evento") || h.contains("Ações") || h.contains("Gatilho") || h.contains("Monitoramento")) sheet.setColumnWidth(i, 15000);
             else if (h.contains("Data") || h.contains("Responsável"))  {
-                sheet.setColumnWidth(i, 10000);
+                sheet.setColumnWidth(i, 7000);
             } else sheet.setColumnWidth(i, 6000);
         }
     }
