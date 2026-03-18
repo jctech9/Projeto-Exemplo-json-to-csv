@@ -20,17 +20,17 @@ public class AvaliacaoRiscosTransformer {
 
             row.put("Evento de Risco", getNestedString(avaliacao, "risco", "nome"));
             row.put("Probabilidade", mapearProbabilidade(avaliacao.get("probabilidade")));
-            row.put("P", val(avaliacao.get("probabilidade")));
+            row.put("P", "");
             row.put("Impacto", mapearImpacto(avaliacao.get("impacto")));
-            row.put("I", val(avaliacao.get("impacto")));
-            row.put("Risco Inerente (PxI)", calcularNivelRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
-            row.put("Classificação do Risco Inerente", classificarRisco(avaliacao.get("probabilidade"), avaliacao.get("impacto")));
+            row.put("I", "");
+            row.put("Risco Inerente (PxI)", "");
+            row.put("Classificação do Risco Inerente", "");
             row.put("Controles Preventivos (descrever)", val(avaliacao.get("controlesPreventivos")));
             row.put("Controles de Atenuação e recuperação (descrever)", val(avaliacao.get("controlesAtenuacao")));
             row.put("Avaliação dos Controles", mapearAvaliacaoControles(avaliacao.get("fac")));
-            row.put("FAC", val(avaliacao.get("fac")));
-            row.put("Risco Residual", calcularNivelResidual(avaliacao.get("probabilidade"), avaliacao.get("impacto"), avaliacao.get("fac")));
-            row.put("Classificação do Risco Residual", classificarRiscoResidual(avaliacao.get("probabilidade"), avaliacao.get("impacto"), avaliacao.get("fac")));
+            row.put("FAC", "");
+            row.put("Risco Residual", "");
+            row.put("Classificação do Risco Residual", "");
             row.put("Data da Última Avaliação", formatarData(avaliacao.get("dataUltimaAvaliacao")));
 
             rows.add(row);
@@ -85,64 +85,6 @@ public class AvaliacaoRiscosTransformer {
             else if (fac <= 0.6) return "Mediano";
             else if (fac <= 0.8) return "Fraco";
             else return "Inexistente";
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    // Calcula o nível de risco inerente (P x I)
-    private static String calcularNivelRisco(Object probObj, Object impactoObj) {
-        try {
-            int prob = Integer.parseInt(String.valueOf(probObj));
-            int impacto = Integer.parseInt(String.valueOf(impactoObj));
-            int nivel = prob * impacto;
-            return String.valueOf(nivel);
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    // Classifica o risco inerente com base no nível (≤10 Baixo, 11-40 Médio, 41-80 Alto, >80 Extremo)
-    private static String classificarRisco(Object probObj, Object impactoObj) {
-        try {
-            int prob = Integer.parseInt(String.valueOf(probObj));
-            int impacto = Integer.parseInt(String.valueOf(impactoObj));
-            int nivel = prob * impacto;
-
-            if (nivel <= 10) return "Risco Baixo";
-            else if (nivel <= 40) return "Risco Médio";
-            else if (nivel <= 80) return "Risco Alto";
-            else return "Risco Extremo";
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    // Calcula o nível de risco residual (P x I x FAC)
-    private static String calcularNivelResidual(Object probObj, Object impactoObj, Object facObj) {
-        try {
-            int prob = Integer.parseInt(String.valueOf(probObj));
-            int impacto = Integer.parseInt(String.valueOf(impactoObj));
-            double fac = Double.parseDouble(String.valueOf(facObj));
-            double residual = prob * impacto * fac;
-            return String.format("%.1f", residual);
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    // Classifica o risco residual com base no nível (≤10 Baixo, 11-40 Médio, 41-80 Alto, >80 Extremo)
-    private static String classificarRiscoResidual(Object probObj, Object impactoObj, Object facObj) {
-        try {
-            int prob = Integer.parseInt(String.valueOf(probObj));
-            int impacto = Integer.parseInt(String.valueOf(impactoObj));
-            double fac = Double.parseDouble(String.valueOf(facObj));
-            double residual = prob * impacto * fac;
-
-            if (residual <= 10) return "Risco Baixo";
-            else if (residual <= 40) return "Risco Médio";
-            else if (residual <= 80) return "Risco Alto";
-            else return "Risco Extremo";
         } catch (Exception e) {
             return "";
         }
