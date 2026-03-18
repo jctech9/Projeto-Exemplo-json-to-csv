@@ -12,7 +12,6 @@ public class OcorrenciaRiscoService {
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
 
-        // COR TEAL/CIANO PERSONALIZADA (RGB da imagem)
         byte[] rgbTeal = new byte[]{(byte) 0, (byte) 188, (byte) 212};
         XSSFColor npiTeal = new XSSFColor(rgbTeal, null);
 
@@ -70,7 +69,6 @@ public class OcorrenciaRiscoService {
                 Object val = rowData.get(headerName);
                 cell.setCellValue(val == null ? "" : String.valueOf(val));
 
-                // Alinhamento conforme o modelo
                 if (headerName.contains("Evento") || headerName.contains("descritiva") || headerName.contains("Solução") || headerName.contains("Resultados") || headerName.contains("Descrição")) {
                     cell.setCellStyle(dataStyleLeft);
                 } else {
@@ -88,15 +86,12 @@ public class OcorrenciaRiscoService {
             if (h.contains("(descrever)") || h.contains("descritiva")) {
                 sheet.setColumnWidth(i, 18000);
             }
-            // Coluna do Evento (Geralmente a maior)
             else if (h.contains("Evento") || h.contains("Resultados")) {
                 sheet.setColumnWidth(i, 29000);
             }
-            // Coluna de Responsáveis (Diminuída conforme solicitado)
             else if (h.contains("Responsável")) {
-                sheet.setColumnWidth(i, 9000); // Largura ideal para nomes como "João Silva"
+                sheet.setColumnWidth(i, 9000);
             }
-            // Colunas curtas (Datas, etc)
             else {
                 sheet.setColumnWidth(i, 7000);
             }
