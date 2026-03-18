@@ -62,7 +62,6 @@ public class AtividadesControleService {
             String hName = headerList.get(c);
             cell.setCellValue(hName);
 
-            // CORREÇÃO: Se o título for longo, alinha à esquerda para não "comer" o início
             if (hName.contains("Responsável") || hName.contains("Data") || hName.contains("Evento")) {
                 cell.setCellStyle(greyStyle);
             } else {
@@ -86,7 +85,6 @@ public class AtividadesControleService {
                     cell.setCellStyle(dataStyleCenter);
                 } else {
                     cell.setCellValue(val == null ? "" : String.valueOf(val));
-                    // Alinhamento à esquerda para descrições
                     if (headerName.contains("Evento") || headerName.contains("Ações") || headerName.contains("Gatilho")
                             || headerName.contains("Monitoramento")) {
                         cell.setCellStyle(dataStyleLeft);
