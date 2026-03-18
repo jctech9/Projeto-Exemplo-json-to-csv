@@ -25,19 +25,22 @@ public class ExcelService {
     private final AvaliacaoRiscosService avaliacaoRiscosService;
     private final RespostaRiscosService respostaRiscosService;
     private final AtividadesControleService atividadesControleService;
+    private final OcorrenciaRiscoService ocorrenciaRiscoService;
 
     public ExcelService(
             DadosProcessoService dadosProcessoService,
             IdentificacaoEventosService identificacaoEventosService,
             AvaliacaoRiscosService avaliacaoRiscosService,
             RespostaRiscosService respostaRiscosService,
-            AtividadesControleService atividadesControleService
+            AtividadesControleService atividadesControleService,
+            OcorrenciaRiscoService ocorrenciaRiscoService
     ) {
         this.dadosProcessoService = dadosProcessoService;
         this.identificacaoEventosService = identificacaoEventosService;
         this.avaliacaoRiscosService = avaliacaoRiscosService;
         this.respostaRiscosService = respostaRiscosService;
         this.atividadesControleService = atividadesControleService;
+        this.ocorrenciaRiscoService = ocorrenciaRiscoService;
     }
 
     public byte[] generateXlsx(Map<String, List<Map<String, Object>>> etapas) throws IOException {
@@ -72,6 +75,10 @@ public class ExcelService {
 
                 if (sheetName.contains("ETAPA 5")) {
                     atividadesControleService.generateSheet(wb, sheetName, rows);
+                    continue;
+                }
+                if(sheetName.contains("OCORRÊNCIAS DE RISCO")){
+                    ocorrenciaRiscoService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 

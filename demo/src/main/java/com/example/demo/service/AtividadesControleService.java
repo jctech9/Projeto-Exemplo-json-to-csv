@@ -31,6 +31,10 @@ public class AtividadesControleService {
         boldFont.setBold(true);
         greyStyle.setFont(boldFont);
 
+        XSSFCellStyle greyStyleLeft = wb.createCellStyle();
+        greyStyleLeft.cloneStyleFrom(greyStyle);
+        greyStyleLeft.setAlignment(HorizontalAlignment.LEFT);
+
         CellStyle dataStyleLeft = wb.createCellStyle();
         applyBorders(dataStyleLeft);
         dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
@@ -55,8 +59,15 @@ public class AtividadesControleService {
 
         for (int c = 0; c < headerList.size(); c++) {
             Cell cell = row2.createCell(c);
-            cell.setCellValue(headerList.get(c));
-            cell.setCellStyle(greyStyle);
+            String hName = headerList.get(c);
+            cell.setCellValue(hName);
+
+            // CORREÇÃO: Se o título for longo, alinha à esquerda para não "comer" o início
+            if (hName.contains("Responsável") || hName.contains("Data") || hName.contains("Evento")) {
+                cell.setCellStyle(greyStyleLeft);
+            } else {
+                cell.setCellStyle(greyStyle);
+            }
         }
 
         // 4. Preenchimento de Dados
@@ -136,7 +147,9 @@ public class AtividadesControleService {
         for (int i = 0; i < headers.size(); i++) {
             String h = headers.get(i);
             if (h.contains("Evento") || h.contains("Ações") || h.contains("Gatilho") || h.contains("Monitoramento")) sheet.setColumnWidth(i, 15000);
-            else sheet.setColumnWidth(i, 6000);
+            else if (h.contains("Data"))  {
+                sheet.setColumnWidth(i, 10000);
+            } else sheet.setColumnWidth(i, 6000);
         }
     }
 
