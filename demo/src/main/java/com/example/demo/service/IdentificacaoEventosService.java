@@ -30,6 +30,7 @@ public class IdentificacaoEventosService {
         Font boldFont = wb.createFont();
         boldFont.setBold(true);
         blueStyle.setFont(boldFont);
+        blueStyle.setWrapText(true);
 
         // 2. Criar Linha 1: Título Mesclado
         Row titleRow = sheet.createRow(r++);
@@ -45,15 +46,31 @@ public class IdentificacaoEventosService {
         List<String> headerList = new ArrayList<>(headers);
 
         Row headerRow = sheet.createRow(r++);
+        headerRow.setHeightInPoints(35);
         for (int c = 0; c < headerList.size(); c++) {
             Cell cell = headerRow.createCell(c);
             cell.setCellValue(headerList.get(c));
             cell.setCellStyle(blueStyle);
+
+            String headerName = headerList.get(c);
+
+            if (headerName.equalsIgnoreCase("Evento de Risco (indicar)")) {
+                cell.setCellValue("Evento de Risco\n(indicar)");
+            } else if (headerName.equalsIgnoreCase("Causas (descrever)")) {
+                cell.setCellValue("Causas\n(descrever)");
+            } else if (headerName.equalsIgnoreCase("Consequências (descrever)")) {
+                cell.setCellValue("Consequências\n(descrever)");
+            } else {
+                cell.setCellValue(headerName);
+            }
+
+            cell.setCellStyle(blueStyle);
+
+
         }
 
         // 4. DEFINIÇÃO DOS ESTILOS DE DADOS (Criados uma vez para evitar corromper o arquivo)
 
-        // Estilo Centralizado (Fase, Tipos, Categoria)
         CellStyle dataStyleCenter = wb.createCellStyle();
         applyBorders(dataStyleCenter);
         dataStyleCenter.setAlignment(HorizontalAlignment.CENTER);
@@ -62,10 +79,9 @@ public class IdentificacaoEventosService {
 
 
 
-        // Estilo à Esquerda (Processo, Evento, Causas, Consequências)
         CellStyle dataStyleLeft = wb.createCellStyle();
         applyBorders(dataStyleLeft);
-        dataStyleLeft.setAlignment(HorizontalAlignment.LEFT); // ALINHAMENTO À ESQUERDA
+        dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
         dataStyleLeft.setVerticalAlignment(VerticalAlignment.CENTER);
         dataStyleLeft.setWrapText(false);
 
@@ -99,7 +115,6 @@ public class IdentificacaoEventosService {
             }
         }
 
-        // 6. Configurações Finais
         setupValidations(sheet, headerList);
         setColumnWidths(sheet, headerList);
     }

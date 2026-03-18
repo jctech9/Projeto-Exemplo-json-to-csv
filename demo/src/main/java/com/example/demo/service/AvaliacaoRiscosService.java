@@ -58,15 +58,39 @@ public class AvaliacaoRiscosService {
         headerStyle.setAlignment(HorizontalAlignment.CENTER);
         headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         applyBorders(headerStyle);
+        headerStyle.setWrapText(true);
 
         Font headerFont = wb.createFont();
         headerFont.setBold(true);
         headerStyle.setFont(headerFont);
 
         Row headerRow = sheet.createRow(r++);
+        headerRow.setHeightInPoints(35);
         for (int c = 0; c < headerList.size(); c++) {
             Cell cell = headerRow.createCell(c);
             cell.setCellValue(headerList.get(c));
+            cell.setCellStyle(headerStyle);
+
+            String hName = headerList.get(c);
+
+            if (hName.equalsIgnoreCase("Risco Inerente (PxI)")) {
+                cell.setCellValue("Risco Inerente\n(PxI)");
+            } else if (hName.contains("Classificação do Risco Inerente")) {
+                cell.setCellValue("Classificação do\nRisco Inerente");
+            } else if (hName.contains("Controles Preventivos (descrever)")) {
+                cell.setCellValue("Controles Preventivos\n(descrever)");
+                
+            } else if (hName.contains("Controles de Atenuação e recuperação (descrever)")) {
+                cell.setCellValue("Controles de atenuação e recuperação\n(descrever)");
+            } else if (hName.contains("Avaliação dos Controles")) {
+                cell.setCellValue("Avaliação dos\nControles");
+            } else if (hName.contains("Classificação do Risco Residual")) {
+                cell.setCellValue("Classificação do\nRisco Residual");
+            } else if (hName.contains("Data da Última Avaliação")) {
+                cell.setCellValue("Data da Última\nAvaliação");
+            } else {
+                cell.setCellValue(hName);
+            }
             cell.setCellStyle(headerStyle);
         }
 
@@ -243,16 +267,16 @@ public class AvaliacaoRiscosService {
             if (header.equals("P") || header.equals("I") || header.equals("FAC")) {
                 sheet.setColumnWidth(c, 1500);
             } else if (header.contains("Classificação")) {
-                sheet.setColumnWidth(c, 9000);
+                sheet.setColumnWidth(c, 6000);
             } else if (header.contains("Evento de Risco")) {
-                sheet.setColumnWidth(c, 30000);
+                sheet.setColumnWidth(c, 25000);
             } else if (header.contains("Data da Última Avaliação") || header.contains("Data")) {
-                sheet.setColumnWidth(c, 6500);
+                sheet.setColumnWidth(c, 5000);
             } else if (header.contains("Avaliação dos Controles")) {
-                sheet.setColumnWidth(c, 8000);
+                sheet.setColumnWidth(c, 5500);
             } else if (header.contains("Controles Preventivos")
                     || header.contains("Controles de Atenuação e recuperação")) {
-                sheet.setColumnWidth(c, 20000);
+                sheet.setColumnWidth(c, 15000);
             } else {
                 sheet.setColumnWidth(c, 5000);
             }

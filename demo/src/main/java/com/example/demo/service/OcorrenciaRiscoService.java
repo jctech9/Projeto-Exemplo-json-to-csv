@@ -12,7 +12,6 @@ public class OcorrenciaRiscoService {
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
 
-        // COR TEAL/CIANO PERSONALIZADA (RGB da imagem)
         byte[] rgbTeal = new byte[]{(byte) 0, (byte) 188, (byte) 212};
         XSSFColor npiTeal = new XSSFColor(rgbTeal, null);
 
@@ -24,6 +23,7 @@ public class OcorrenciaRiscoService {
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         headerStyle.setAlignment(HorizontalAlignment.CENTER);
         headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerStyle.setWrapText(true);
         applyBorders(headerStyle);
         Font boldFont = wb.createFont();
         boldFont.setBold(true);
@@ -55,10 +55,25 @@ public class OcorrenciaRiscoService {
         List<String> headerList = new ArrayList<>(headers);
 
         Row row2 = sheet.createRow(r++);
+        row2.setHeightInPoints(35);
         for (int c = 0; c < headerList.size(); c++) {
             Cell cell = row2.createCell(c);
             cell.setCellValue(headerList.get(c));
             cell.setCellStyle(headerStyle);
+
+            String hName = headerList.get(c);
+
+            if (hName.equalsIgnoreCase("Descrição da Ocorrência")) {
+                cell.setCellValue("Descrição da Ocorrência\n(descrever)");
+            } else if (hName.equalsIgnoreCase("Responsável pela Solução")) {
+                cell.setCellValue("Responsável pela\nSolução");
+            } else if (hName.equalsIgnoreCase("Solução")) {
+                cell.setCellValue("Solução\n(descrever)");
+            } else if (hName.equalsIgnoreCase("Resultados (descrever)")) {
+                cell.setCellValue("Resultados\n(descrever)");
+            } else {
+                cell.setCellValue(hName);
+            }
         }
 
         // 4. Preenchimento de Dados
@@ -70,7 +85,6 @@ public class OcorrenciaRiscoService {
                 Object val = rowData.get(headerName);
                 cell.setCellValue(val == null ? "" : String.valueOf(val));
 
-                // Alinhamento conforme o modelo
                 if (headerName.contains("Evento") || headerName.contains("descritiva") || headerName.contains("Solução") || headerName.contains("Resultados") || headerName.contains("Descrição")) {
                     cell.setCellStyle(dataStyleLeft);
                 } else {
@@ -88,15 +102,12 @@ public class OcorrenciaRiscoService {
             if (h.contains("(descrever)") || h.contains("descritiva")) {
                 sheet.setColumnWidth(i, 18000);
             }
-            // Coluna do Evento (Geralmente a maior)
             else if (h.contains("Evento") || h.contains("Resultados")) {
-                sheet.setColumnWidth(i, 29000);
+                sheet.setColumnWidth(i, 20000);
             }
-            // Coluna de Responsáveis (Diminuída conforme solicitado)
             else if (h.contains("Responsável")) {
-                sheet.setColumnWidth(i, 9000); // Largura ideal para nomes como "João Silva"
+                sheet.setColumnWidth(i, 7000);
             }
-            // Colunas curtas (Datas, etc)
             else {
                 sheet.setColumnWidth(i, 7000);
             }
