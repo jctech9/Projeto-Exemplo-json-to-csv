@@ -127,7 +127,7 @@ public class ExcelController {
         try {
             // Se houver ID específico, filtra processos por esse ID.
             // Sem ID, mantém a lista completa de processos.
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", data -> {
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", "id,asc", data -> {
                 List<Map<String, Object>> content = getList(data);
                 if (content != null && !content.isEmpty()) {
                     if (mainProcessId.get() != -1) {
@@ -148,7 +148,7 @@ public class ExcelController {
             // Demais etapas filtradas
             // Riscos: filtra por processo e coleta os IDs dos riscos filtrados para usar nas ocorrências
             java.util.Set<Integer> riscoIdsDoProcesso = new java.util.HashSet<>();
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/riscos", data -> {
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/riscos", "id,asc", data -> {
                 // Aplica o filtro por processo
                 if (mainProcessId.get() != -1) {
                     List<Map<String, Object>> content = getList(data);
@@ -170,16 +170,16 @@ public class ExcelController {
                 }
                 return IdentificacaoEventosTransformer.transform(data);
             });
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/avaliacoesRiscoControle", filterByProcess(AvaliacaoRiscosTransformer::transform, mainProcessId));
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/respostasRisco", filterByProcess(RespostaRiscosTransformer::transform, mainProcessId));
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/atividadeControles", filterByProcess(AtividadeControleTransformer::transform, mainProcessId));
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/avaliacoesRiscoControle", "risco.id,asc", filterByProcess(AvaliacaoRiscosTransformer::transform, mainProcessId));
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/respostasRisco", "risco.id,asc", filterByProcess(RespostaRiscosTransformer::transform, mainProcessId));
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/atividadeControles", "risco.id,asc", filterByProcess(AtividadeControleTransformer::transform, mainProcessId));
             
             // Ocorrências de Risco: busca por cada risco do processo usando /ocorrenciasRisco/risco/{riscoId}
             if (!riscoIdsDoProcesso.isEmpty()) {
                 List<Map<String, Object>> todasOcorrencias = new java.util.ArrayList<>();
                 for (Integer riscoId : riscoIdsDoProcesso) {
                     try {
-                        String url = baseUrl + "/ocorrenciasRisco/risco/" + riscoId + "?page=0&size=999999";
+                        String url = baseUrl + "/ocorrenciasRisco/risco/" + riscoId + "?page=0&size=999999&sort=id,asc";
                         @SuppressWarnings("unchecked")
                         Map<String, Object> ocData = restTemplate.getForObject(url, Map.class);
                         if (ocData != null) {
@@ -220,10 +220,14 @@ public class ExcelController {
                 .body(bytes);
     }
 
-    private void addSheetIfAvailable(Map<String, List<Map<String, Object>>> allSheets, RestTemplate restTemplate, 
-            String baseUrl, String endpoint, java.util.function.Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer) {
+    private void addSheetIfAvailable(Map<String, List<Map<String, Object>>> allSheets, RestTemplate restTemplate,
+            String baseUrl, String endpoint, String sort,
+            java.util.function.Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer) {
         try {
             String url = baseUrl + endpoint + "?page=0&size=999999";
+            if (sort != null && !sort.isBlank()) {
+                url += "&sort=" + sort;
+            }
             @SuppressWarnings("unchecked")
             Map<String, Object> data = restTemplate.getForObject(url, Map.class);
             if (data != null) {
