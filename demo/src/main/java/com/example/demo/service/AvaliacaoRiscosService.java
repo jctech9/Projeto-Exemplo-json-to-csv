@@ -27,9 +27,12 @@ import java.util.Map;
 @Service
 public class AvaliacaoRiscosService {
 
+    private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIF. DE EVENTOS";
+
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
 
         XSSFSheet sheet = wb.createSheet(sheetName);
+        String etapa2SheetName = resolveEtapa2SheetName(wb);
 
         byte[] rgbPink = new byte[]{(byte) 230, (byte) 145, (byte) 145};
         XSSFColor headerColor = new XSSFColor(rgbPink, null);
@@ -113,6 +116,8 @@ public class AvaliacaoRiscosService {
 
                 if (columnName.equalsIgnoreCase("Risco Inerente (PxI)")) {
                     cell.setCellFormula("C" + rowNum + "*E" + rowNum);
+                } else if (columnName.equalsIgnoreCase("Evento de Risco")) {
+                    cell.setCellFormula("'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum);
                 } else if (columnName.equalsIgnoreCase("Risco Residual")) {
                     cell.setCellFormula("F" + rowNum + "*K" + rowNum);
                 } else if (columnName.equalsIgnoreCase("P")) {
@@ -173,6 +178,16 @@ public class AvaliacaoRiscosService {
 
         setupValidations(sheet, headerList);
         setColumnWidths(sheet, headerList);
+    }
+
+    private String resolveEtapa2SheetName(XSSFWorkbook wb) {
+        for (int i = 0; i < wb.getNumberOfSheets(); i++) {
+            String name = wb.getSheetName(i);
+            if (name != null && name.contains("ETAPA 2")) {
+                return name;
+            }
+        }
+        return ETAPA_2_SHEET_FALLBACK_NAME;
     }
 
     private void applyClassificationStyle(

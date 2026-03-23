@@ -1,7 +1,6 @@
 package com.example.demo.transformers;
 
 import static com.example.demo.transformers.TransformerUtils.getContent;
-import static com.example.demo.transformers.TransformerUtils.getNestedString;
 import static com.example.demo.transformers.TransformerUtils.val;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -18,7 +17,8 @@ public class AvaliacaoRiscosTransformer {
         for (Map<String, Object> avaliacao : getContent(input)) {
             Map<String, Object> row = new LinkedHashMap<>();
 
-            row.put("Evento de Risco", getNestedString(avaliacao, "risco", "nome"));
+            // Preenchido por formula no service da ETAPA 3, referenciando a ETAPA 2.
+            row.put("Evento de Risco", "");
             row.put("Probabilidade", mapearProbabilidade(avaliacao.get("probabilidade")));
             row.put("P", "");
             row.put("Impacto", mapearImpacto(avaliacao.get("impacto")));
