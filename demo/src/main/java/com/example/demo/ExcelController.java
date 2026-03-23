@@ -17,9 +17,13 @@ import com.example.demo.transformers.RefResolver;
 
 import java.nio.charset.StandardCharsets;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/export")
@@ -127,14 +131,14 @@ public class ExcelController {
         try {
             // Se houver ID específico, filtra processos por esse ID.
             // Sem ID, mantém a lista completa de processos.
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", "id,asc", data -> {
+            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", data -> {
                 List<Map<String, Object>> content = getList(data);
                 if (content != null && !content.isEmpty()) {
                     if (mainProcessId.get() != -1) {
                         // Filtra pelo ID fornecido no POST
-                        List<Map<String, Object>> filteredInfo = new java.util.ArrayList<>();
+                        List<Map<String, Object>> filteredInfo = new ArrayList<>();
                         for (Map<String, Object> p : content) {
-                             if (checkId(p, mainProcessId.get(), new java.util.HashMap<>())) { // Cache vazio, check direto
+                             if (checkId(p, mainProcessId.get(), new HashMap<>())) { // Cache vazio, check direto
                                  filteredInfo.add(p);
                                  break; // Assume 1 processo por ID
                              }
@@ -145,41 +149,53 @@ public class ExcelController {
                 return DadosProcessoTransformer.transform(data);
             });
             
-            // Demais etapas filtradas
-            // Riscos: filtra por processo e coleta os IDs dos riscos filtrados para usar nas ocorrências
-            java.util.Set<Integer> riscoIdsDoProcesso = new java.util.HashSet<>();
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/riscos", "id,asc", data -> {
-                // Aplica o filtro por processo
-                if (mainProcessId.get() != -1) {
-                    List<Map<String, Object>> content = getList(data);
-                    if (content != null) {
-                        List<Map<String, Object>> filtered = new java.util.ArrayList<>();
-                        Map<String, Integer> refCache = new java.util.HashMap<>();
-                        for (Map<String, Object> item : content) {
-                            if (isRelatedToProcess(item, mainProcessId.get(), refCache)) {
-                                filtered.add(item);
-                                // Coleta o ID do risco
-                                Object riscoId = item.get("id");
-                                if (riscoId instanceof Number) {
-                                    riscoIdsDoProcesso.add(((Number) riscoId).intValue());
-                                }
-                            }
-                        }
-                        data.put("content", filtered);
+            // Riscos viram a lista canônica de referência entre as etapas.
+            Set<Integer> riscoIdsDoProcesso = new LinkedHashSet<>();
+            Map<String, Object> riscosData = fetchEndpointData(restTemplate, baseUrl, "/riscos");
+            if (riscosData != null) {
+                List<Map<String, Object>> riscosFiltrados = filterByProcessIfNeeded(riscosData, mainProcessId.get());
+                riscosData.put("content", riscosFiltrados);
+
+                for (Map<String, Object> risco : riscosFiltrados) {
+                    Object riscoId = risco.get("id");
+                    if (riscoId instanceof Number) {
+                        riscoIdsDoProcesso.add(((Number) riscoId).intValue());
                     }
                 }
-                return IdentificacaoEventosTransformer.transform(data);
-            });
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/avaliacoesRiscoControle", "risco.id,asc", filterByProcess(AvaliacaoRiscosTransformer::transform, mainProcessId));
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/respostasRisco", "risco.id,asc", filterByProcess(RespostaRiscosTransformer::transform, mainProcessId));
-            addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/atividadeControles", "risco.id,asc", filterByProcess(AtividadeControleTransformer::transform, mainProcessId));
+
+                allSheets.putAll(IdentificacaoEventosTransformer.transform(riscosData));
+            }
+
+            // ETAPA 3 alinhada pela ordem dos risco.id canônicos.
+            Map<String, Object> avaliacoesData = fetchEndpointData(restTemplate, baseUrl, "/avaliacoesRiscoControle");
+            if (avaliacoesData != null) {
+                List<Map<String, Object>> content = filterByProcessIfNeeded(avaliacoesData, mainProcessId.get());
+                avaliacoesData.put("content", alignByRiscoIds(content, riscoIdsDoProcesso));
+                allSheets.putAll(AvaliacaoRiscosTransformer.transform(avaliacoesData));
+            }
+
+            // ETAPA 4 alinhada pela mesma chave de risco.
+            Map<String, Object> respostasData = fetchEndpointData(restTemplate, baseUrl, "/respostasRisco");
+            if (respostasData != null) {
+                List<Map<String, Object>> content = filterByProcessIfNeeded(respostasData, mainProcessId.get());
+                respostasData.put("content", alignByRiscoIds(content, riscoIdsDoProcesso));
+                allSheets.putAll(RespostaRiscosTransformer.transform(respostasData));
+            }
+
+            // ETAPA 5 alinhada pela mesma chave de risco.
+            Map<String, Object> atividadesData = fetchEndpointData(restTemplate, baseUrl, "/atividadeControles");
+            if (atividadesData != null) {
+                List<Map<String, Object>> content = filterByProcessIfNeeded(atividadesData, mainProcessId.get());
+                atividadesData.put("content", alignByRiscoIds(content, riscoIdsDoProcesso));
+                allSheets.putAll(AtividadeControleTransformer.transform(atividadesData));
+            }
             
             // Ocorrências de Risco: busca por cada risco do processo usando /ocorrenciasRisco/risco/{riscoId}
             if (!riscoIdsDoProcesso.isEmpty()) {
-                List<Map<String, Object>> todasOcorrencias = new java.util.ArrayList<>();
+                List<Map<String, Object>> todasOcorrencias = new ArrayList<>();
                 for (Integer riscoId : riscoIdsDoProcesso) {
                     try {
-                        String url = baseUrl + "/ocorrenciasRisco/risco/" + riscoId + "?page=0&size=999999&sort=id,asc";
+                        String url = baseUrl + "/ocorrenciasRisco/risco/" + riscoId + "?page=0&size=999999";
                         @SuppressWarnings("unchecked")
                         Map<String, Object> ocData = restTemplate.getForObject(url, Map.class);
                         if (ocData != null) {
@@ -221,13 +237,10 @@ public class ExcelController {
     }
 
     private void addSheetIfAvailable(Map<String, List<Map<String, Object>>> allSheets, RestTemplate restTemplate,
-            String baseUrl, String endpoint, String sort,
+            String baseUrl, String endpoint,
             java.util.function.Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer) {
         try {
             String url = baseUrl + endpoint + "?page=0&size=999999";
-            if (sort != null && !sort.isBlank()) {
-                url += "&sort=" + sort;
-            }
             @SuppressWarnings("unchecked")
             Map<String, Object> data = restTemplate.getForObject(url, Map.class);
             if (data != null) {
@@ -238,6 +251,102 @@ public class ExcelController {
         } catch (Exception e) {
             System.err.println("[EXPORT] Erro ao buscar " + endpoint + ": " + e.getMessage());
         }
+    }
+/////alinhamento por mapa de risco.id no fluxo de exportação/////////////
+   
+    // Busca um endpoint paginado e já resolve referências serializadas (@ref).
+    private Map<String, Object> fetchEndpointData(RestTemplate restTemplate, String baseUrl, String endpoint) {
+        try {
+            String url = baseUrl + endpoint + "?page=0&size=999999";
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = restTemplate.getForObject(url, Map.class);
+            if (data != null) {
+                RefResolver.resolve(data);
+            }
+            return data;
+        } catch (Exception e) {
+            System.err.println("[EXPORT] Erro ao buscar " + endpoint + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Aplica filtro por processo quando informado; sem processo, retorna todos os itens.
+    private List<Map<String, Object>> filterByProcessIfNeeded(Map<String, Object> data, int processId) {
+        List<Map<String, Object>> content = getList(data);
+        if (content == null) {
+            return new ArrayList<>();
+        }
+        if (processId == -1) {
+            return new ArrayList<>(content);
+        }
+
+        List<Map<String, Object>> filtered = new ArrayList<>();
+        Map<String, Integer> refCache = new HashMap<>();
+        for (Map<String, Object> item : content) {
+            if (isRelatedToProcess(item, processId, refCache)) {
+                filtered.add(item);
+            }
+        }
+        return filtered;
+    }
+
+    @SuppressWarnings("unchecked")
+    // Reordena uma coleção usando o conjunto canônico de risco.id.
+    private List<Map<String, Object>> alignByRiscoIds(List<Map<String, Object>> content, Set<Integer> canonicalRiscoIds) {
+        if (content == null || content.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Sem lista canônica, mantém o conteúdo original.
+        if (canonicalRiscoIds == null || canonicalRiscoIds.isEmpty()) {
+            return new ArrayList<>(content);
+        }
+
+        Map<Integer, Map<String, Object>> byRiscoId = new HashMap<>();
+        List<Map<String, Object>> withoutRiscoId = new ArrayList<>();
+
+        for (Map<String, Object> item : content) {
+            Integer riscoId = extractRiscoId(item);
+            if (riscoId == null) {
+                withoutRiscoId.add(item);
+                continue;
+            }
+            byRiscoId.putIfAbsent(riscoId, item);
+        }
+
+        List<Map<String, Object>> aligned = new ArrayList<>();
+        for (Integer riscoId : canonicalRiscoIds) {
+            Map<String, Object> item = byRiscoId.get(riscoId);
+            if (item != null) {
+                aligned.add(item);
+            }
+        }
+
+        // Mantém itens sem risco.id no final para não perder dados de endpoints heterogêneos.
+        aligned.addAll(withoutRiscoId);
+        return aligned;
+    }
+
+    // Extrai risco.id de objetos com estrutura aninhada (item.risco.id) ou direta (item.id).
+    private Integer extractRiscoId(Map<String, Object> item) {
+        if (item == null) {
+            return null;
+        }
+
+        Object riscoObj = item.get("risco");
+        if (riscoObj instanceof Map<?, ?> riscoMap) {
+            Object nestedId = riscoMap.get("id");
+            if (nestedId instanceof Number) {
+                return ((Number) nestedId).intValue();
+            }
+        }
+
+        Object directId = item.get("id");
+        if (directId instanceof Number) {
+            return ((Number) directId).intValue();
+        }
+
+        return null;
     }
 
     // --- Helpers de filtro ---
