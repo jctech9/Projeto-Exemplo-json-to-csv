@@ -120,11 +120,11 @@ public class IdentificacaoEventosService {
             }
         }
 
-        setupValidations(sheet, headerList);
+        setupValidations(wb, sheet, headerList);
         setColumnWidths(sheet, headerList);
     }
 
-    private void setupValidations(XSSFSheet sheet, List<String> headers) {
+    private void setupValidations(XSSFWorkbook wb, XSSFSheet sheet, List<String> headers) {
         DataValidationHelper helper = sheet.getDataValidationHelper();
         int colTipo = headers.indexOf("Tipo de Risco");
         int colCat = headers.indexOf("Categoria");

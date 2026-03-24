@@ -3,6 +3,8 @@ package com.example.demo.transformers;
 import static com.example.demo.transformers.TransformerUtils.getContent;
 import static com.example.demo.transformers.TransformerUtils.getNestedString;
 import static com.example.demo.transformers.TransformerUtils.val;
+
+import java.text.Normalizer;
 import java.util.*;
 
 public class IdentificacaoEventosTransformer {
@@ -18,8 +20,11 @@ public class IdentificacaoEventosTransformer {
             row.put("Fase", val(risco.get("faseProcesso")));
             row.put("Evento de Risco (indicar)", val(risco.get("nome")));
             row.put("Tipo de Risco", val(risco.get("tipoRisco")));
-            row.put("Categoria", getNestedString(risco, "categoria", "nome"));
-            row.put("Tipo de Risco de Integridade", getNestedString(risco, "tipoRiscoIntegridade", "nome"));
+            String categoria = getNestedString(risco, "categoria", "nome");
+            String tipoRiscoIntegridade = getNestedString(risco, "tipoRiscoIntegridade", "nome");
+
+            row.put("Categoria", categoria);
+            row.put("Tipo de Risco de Integridade", isCategoriaIntegridade(categoria) ? tipoRiscoIntegridade : "");
             row.put("Causas (descrever)", val(risco.get("causa")));
             row.put("Consequências (descrever)", val(risco.get("consequencias")));
 
@@ -29,6 +34,18 @@ public class IdentificacaoEventosTransformer {
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
         result.put("ETAPA 2. IDENTIF. DE EVENTOS", rows);
         return result;
+    }
+
+    private static boolean isCategoriaIntegridade(String categoria) {
+        if (categoria == null) {
+            return false;
+        }
+
+        String normalized = Normalizer.normalize(categoria, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .trim();
+
+        return "Integridade".equalsIgnoreCase(normalized);
     }
 
 }
