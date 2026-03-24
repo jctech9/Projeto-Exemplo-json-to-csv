@@ -11,6 +11,8 @@ import java.util.*;
 @Service
 public class RespostaRiscosService {
 
+    private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIFICAÇÃO DE EVENT";
+
     public void generateSheet(
             XSSFWorkbook wb,
             String sheetName,
@@ -18,6 +20,7 @@ public class RespostaRiscosService {
     ) {
 
         XSSFSheet sheet = wb.createSheet(sheetName);
+        String etapa2SheetName = resolveEtapa2SheetName(wb);
 
         byte[] rgbYellow = new byte[]{(byte) 255, (byte) 255, (byte) 0};
         XSSFColor headerColor = new XSSFColor(rgbYellow, null);
@@ -91,9 +94,10 @@ public class RespostaRiscosService {
         for(Map<String,Object> rowData : rows){
 
             Row dataRow = sheet.createRow(r++);
+            int rowNum = dataRow.getRowNum() + 1;
 
             Cell cell0 = dataRow.createCell(0);
-            cell0.setCellValue(String.valueOf(rowData.getOrDefault("Processo","")));
+            cell0.setCellFormula("'" + etapa2SheetName.replace("'", "''") + "'!A" + rowNum);
             cell0.setCellStyle(dataStyleLeft);
 
             Cell cell1 = dataRow.createCell(1);
@@ -101,7 +105,7 @@ public class RespostaRiscosService {
             cell1.setCellStyle(dataStyleCenter);
 
             Cell cell2 = dataRow.createCell(2);
-            cell2.setCellValue(String.valueOf(rowData.getOrDefault("Evento de Risco","")));
+            cell2.setCellFormula("'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum);
             cell2.setCellStyle(dataStyleLeft);
 
             Cell cell3 = dataRow.createCell(3);
@@ -143,6 +147,16 @@ public class RespostaRiscosService {
         sheet.setColumnWidth(2,22000);
         sheet.setColumnWidth(3,7000);
         sheet.setColumnWidth(4,50000);
+    }
+
+    private String resolveEtapa2SheetName(XSSFWorkbook wb) {
+        for (int i = 0; i < wb.getNumberOfSheets(); i++) {
+            String name = wb.getSheetName(i);
+            if (name != null && name.contains("ETAPA 2")) {
+                return name;
+            }
+        }
+        return ETAPA_2_SHEET_FALLBACK_NAME;
     }
 
     private static final String[] OPCOES_TRATAMENTO = {
