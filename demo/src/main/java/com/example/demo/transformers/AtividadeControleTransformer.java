@@ -19,7 +19,7 @@ public class AtividadeControleTransformer {
             Map<String, Object> row = new LinkedHashMap<>();
 
             Map<String, Object> risco = asMap(atividade.get("risco"));
-            row.put("Evento de Risco", risco == null ? "" : val(risco.get("nome")));
+            row.put("Evento de Risco", "");
             row.put("Opção de Tratamento", extrairOpcaoTratamento(risco));
             row.put("Responsável pelo Tratamento", val(atividade.get("responsavelTratamento")));
             row.put("Data prevista para início da implementação", formatarData(atividade.get("dataInicio")));

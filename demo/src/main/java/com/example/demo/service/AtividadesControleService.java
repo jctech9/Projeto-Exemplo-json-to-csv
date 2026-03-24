@@ -11,8 +11,11 @@ import java.util.*;
 @Service
 public class AtividadesControleService {
 
+    private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIF. DE EVENTOS";
+
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
+        String etapa2SheetName = resolveEtapa2SheetName(wb);
 
         // Cor Cinza para o Cabeçalho
         byte[] rgbGrey = new byte[]{(byte) 217, (byte) 217, (byte) 217};
@@ -31,10 +34,6 @@ public class AtividadesControleService {
         Font boldFont = wb.createFont();
         boldFont.setBold(true);
         greyStyle.setFont(boldFont);
-
-        XSSFCellStyle greyStyleLeft = wb.createCellStyle();
-        greyStyleLeft.cloneStyleFrom(greyStyle);
-        greyStyleLeft.setAlignment(HorizontalAlignment.LEFT);
 
         CellStyle dataStyleLeft = wb.createCellStyle();
         applyBorders(dataStyleLeft);
@@ -98,7 +97,11 @@ public class AtividadesControleService {
                 Cell cell = dataRow.createCell(c);
                 Object val = rowData.get(headerName);
 
-                if (headerName.equalsIgnoreCase("Opção de Tratamento")) {
+                if (headerName.equalsIgnoreCase("Evento de Risco")) {
+                    String formula = "'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum;
+                    cell.setCellFormula(formula);
+                    cell.setCellStyle(dataStyleLeft);
+                } else if (headerName.equalsIgnoreCase("Opção de Tratamento")) {
                     // Aponta para a Coluna D (índice 3) da planilha "ETAPA 4. RESPOSTA AOS RISCOS"
                     String formula = "'ETAPA 4. RESPOSTA AOS RISCOS'!D" + rowNum;
                     cell.setCellFormula(formula);
@@ -123,6 +126,16 @@ public class AtividadesControleService {
         // 6. Selects e Larguras
         setupValidations(sheet, headerList);
         setColumnWidths(sheet, headerList);
+    }
+
+    private String resolveEtapa2SheetName(XSSFWorkbook wb) {
+        for (int i = 0; i < wb.getNumberOfSheets(); i++) {
+            String name = wb.getSheetName(i);
+            if (name != null && name.contains("ETAPA 2")) {
+                return name;
+            }
+        }
+        return ETAPA_2_SHEET_FALLBACK_NAME;
     }
 
     private void applyStatusFormatting(XSSFSheet sheet, List<String> headers) {
