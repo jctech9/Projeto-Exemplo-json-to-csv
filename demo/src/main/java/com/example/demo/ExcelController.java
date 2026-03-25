@@ -302,7 +302,7 @@ public class ExcelController {
             return new ArrayList<>(content);
         }
 
-        Map<Integer, Map<String, Object>> byRiscoId = new HashMap<>();
+        Map<Integer, List<Map<String, Object>>> byRiscoId = new LinkedHashMap<>();
         List<Map<String, Object>> withoutRiscoId = new ArrayList<>();
 
         for (Map<String, Object> item : content) {
@@ -311,14 +311,23 @@ public class ExcelController {
                 withoutRiscoId.add(item);
                 continue;
             }
-            byRiscoId.putIfAbsent(riscoId, item);
+            byRiscoId.computeIfAbsent(riscoId, key -> new ArrayList<>()).add(item);
         }
 
         List<Map<String, Object>> aligned = new ArrayList<>();
+        Set<Integer> includedRiscoIds = new LinkedHashSet<>();
         for (Integer riscoId : canonicalRiscoIds) {
-            Map<String, Object> item = byRiscoId.get(riscoId);
-            if (item != null) {
-                aligned.add(item);
+            List<Map<String, Object>> items = byRiscoId.get(riscoId);
+            if (items != null && !items.isEmpty()) {
+                aligned.addAll(items);
+                includedRiscoIds.add(riscoId);
+            }
+        }
+
+        // Adiciona itens de risco.id que não estavam na lista canônica no final, para não perder dados.
+        for (Map.Entry<Integer, List<Map<String, Object>>> entry : byRiscoId.entrySet()) {
+            if (!includedRiscoIds.contains(entry.getKey())) {
+                aligned.addAll(entry.getValue());
             }
         }
 
@@ -327,7 +336,8 @@ public class ExcelController {
         return aligned;
     }
 
-    // Extrai risco.id de objetos com estrutura aninhada (item.risco.id) ou direta (item.id).
+    // Extrai apenas risco.id da estrutura aninhada (item.risco.id).
+    // Evita fallback para item.id, que pode representar IDs de outras entidades.
     private Integer extractRiscoId(Map<String, Object> item) {
         if (item == null) {
             return null;
@@ -339,11 +349,6 @@ public class ExcelController {
             if (nestedId instanceof Number) {
                 return ((Number) nestedId).intValue();
             }
-        }
-
-        Object directId = item.get("id");
-        if (directId instanceof Number) {
-            return ((Number) directId).intValue();
         }
 
         return null;
@@ -410,7 +415,7 @@ public class ExcelController {
         // Se o item não tem link direto com processo nem risco.processo,
         // inclui o item (ex: ocorrências de risco que não possuem essa associação)
         if (procObj == null && riscoObj == null) {
-            return true;
+            return false;
         }
         return false;
     }
