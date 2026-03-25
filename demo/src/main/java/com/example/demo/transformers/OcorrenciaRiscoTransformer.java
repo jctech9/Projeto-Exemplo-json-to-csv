@@ -40,10 +40,16 @@ public class OcorrenciaRiscoTransformer {
         if (risco != null) {
             String nome = val(risco.get("nome"));
             if (!nome.isEmpty()) return nome;
+
+            String eventoRisco = val(risco.get("eventoRisco"));
+            if (!eventoRisco.isEmpty()) return eventoRisco;
+
+            String descricaoRisco = val(risco.get("descricao"));
+            if (!descricaoRisco.isEmpty()) return descricaoRisco;
         }
 
-        // fallback: usa a própria descrição da ocorrência
-        return val(ocorrencia.get("descricao"));
+        // Não usar descrição da ocorrência na coluna de evento de risco.
+        return "";
     }
     
     // Formata a data no padrão dd/MM/yyyy

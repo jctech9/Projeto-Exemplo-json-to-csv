@@ -151,6 +151,7 @@ public class ExcelController {
             
             // Riscos viram a lista canônica de referência entre as etapas.
             Set<Integer> riscoIdsDoProcesso = new LinkedHashSet<>();
+            Map<Integer, String> riscoNomePorId = new LinkedHashMap<>();
             Map<String, Object> riscosData = fetchEndpointData(restTemplate, baseUrl, "/riscos");
             if (riscosData != null) {
                 List<Map<String, Object>> riscosFiltrados = filterByProcessIfNeeded(riscosData, mainProcessId.get());
@@ -159,7 +160,9 @@ public class ExcelController {
                 for (Map<String, Object> risco : riscosFiltrados) {
                     Object riscoId = risco.get("id");
                     if (riscoId instanceof Number) {
-                        riscoIdsDoProcesso.add(((Number) riscoId).intValue());
+                        Integer id = ((Number) riscoId).intValue();
+                        riscoIdsDoProcesso.add(id);
+                        riscoNomePorId.put(id, String.valueOf(risco.getOrDefault("nome", "")));
                     }
                 }
 
@@ -201,6 +204,22 @@ public class ExcelController {
                         if (ocData != null) {
                             List<Map<String, Object>> ocContent = getList(ocData);
                             if (ocContent != null) {
+                                String nomeRisco = riscoNomePorId.getOrDefault(riscoId, "");
+                                for (Map<String, Object> ocorrencia : ocContent) {
+                                    @SuppressWarnings("unchecked")
+                                    Map<String, Object> risco = ocorrencia.get("risco") instanceof Map<?, ?> m
+                                            ? (Map<String, Object>) m
+                                            : new LinkedHashMap<>();
+
+                                    if (risco.get("id") == null) {
+                                        risco.put("id", riscoId);
+                                    }
+                                    String nomeExistente = String.valueOf(risco.getOrDefault("nome", ""));
+                                    if (nomeExistente.isBlank() && !nomeRisco.isBlank()) {
+                                        risco.put("nome", nomeRisco);
+                                    }
+                                    ocorrencia.put("risco", risco);
+                                }
                                 todasOcorrencias.addAll(ocContent);
                             }
                         }
