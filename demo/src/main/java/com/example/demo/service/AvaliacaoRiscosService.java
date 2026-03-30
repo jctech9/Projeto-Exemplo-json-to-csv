@@ -6,13 +6,19 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataValidation;
 import org.apache.poi.ss.usermodel.DataValidationConstraint;
 import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.ConditionalFormattingRule;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.FontFormatting;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.PatternFormatting;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.SheetConditionalFormatting;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -36,11 +42,6 @@ public class AvaliacaoRiscosService {
 
         byte[] rgbPink = new byte[]{(byte) 230, (byte) 145, (byte) 145};
         XSSFColor headerColor = new XSSFColor(rgbPink, null);
-
-        CellStyle styleExtremo = createRGBStyle(wb, new byte[]{(byte) 255, 0, 0});
-        CellStyle styleAlto = createRGBStyle(wb, new byte[]{(byte) 255, (byte) 192, 0});
-        CellStyle styleMedio = createRGBStyle(wb, new byte[]{(byte) 255, (byte) 255, 0});
-        CellStyle styleBaixo = createRGBStyle(wb, new byte[]{(byte) 146, (byte) 208, 80});
 
         LinkedHashSet<String> headers = new LinkedHashSet<>();
         for (Map<String, Object> row : rows) {
@@ -166,16 +167,17 @@ public class AvaliacaoRiscosService {
                     }
                 }
 
-                if (columnName.equalsIgnoreCase("Classificação do Risco Inerente")) {
-                    applyClassificationStyle(cell, rowData, styleExtremo, styleAlto, styleMedio, styleBaixo, false);
-                } else if (columnName.equalsIgnoreCase("Classificação do Risco Residual")) {
-                    applyClassificationStyle(cell, rowData, styleExtremo, styleAlto, styleMedio, styleBaixo, true);
+                if (columnName.equalsIgnoreCase("Classificação do Risco Inerente")
+                        || columnName.equalsIgnoreCase("Classificação do Risco Residual")) {
+                    cell.setCellStyle(defaultDataStyle);
                 } else {
                     cell.setCellStyle(defaultDataStyle);
                 }
             }
         }
 
+        applyClassificationConditionalFormatting(sheet, headerList, "Classificação do Risco Inerente");
+        applyClassificationConditionalFormatting(sheet, headerList, "Classificação do Risco Residual");
         setupValidations(sheet, headerList);
         setColumnWidths(sheet, headerList);
     }
@@ -190,54 +192,55 @@ public class AvaliacaoRiscosService {
         return ETAPA_2_SHEET_FALLBACK_NAME;
     }
 
-    private void applyClassificationStyle(
-            Cell cell,
-            Map<String, Object> rowData,
-            CellStyle styleExtremo,
-            CellStyle styleAlto,
-            CellStyle styleMedio,
-            CellStyle styleBaixo,
-            boolean residual
-    ) {
-
-        double risco = 0;
-
-        try {
-            double riscoInerente = Double.parseDouble(
-                    String.valueOf(rowData.get("Risco Inerente (PxI)")).replace(",", ".")
-            );
-
-            if (residual) {
-                double fac = 1;
-                String avaliacao = String.valueOf(rowData.get("Avaliação dos Controles"));
-
-                if (avaliacao.equalsIgnoreCase("Forte")) {
-                    fac = 0.2;
-                } else if (avaliacao.equalsIgnoreCase("Satisfatório")) {
-                    fac = 0.4;
-                } else if (avaliacao.equalsIgnoreCase("Mediano")) {
-                    fac = 0.6;
-                } else if (avaliacao.equalsIgnoreCase("Fraco")) {
-                    fac = 0.8;
-                }
-
-                risco = riscoInerente * fac;
-            } else {
-                risco = riscoInerente;
-            }
-        } catch (Exception ignored) {
-            risco = 0;
+    private void applyClassificationConditionalFormatting(XSSFSheet sheet, List<String> headers, String columnHeader) {
+        int classificationCol = headers.indexOf(columnHeader);
+        if (classificationCol == -1) {
+            return;
         }
 
-        if (risco >= 80) {
-            cell.setCellStyle(styleExtremo);
-        } else if (risco >= 40) {
-            cell.setCellStyle(styleAlto);
-        } else if (risco >= 10) {
-            cell.setCellStyle(styleMedio);
-        } else {
-            cell.setCellStyle(styleBaixo);
-        }
+        SheetConditionalFormatting sheetCF = sheet.getSheetConditionalFormatting();
+        String colLetter = CellReference.convertNumToColString(classificationCol);
+        String baseRef = "$" + colLetter + "3";
+
+        ConditionalFormattingRule ruleExtremo = sheetCF.createConditionalFormattingRule(
+                "ISNUMBER(SEARCH(\"Extremo\"," + baseRef + "))"
+        );
+        PatternFormatting fmtExtremo = ruleExtremo.createPatternFormatting();
+        fmtExtremo.setFillForegroundColor(IndexedColors.RED.getIndex());
+        fmtExtremo.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+        FontFormatting fontExtremo = ruleExtremo.createFontFormatting();
+        fontExtremo.setFontColorIndex(IndexedColors.BLACK.getIndex());
+
+        ConditionalFormattingRule ruleAlto = sheetCF.createConditionalFormattingRule(
+                "ISNUMBER(SEARCH(\"Alto\"," + baseRef + "))"
+        );
+        PatternFormatting fmtAlto = ruleAlto.createPatternFormatting();
+        fmtAlto.setFillForegroundColor(IndexedColors.ORANGE.getIndex());
+        fmtAlto.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+        FontFormatting fontAlto = ruleAlto.createFontFormatting();
+        fontAlto.setFontColorIndex(IndexedColors.BLACK.getIndex());
+
+        ConditionalFormattingRule ruleMedio = sheetCF.createConditionalFormattingRule(
+                "ISNUMBER(SEARCH(\"Médio\"," + baseRef + "))"
+        );
+        PatternFormatting fmtMedio = ruleMedio.createPatternFormatting();
+        fmtMedio.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        fmtMedio.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+        FontFormatting fontMedio = ruleMedio.createFontFormatting();
+        fontMedio.setFontColorIndex(IndexedColors.BLACK.getIndex());
+
+        ConditionalFormattingRule ruleBaixo = sheetCF.createConditionalFormattingRule(
+                "ISNUMBER(SEARCH(\"Baixo\"," + baseRef + "))"
+        );
+        PatternFormatting fmtBaixo = ruleBaixo.createPatternFormatting();
+        fmtBaixo.setFillForegroundColor(IndexedColors.BRIGHT_GREEN.getIndex());
+        fmtBaixo.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+        FontFormatting fontBaixo = ruleBaixo.createFontFormatting();
+        fontBaixo.setFontColorIndex(IndexedColors.BLACK.getIndex());
+
+        CellRangeAddress[] regions = {new CellRangeAddress(2, 1000, classificationCol, classificationCol)};
+        ConditionalFormattingRule[] rules = {ruleExtremo, ruleAlto, ruleMedio, ruleBaixo};
+        sheetCF.addConditionalFormatting(regions, rules);
     }
 
     private void setupValidations(XSSFSheet sheet, List<String> headers) {
