@@ -42,48 +42,43 @@ public class ExcelController {
         RefResolver.resolve(payload);
 
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
-        
-        // Detecta payload combinado ou JSON direto
-        if (payload.containsKey("processos") || payload.containsKey("respostasRisco")) {
-            // Payload combinado
-            @SuppressWarnings("unchecked")
-            Map<String, Object> processos = (Map<String, Object>) payload.get("processos");
-            @SuppressWarnings("unchecked")
-            Map<String, Object> riscos = (Map<String, Object>) payload.get("respostasRisco");
-            
-            if (processos != null) {
-                allSheets.putAll(DadosProcessoTransformer.transform(processos));
-            }
-            if (riscos != null) {
-                allSheets.putAll(RespostaRiscosTransformer.transform(riscos));
-            }
-        } else if (payload.containsKey("content")) {
-            // JSON direto: detecta tipo pelo conteúdo
-            Object content = payload.get("content");
-            if (content instanceof List && !((List<?>) content).isEmpty()) {
-                Object firstItem = ((List<?>) content).get(0);
-                if (firstItem instanceof Map) {
-                    Map<?, ?> item = (Map<?, ?>) firstItem;
-                    
-                    // Heurística: ocorrência, atividade, avaliação, resposta, evento ou processo
-                    if (item.containsKey("dataOcorrencia") && item.containsKey("descricao")) {
-                        allSheets.putAll(OcorrenciaRiscoTransformer.transform(payload));
-                    } else if (item.containsKey("statusImplementacao") && item.containsKey("risco")) {
-                        allSheets.putAll(AtividadeControleTransformer.transform(payload));
-                    } else if (item.containsKey("probabilidade") && item.containsKey("risco")) {
-                        allSheets.putAll(AvaliacaoRiscosTransformer.transform(payload));
-                    } else if (item.containsKey("risco")) {
-                        allSheets.putAll(RespostaRiscosTransformer.transform(payload));
-                    } else if (item.containsKey("faseProcesso")) {
-                        allSheets.putAll(IdentificacaoEventosTransformer.transform(payload));
-                    } else {
-                        allSheets.putAll(DadosProcessoTransformer.transform(payload));
+        try {
+            // Detecta payload combinado ou JSON direto
+            if (isCombinedPayload(payload)) {
+                // Garante consistencia e alinhamento por risco.id antes de gerar as abas.
+                transformCombinedPayload(payload, allSheets);
+            } else if (payload.containsKey("content")) {
+                // JSON direto: detecta tipo pelo conteudo
+                Object content = payload.get("content");
+                if (content instanceof List && !((List<?>) content).isEmpty()) {
+                    Object firstItem = ((List<?>) content).get(0);
+                    if (firstItem instanceof Map) {
+                        Map<?, ?> item = (Map<?, ?>) firstItem;
+
+                        // Heuristica: ocorrencia, atividade, avaliacao, resposta, evento ou processo
+                        if (item.containsKey("dataOcorrencia") && item.containsKey("descricao")) {
+                            allSheets.putAll(OcorrenciaRiscoTransformer.transform(payload));
+                        } else if (item.containsKey("statusImplementacao") && item.containsKey("risco")) {
+                            allSheets.putAll(AtividadeControleTransformer.transform(payload));
+                        } else if (item.containsKey("probabilidade") && item.containsKey("risco")) {
+                            allSheets.putAll(AvaliacaoRiscosTransformer.transform(payload));
+                        } else if (item.containsKey("risco")) {
+                            allSheets.putAll(RespostaRiscosTransformer.transform(payload));
+                        } else if (item.containsKey("faseProcesso")) {
+                            allSheets.putAll(IdentificacaoEventosTransformer.transform(payload));
+                        } else {
+                            allSheets.putAll(DadosProcessoTransformer.transform(payload));
+                        }
                     }
                 }
             }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(e.getMessage().getBytes(StandardCharsets.UTF_8));
         }
-        
-        // Se nenhuma aba foi detectada, retorna 204 (sem conteúdo)
+
+        // Se nenhuma aba foi detectada, retorna 204 (sem conteudo)
         if (allSheets.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -254,6 +249,267 @@ public class ExcelController {
                 .contentLength(bytes.length)
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(bytes);
+    }
+
+    private boolean isCombinedPayload(Map<String, Object> payload) {
+        return payload.containsKey("processos")
+                || payload.containsKey("riscos")
+                || payload.containsKey("avaliacoesRiscoControle")
+                || payload.containsKey("respostasRisco")
+                || payload.containsKey("atividadeControles")
+                || payload.containsKey("ocorrenciasRisco");
+    }
+
+    private void transformCombinedPayload(
+            Map<String, Object> payload,
+            Map<String, List<Map<String, Object>>> allSheets
+    ) {
+        // Le cada secao conhecida do payload combinado.
+        Map<String, Object> processosData = getPayloadSection(payload, "processos");
+        Map<String, Object> riscosData = getPayloadSection(payload, "riscos");
+        Map<String, Object> avaliacoesData = getPayloadSection(payload, "avaliacoesRiscoControle");
+        Map<String, Object> respostasData = getPayloadSection(payload, "respostasRisco");
+        Map<String, Object> atividadesData = getPayloadSection(payload, "atividadeControles");
+        Map<String, Object> ocorrenciasData = getPayloadSection(payload, "ocorrenciasRisco");
+
+        if (processosData != null) {
+            allSheets.putAll(DadosProcessoTransformer.transform(processosData));
+        }
+
+        List<Map<String, Object>> riscosContent = getContentOrEmpty(riscosData);
+        List<Map<String, Object>> avaliacoesContent = getContentOrEmpty(avaliacoesData);
+        List<Map<String, Object>> respostasContent = getContentOrEmpty(respostasData);
+        List<Map<String, Object>> atividadesContent = getContentOrEmpty(atividadesData);
+        List<Map<String, Object>> ocorrenciasContent = getContentOrEmpty(ocorrenciasData);
+
+        Set<Integer> canonicalRiscoIds = buildCanonicalRiscoIds(
+                riscosContent,
+                avaliacoesContent,
+                respostasContent,
+                atividadesContent,
+                ocorrenciasContent
+        );
+
+        Map<Integer, String> riscoNomePorId = buildRiscoNomePorId(riscosContent);
+
+        int colecoesComRisco = countNonEmptyCollections(
+                riscosContent,
+                avaliacoesContent,
+                respostasContent,
+                atividadesContent
+        );
+        if (colecoesComRisco > 1 && canonicalRiscoIds.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Inconsistencia no payload: nao foi possivel montar uma lista canonica de risco.id para alinhar as etapas."
+            );
+        }
+
+        if (riscosData != null) {
+            allSheets.putAll(IdentificacaoEventosTransformer.transform(riscosData));
+        }
+
+        if (avaliacoesData != null) {
+            // Falha rapido se houver risco.id ausente, fora da base ou duplicado.
+            validateStrictRiscoCollection("avaliacoesRiscoControle", avaliacoesContent, canonicalRiscoIds);
+            avaliacoesData.put("content", alignByRiscoIds(avaliacoesContent, canonicalRiscoIds));
+            allSheets.putAll(AvaliacaoRiscosTransformer.transform(avaliacoesData));
+        }
+
+        if (respostasData != null) {
+            validateStrictRiscoCollection("respostasRisco", respostasContent, canonicalRiscoIds);
+            respostasData.put("content", alignByRiscoIds(respostasContent, canonicalRiscoIds));
+            allSheets.putAll(RespostaRiscosTransformer.transform(respostasData));
+        }
+
+        if (atividadesData != null) {
+            validateStrictRiscoCollection("atividadeControles", atividadesContent, canonicalRiscoIds);
+            atividadesData.put("content", alignByRiscoIds(atividadesContent, canonicalRiscoIds));
+            allSheets.putAll(AtividadeControleTransformer.transform(atividadesData));
+        }
+
+        if (ocorrenciasData != null) {
+            List<Map<String, Object>> ocorrenciasAlinhadas = alignByRiscoIds(ocorrenciasContent, canonicalRiscoIds);
+            applyCanonicalRiscoNome(ocorrenciasAlinhadas, riscoNomePorId);
+            ocorrenciasData.put("content", ocorrenciasAlinhadas);
+            allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocorrenciasData));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getPayloadSection(Map<String, Object> payload, String key) {
+        Object value = payload.get(key);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Map<?, ?> m) {
+            return (Map<String, Object>) m;
+        }
+        throw new IllegalArgumentException(
+                "Inconsistencia no payload: a colecao '" + key + "' deve ser um objeto com campo 'content'."
+        );
+    }
+
+    private List<Map<String, Object>> getContentOrEmpty(Map<String, Object> data) {
+        if (data == null) {
+            return new ArrayList<>();
+        }
+        List<Map<String, Object>> content = getList(data);
+        if (content == null || content.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(content);
+    }
+
+    private Set<Integer> buildCanonicalRiscoIds(
+            List<Map<String, Object>> riscosContent,
+            List<Map<String, Object>> avaliacoesContent,
+            List<Map<String, Object>> respostasContent,
+            List<Map<String, Object>> atividadesContent,
+            List<Map<String, Object>> ocorrenciasContent
+    ) {
+        if (riscosContent != null && !riscosContent.isEmpty()) {
+            return extractCanonicalRiscoIdsFromRiscos(riscosContent);
+        }
+
+        Set<Integer> inferred = new LinkedHashSet<>();
+        appendRiscoIds(inferred, avaliacoesContent);
+        appendRiscoIds(inferred, respostasContent);
+        appendRiscoIds(inferred, atividadesContent);
+        appendRiscoIds(inferred, ocorrenciasContent);
+        return inferred;
+    }
+
+    private Set<Integer> extractCanonicalRiscoIdsFromRiscos(List<Map<String, Object>> riscosContent) {
+        Set<Integer> canonical = new LinkedHashSet<>();
+        Set<Integer> duplicated = new LinkedHashSet<>();
+        List<Integer> missingPositions = new ArrayList<>();
+
+        for (int i = 0; i < riscosContent.size(); i++) {
+            Integer riscoId = extractEntityId(riscosContent.get(i));
+            if (riscoId == null) {
+                missingPositions.add(i + 1);
+                continue;
+            }
+
+            if (!canonical.add(riscoId)) {
+                duplicated.add(riscoId);
+            }
+        }
+
+        if (!missingPositions.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Inconsistencia no payload: colecao 'riscos' possui itens sem id nas posicoes " + missingPositions + "."
+            );
+        }
+
+        if (!duplicated.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Inconsistencia no payload: colecao 'riscos' possui ids duplicados " + duplicated + "."
+            );
+        }
+
+        return canonical;
+    }
+
+    private void appendRiscoIds(Set<Integer> target, List<Map<String, Object>> content) {
+        if (content == null || content.isEmpty()) {
+            return;
+        }
+        for (Map<String, Object> item : content) {
+            Integer riscoId = extractRiscoId(item);
+            if (riscoId != null) {
+                target.add(riscoId);
+            }
+        }
+    }
+
+    private Map<Integer, String> buildRiscoNomePorId(List<Map<String, Object>> riscosContent) {
+        Map<Integer, String> riscoNomePorId = new LinkedHashMap<>();
+        if (riscosContent == null || riscosContent.isEmpty()) {
+            return riscoNomePorId;
+        }
+
+        for (Map<String, Object> risco : riscosContent) {
+            Integer riscoId = extractEntityId(risco);
+            if (riscoId == null) {
+                continue;
+            }
+            riscoNomePorId.put(riscoId, String.valueOf(risco.getOrDefault("nome", "")));
+        }
+        return riscoNomePorId;
+    }
+
+    private int countNonEmptyCollections(List<Map<String, Object>>... collections) {
+        int count = 0;
+        for (List<Map<String, Object>> collection : collections) {
+            if (collection != null && !collection.isEmpty()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private void validateStrictRiscoCollection(
+            String collectionName,
+            List<Map<String, Object>> content,
+            Set<Integer> canonicalRiscoIds
+    ) {
+        if (content == null || content.isEmpty() || canonicalRiscoIds == null || canonicalRiscoIds.isEmpty()) {
+            return;
+        }
+
+        List<Integer> missingRiscoIdPositions = new ArrayList<>();
+        Set<Integer> outOfCanonical = new LinkedHashSet<>();
+        Set<Integer> duplicated = new LinkedHashSet<>();
+        Set<Integer> seen = new LinkedHashSet<>();
+
+        for (int i = 0; i < content.size(); i++) {
+            Integer riscoId = extractRiscoId(content.get(i));
+            if (riscoId == null) {
+                missingRiscoIdPositions.add(i + 1);
+                continue;
+            }
+
+            if (!canonicalRiscoIds.contains(riscoId)) {
+                outOfCanonical.add(riscoId);
+            }
+
+            if (!seen.add(riscoId)) {
+                duplicated.add(riscoId);
+            }
+        }
+
+        if (!missingRiscoIdPositions.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Inconsistencia no payload: colecao '" + collectionName
+                            + "' possui itens sem risco.id nas posicoes " + missingRiscoIdPositions + "."
+            );
+        }
+
+        if (!outOfCanonical.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Inconsistencia no payload: colecao '" + collectionName
+                            + "' possui risco.id fora da lista canonica " + outOfCanonical + "."
+            );
+        }
+
+        if (!duplicated.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Inconsistencia no payload: colecao '" + collectionName
+                            + "' possui risco.id duplicado " + duplicated + "."
+            );
+        }
+    }
+
+    private Integer extractEntityId(Map<String, Object> item) {
+        if (item == null) {
+            return null;
+        }
+        Object id = item.get("id");
+        if (id instanceof Number) {
+            return ((Number) id).intValue();
+        }
+        return null;
     }
 
     private void addSheetIfAvailable(Map<String, List<Map<String, Object>>> allSheets, RestTemplate restTemplate,
