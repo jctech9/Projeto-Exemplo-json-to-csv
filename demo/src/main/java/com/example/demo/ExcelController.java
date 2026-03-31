@@ -214,8 +214,8 @@ public class ExcelController {
                                     if (risco.get("id") == null) {
                                         risco.put("id", riscoId);
                                     }
-                                    String nomeExistente = String.valueOf(risco.getOrDefault("nome", ""));
-                                    if (nomeExistente.isBlank() && !nomeRisco.isBlank()) {
+                                    // Mantem o nome do risco consistente com a lista canonica do processo.
+                                    if (!nomeRisco.isBlank()) {
                                         risco.put("nome", nomeRisco);
                                     }
                                     ocorrencia.put("risco", risco);
@@ -227,13 +227,14 @@ public class ExcelController {
                         System.err.println("[EXPORT] Erro ao buscar ocorrências do risco " + riscoId + ": " + e.getMessage());
                     }
                 }
-                if (!todasOcorrencias.isEmpty()) {
-                    Map<String, Object> ocPayload = new LinkedHashMap<>();
-                    ocPayload.put("content", todasOcorrencias);
-                    // Hidrata @ref antes da transformação
-                    RefResolver.resolve(ocPayload);
-                    allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocPayload));
-                }
+                List<Map<String, Object>> ocorrenciasAlinhadas = alignByRiscoIds(todasOcorrencias, riscoIdsDoProcesso);
+                applyCanonicalRiscoNome(ocorrenciasAlinhadas, riscoNomePorId);
+
+                Map<String, Object> ocPayload = new LinkedHashMap<>();
+                ocPayload.put("content", ocorrenciasAlinhadas);
+                // Hidrata @ref antes da transformação
+                RefResolver.resolve(ocPayload);
+                allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocPayload));
             }
             
         } catch (Exception e) {
@@ -312,13 +313,22 @@ public class ExcelController {
     @SuppressWarnings("unchecked")
     // Reordena uma coleção usando o conjunto canônico de risco.id.
     private List<Map<String, Object>> alignByRiscoIds(List<Map<String, Object>> content, Set<Integer> canonicalRiscoIds) {
-        if (content == null || content.isEmpty()) {
-            return new ArrayList<>();
-        }
-
         // Sem lista canônica, mantém o conteúdo original.
         if (canonicalRiscoIds == null || canonicalRiscoIds.isEmpty()) {
+            if (content == null || content.isEmpty()) {
+                return new ArrayList<>();
+            }
             return new ArrayList<>(content);
+        }
+
+        // Com lista canônica, mesmo conteúdo vazio deve gerar placeholders para manter
+        // o alinhamento de linhas entre as etapas e preservar fórmulas por linha.
+        if (content == null || content.isEmpty()) {
+            List<Map<String, Object>> onlyPlaceholders = new ArrayList<>();
+            for (Integer riscoId : canonicalRiscoIds) {
+                onlyPlaceholders.add(createPlaceholderByRiscoId(riscoId));
+            }
+            return onlyPlaceholders;
         }
 
         Map<Integer, List<Map<String, Object>>> byRiscoId = new LinkedHashMap<>();
@@ -340,6 +350,10 @@ public class ExcelController {
             if (items != null && !items.isEmpty()) {
                 aligned.addAll(items);
                 includedRiscoIds.add(riscoId);
+            } else {
+                // Mantem o mesmo numero de linhas da lista canonica para evitar deslocamento
+                // de formulas que referenciam por indice de linha entre etapas.
+                aligned.add(createPlaceholderByRiscoId(riscoId));
             }
         }
 
@@ -353,6 +367,48 @@ public class ExcelController {
         // Mantém itens sem risco.id no final para não perder dados de endpoints heterogêneos.
         aligned.addAll(withoutRiscoId);
         return aligned;
+    }
+
+    private Map<String, Object> createPlaceholderByRiscoId(Integer riscoId) {
+        Map<String, Object> placeholder = new LinkedHashMap<>();
+        Map<String, Object> risco = new LinkedHashMap<>();
+        risco.put("id", riscoId);
+        placeholder.put("risco", risco);
+        return placeholder;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void applyCanonicalRiscoNome(List<Map<String, Object>> items, Map<Integer, String> riscoNomePorId) {
+        if (items == null || items.isEmpty() || riscoNomePorId == null || riscoNomePorId.isEmpty()) {
+            return;
+        }
+
+        for (Map<String, Object> item : items) {
+            if (item == null) {
+                continue;
+            }
+
+            Integer riscoId = extractRiscoId(item);
+            if (riscoId == null) {
+                continue;
+            }
+
+            String nomeCanonico = riscoNomePorId.getOrDefault(riscoId, "");
+            if (nomeCanonico.isBlank()) {
+                continue;
+            }
+
+            Object riscoObj = item.get("risco");
+            Map<String, Object> risco;
+            if (riscoObj instanceof Map<?, ?> riscoMap) {
+                risco = (Map<String, Object>) riscoMap;
+            } else {
+                risco = new LinkedHashMap<>();
+                risco.put("id", riscoId);
+                item.put("risco", risco);
+            }
+            risco.put("nome", nomeCanonico);
+        }
     }
 
     // Extrai apenas risco.id da estrutura aninhada (item.risco.id).
