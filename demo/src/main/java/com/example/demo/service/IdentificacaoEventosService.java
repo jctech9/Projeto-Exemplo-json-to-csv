@@ -13,6 +13,16 @@ public class IdentificacaoEventosService {
 
     private static final String PROCESSO_REFERENCE_FORMULA = "'ETAPA 1. DADOS DO PROCESSO'!A$5";
     private static final int EXTRA_EDITABLE_ROWS = 10;
+    private static final List<String> FIXED_HEADERS = Arrays.asList(
+            "Processo",
+            "Fase",
+            "Evento de Risco (indicar)",
+            "Tipo de Risco",
+            "Categoria",
+            "Tipo de Risco de Integridade",
+            "Causas (descrever)",
+            "Consequências (descrever)"
+    );
 
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
@@ -44,9 +54,7 @@ public class IdentificacaoEventosService {
         for(int i = 1; i <= 7; i++) titleRow.createCell(i).setCellStyle(blueStyle);
 
         // 3. Gerar Nomes das Colunas
-        LinkedHashSet<String> headers = new LinkedHashSet<>();
-        for (Map<String, Object> row : rows) headers.addAll(row.keySet());
-        List<String> headerList = new ArrayList<>(headers);
+        List<String> headerList = FIXED_HEADERS;
 
         Row headerRow = sheet.createRow(r++);
         headerRow.setHeightInPoints(35);
@@ -121,27 +129,25 @@ public class IdentificacaoEventosService {
             }
         }
 
-        if (hasRealData(rows)) {
-            for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
-                Row extraRow = sheet.createRow(r++);
-                for (int c = 0; c < headerList.size(); c++) {
-                    String headerName = headerList.get(c);
-                    Cell cell = extraRow.createCell(c);
+        for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
+            Row extraRow = sheet.createRow(r++);
+            for (int c = 0; c < headerList.size(); c++) {
+                String headerName = headerList.get(c);
+                Cell cell = extraRow.createCell(c);
 
-                    if (headerName.equalsIgnoreCase("Processo")) {
-                        cell.setCellFormula(PROCESSO_REFERENCE_FORMULA);
-                    } else {
-                        cell.setCellValue("");
-                    }
+                if (headerName.equalsIgnoreCase("Processo")) {
+                    cell.setCellFormula(PROCESSO_REFERENCE_FORMULA);
+                } else {
+                    cell.setCellValue("");
+                }
 
-                    if (headerName.equalsIgnoreCase("Processo")
-                            || headerName.contains("Evento")
-                            || headerName.contains("Causas")
-                            || headerName.contains("Consequências")) {
-                        cell.setCellStyle(dataStyleLeft);
-                    } else {
-                        cell.setCellStyle(dataStyleCenter);
-                    }
+                if (headerName.equalsIgnoreCase("Processo")
+                        || headerName.contains("Evento")
+                        || headerName.contains("Causas")
+                        || headerName.contains("Consequências")) {
+                    cell.setCellStyle(dataStyleLeft);
+                } else {
+                    cell.setCellStyle(dataStyleCenter);
                 }
             }
         }
@@ -194,21 +200,4 @@ public class IdentificacaoEventosService {
         s.setBorderRight(BorderStyle.THIN);
     }
 
-    private boolean hasRealData(List<Map<String, Object>> rows) {
-        if (rows == null || rows.isEmpty()) {
-            return false;
-        }
-
-        for (Map<String, Object> row : rows) {
-            if (row == null || row.isEmpty()) {
-                continue;
-            }
-            for (Object value : row.values()) {
-                if (value != null && !String.valueOf(value).trim().isEmpty()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

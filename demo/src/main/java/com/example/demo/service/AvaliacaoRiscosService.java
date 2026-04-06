@@ -26,15 +26,31 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 
 @Service
 public class AvaliacaoRiscosService {
 
     private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIF. DE EVENTOS";
     private static final int EXTRA_EDITABLE_ROWS = 10;
+    private static final List<String> FIXED_HEADERS = Arrays.asList(
+            "Evento de Risco",
+            "Probabilidade",
+            "P",
+            "Impacto",
+            "I",
+            "Risco Inerente (PxI)",
+            "Classificação do Risco Inerente",
+            "Controles Preventivos (descrever)",
+            "Controles de Atenuação e recuperação (descrever)",
+            "Avaliação dos Controles",
+            "FAC",
+            "Risco Residual",
+            "Classificação do Risco Residual",
+            "Data da Última Avaliação"
+    );
 
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
 
@@ -44,12 +60,7 @@ public class AvaliacaoRiscosService {
         byte[] rgbPink = new byte[]{(byte) 230, (byte) 145, (byte) 145};
         XSSFColor headerColor = new XSSFColor(rgbPink, null);
 
-        LinkedHashSet<String> headers = new LinkedHashSet<>();
-        for (Map<String, Object> row : rows) {
-            headers.addAll(row.keySet());
-        }
-
-        List<String> headerList = new ArrayList<>(headers);
+        List<String> headerList = FIXED_HEADERS;
         int r = 0;
 
         Row groupRow = sheet.createRow(r++);
@@ -177,64 +188,62 @@ public class AvaliacaoRiscosService {
             }
         }
 
-        if (hasRealData(rows)) {
-            for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
-                Row dataRow = sheet.createRow(r++);
-                int rowNum = dataRow.getRowNum() + 1;
+        for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
+            Row dataRow = sheet.createRow(r++);
+            int rowNum = dataRow.getRowNum() + 1;
 
-                for (int c = 0; c < headerList.size(); c++) {
-                    String columnName = headerList.get(c);
-                    Cell cell = dataRow.createCell(c);
+            for (int c = 0; c < headerList.size(); c++) {
+                String columnName = headerList.get(c);
+                Cell cell = dataRow.createCell(c);
 
-                    if (columnName.equalsIgnoreCase("Risco Inerente (PxI)")) {
-                        cell.setCellFormula("IF(OR(C" + rowNum + "=\"\",E" + rowNum + "=\"\"),\"\",C" + rowNum + "*E" + rowNum + ")");
-                    } else if (columnName.equalsIgnoreCase("Evento de Risco")) {
-                        cell.setCellFormula("IF('" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + ")");
-                    } else if (columnName.equalsIgnoreCase("Risco Residual")) {
-                        cell.setCellFormula("IF(OR(F" + rowNum + "=\"\",K" + rowNum + "=\"\"),\"\",F" + rowNum + "*K" + rowNum + ")");
-                    } else if (columnName.equalsIgnoreCase("P")) {
-                        cell.setCellFormula(
-                                "IF(B" + rowNum + "=\"\",\"\",IF(B" + rowNum + "=\"Muito alta\",10," +
-                                        "IF(B" + rowNum + "=\"Alta\",8," +
-                                        "IF(B" + rowNum + "=\"Média\",5," +
-                                        "IF(B" + rowNum + "=\"Baixa\",2," +
-                                        "IF(B" + rowNum + "=\"Muito baixa\",1,0))))))"
-                        );
-                    } else if (columnName.equalsIgnoreCase("I")) {
-                        cell.setCellFormula(
-                                "IF(D" + rowNum + "=\"\",\"\",IF(D" + rowNum + "=\"Muito alto\",10," +
-                                        "IF(D" + rowNum + "=\"Alto\",8," +
-                                        "IF(D" + rowNum + "=\"Médio\",5," +
-                                        "IF(D" + rowNum + "=\"Baixo\",2," +
-                                        "IF(D" + rowNum + "=\"Muito baixo\",1,0))))))"
-                        );
-                    } else if (columnName.equalsIgnoreCase("FAC")) {
-                        cell.setCellFormula(
-                                "IF(J" + rowNum + "=\"\",\"\",IF(J" + rowNum + "=\"Forte\",0.2," +
-                                        "IF(J" + rowNum + "=\"Satisfatório\",0.4," +
-                                        "IF(J" + rowNum + "=\"Mediano\",0.6," +
-                                        "IF(J" + rowNum + "=\"Fraco\",0.8,1)))))"
-                        );
-                    } else if (columnName.equalsIgnoreCase("Classificação do Risco Inerente")) {
-                        cell.setCellFormula(
-                                "IF(F" + rowNum + "=0,\"\",IF(F" + rowNum +
-                                        "<10,\"Risco Baixo\",IF(F" + rowNum +
-                                        "<40,\"Risco Médio\",IF(F" + rowNum +
-                                        "<80,\"Risco Alto\",\"Risco Extremo\"))))"
-                        );
-                    } else if (columnName.equalsIgnoreCase("Classificação do Risco Residual")) {
-                        cell.setCellFormula(
-                                "IF(L" + rowNum + "=0,\"\",IF(L" + rowNum +
-                                        "<10,\"Risco Baixo\",IF(L" + rowNum +
-                                        "<40,\"Risco Médio\",IF(L" + rowNum +
-                                        "<80,\"Risco Alto\",\"Risco Extremo\"))))"
-                        );
-                    } else {
-                        cell.setCellValue("");
-                    }
-
-                    cell.setCellStyle(defaultDataStyle);
+                if (columnName.equalsIgnoreCase("Risco Inerente (PxI)")) {
+                    cell.setCellFormula("IF(OR(C" + rowNum + "=\"\",E" + rowNum + "=\"\"),\"\",C" + rowNum + "*E" + rowNum + ")");
+                } else if (columnName.equalsIgnoreCase("Evento de Risco")) {
+                    cell.setCellFormula("IF('" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + ")");
+                } else if (columnName.equalsIgnoreCase("Risco Residual")) {
+                    cell.setCellFormula("IF(OR(F" + rowNum + "=\"\",K" + rowNum + "=\"\"),\"\",F" + rowNum + "*K" + rowNum + ")");
+                } else if (columnName.equalsIgnoreCase("P")) {
+                    cell.setCellFormula(
+                            "IF(B" + rowNum + "=\"\",\"\",IF(B" + rowNum + "=\"Muito alta\",10," +
+                                    "IF(B" + rowNum + "=\"Alta\",8," +
+                                    "IF(B" + rowNum + "=\"Média\",5," +
+                                    "IF(B" + rowNum + "=\"Baixa\",2," +
+                                    "IF(B" + rowNum + "=\"Muito baixa\",1,0))))))"
+                    );
+                } else if (columnName.equalsIgnoreCase("I")) {
+                    cell.setCellFormula(
+                            "IF(D" + rowNum + "=\"\",\"\",IF(D" + rowNum + "=\"Muito alto\",10," +
+                                    "IF(D" + rowNum + "=\"Alto\",8," +
+                                    "IF(D" + rowNum + "=\"Médio\",5," +
+                                    "IF(D" + rowNum + "=\"Baixo\",2," +
+                                    "IF(D" + rowNum + "=\"Muito baixo\",1,0))))))"
+                    );
+                } else if (columnName.equalsIgnoreCase("FAC")) {
+                    cell.setCellFormula(
+                            "IF(J" + rowNum + "=\"\",\"\",IF(J" + rowNum + "=\"Forte\",0.2," +
+                                    "IF(J" + rowNum + "=\"Satisfatório\",0.4," +
+                                    "IF(J" + rowNum + "=\"Mediano\",0.6," +
+                                    "IF(J" + rowNum + "=\"Fraco\",0.8,1)))))"
+                    );
+                } else if (columnName.equalsIgnoreCase("Classificação do Risco Inerente")) {
+                    cell.setCellFormula(
+                            "IF(F" + rowNum + "=0,\"\",IF(F" + rowNum +
+                                    "<10,\"Risco Baixo\",IF(F" + rowNum +
+                                    "<40,\"Risco Médio\",IF(F" + rowNum +
+                                    "<80,\"Risco Alto\",\"Risco Extremo\"))))"
+                    );
+                } else if (columnName.equalsIgnoreCase("Classificação do Risco Residual")) {
+                    cell.setCellFormula(
+                            "IF(L" + rowNum + "=0,\"\",IF(L" + rowNum +
+                                    "<10,\"Risco Baixo\",IF(L" + rowNum +
+                                    "<40,\"Risco Médio\",IF(L" + rowNum +
+                                    "<80,\"Risco Alto\",\"Risco Extremo\"))))"
+                    );
+                } else {
+                    cell.setCellValue("");
                 }
+
+                cell.setCellStyle(defaultDataStyle);
             }
         }
 
@@ -421,21 +430,4 @@ public class AvaliacaoRiscosService {
         style.setBorderRight(BorderStyle.THIN);
     }
 
-    private boolean hasRealData(List<Map<String, Object>> rows) {
-        if (rows == null || rows.isEmpty()) {
-            return false;
-        }
-
-        for (Map<String, Object> row : rows) {
-            if (row == null || row.isEmpty()) {
-                continue;
-            }
-            for (Object value : row.values()) {
-                if (value != null && !String.valueOf(value).trim().isEmpty()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

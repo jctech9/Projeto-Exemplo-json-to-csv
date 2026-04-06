@@ -10,6 +10,14 @@ import java.util.*;
 public class OcorrenciaRiscoService {
 
     private static final int EXTRA_EDITABLE_ROWS = 10;
+    private static final List<String> FIXED_HEADERS = Arrays.asList(
+            "Evento de Risco",
+            "Data da Ocorrência",
+            "Descrição da Ocorrência",
+            "Responsável pela Solução",
+            "Solução",
+            "Resultados"
+    );
 
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
@@ -52,9 +60,7 @@ public class OcorrenciaRiscoService {
         for(int i=1; i<=5; i++) row1.createCell(i).setCellStyle(headerStyle);
 
         // 3. Nomes das Colunas (Linha 2)
-        LinkedHashSet<String> headers = new LinkedHashSet<>();
-        if (!rows.isEmpty()) headers.addAll(rows.get(0).keySet());
-        List<String> headerList = new ArrayList<>(headers);
+        List<String> headerList = FIXED_HEADERS;
 
         Row row2 = sheet.createRow(r++);
         row2.setHeightInPoints(35);
@@ -71,7 +77,7 @@ public class OcorrenciaRiscoService {
                 cell.setCellValue("Responsável pela\nSolução");
             } else if (hName.equalsIgnoreCase("Solução")) {
                 cell.setCellValue("Solução\n(descrever)");
-            } else if (hName.equalsIgnoreCase("Resultados (descrever)")) {
+            } else if (hName.equalsIgnoreCase("Resultados")) {
                 cell.setCellValue("Resultados\n(descrever)");
             } else {
                 cell.setCellValue(hName);
@@ -95,20 +101,18 @@ public class OcorrenciaRiscoService {
             }
         }
 
-        if (hasRealData(rows)) {
-            for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
-                Row dataRow = sheet.createRow(r++);
-                for (int c = 0; c < headerList.size(); c++) {
-                    String headerName = headerList.get(c);
-                    Cell cell = dataRow.createCell(c);
-                    cell.setCellValue("");
+        for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
+            Row dataRow = sheet.createRow(r++);
+            for (int c = 0; c < headerList.size(); c++) {
+                String headerName = headerList.get(c);
+                Cell cell = dataRow.createCell(c);
+                cell.setCellValue("");
 
-                    if (headerName.contains("Evento") || headerName.contains("descritiva") || headerName.contains("Solução")
-                            || headerName.contains("Resultados") || headerName.contains("Descrição")) {
-                        cell.setCellStyle(dataStyleLeft);
-                    } else {
-                        cell.setCellStyle(dataStyleCenter);
-                    }
+                if (headerName.contains("Evento") || headerName.contains("descritiva") || headerName.contains("Solução")
+                        || headerName.contains("Resultados") || headerName.contains("Descrição")) {
+                    cell.setCellStyle(dataStyleLeft);
+                } else {
+                    cell.setCellStyle(dataStyleCenter);
                 }
             }
         }
@@ -141,21 +145,4 @@ public class OcorrenciaRiscoService {
         s.setBorderRight(BorderStyle.THIN);
     }
 
-    private boolean hasRealData(List<Map<String, Object>> rows) {
-        if (rows == null || rows.isEmpty()) {
-            return false;
-        }
-
-        for (Map<String, Object> row : rows) {
-            if (row == null || row.isEmpty()) {
-                continue;
-            }
-            for (Object value : row.values()) {
-                if (value != null && !String.valueOf(value).trim().isEmpty()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

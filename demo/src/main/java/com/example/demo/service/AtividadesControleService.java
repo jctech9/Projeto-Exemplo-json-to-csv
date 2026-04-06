@@ -13,6 +13,19 @@ public class AtividadesControleService {
 
     private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIF. DE EVENTOS";
     private static final int EXTRA_EDITABLE_ROWS = 10;
+    private static final List<String> FIXED_HEADERS = Arrays.asList(
+            "Evento de Risco",
+            "Opção de Tratamento",
+            "Responsável pelo Tratamento",
+            "Data prevista para início da implementação",
+            "Data prevista para o fim da implementação",
+            "Status",
+            "Ações preventivas (descrever)",
+            "Monitoramento",
+            "Gatilho (descrever)",
+            "Ações de Contingência (descrever)",
+            "Responsável"
+    );
 
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
@@ -55,9 +68,7 @@ public class AtividadesControleService {
         createGroupHeader(row1, 8, 10, "Plano de Contingência", greyStyle, sheet);
 
         // 3. Gerar Nomes das Colunas (Linha 2)
-        LinkedHashSet<String> headers = new LinkedHashSet<>();
-        for (Map<String, Object> row : rows) headers.addAll(row.keySet());
-        List<String> headerList = new ArrayList<>(headers);
+        List<String> headerList = FIXED_HEADERS;
 
         for (int c = 0; c < headerList.size(); c++) {
             Cell cell = row2.createCell(c);
@@ -121,30 +132,28 @@ public class AtividadesControleService {
             }
         }
 
-        if (hasRealData(rows)) {
-            for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
-                Row dataRow = sheet.createRow(r++);
-                int rowNum = dataRow.getRowNum() + 1;
-                for (int c = 0; c < headerList.size(); c++) {
-                    String headerName = headerList.get(c);
-                    Cell cell = dataRow.createCell(c);
+        for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
+            Row dataRow = sheet.createRow(r++);
+            int rowNum = dataRow.getRowNum() + 1;
+            for (int c = 0; c < headerList.size(); c++) {
+                String headerName = headerList.get(c);
+                Cell cell = dataRow.createCell(c);
 
-                    if (headerName.equalsIgnoreCase("Evento de Risco")) {
-                        String formula = "IF('" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + ")";
-                        cell.setCellFormula(formula);
+                if (headerName.equalsIgnoreCase("Evento de Risco")) {
+                    String formula = "IF('" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + ")";
+                    cell.setCellFormula(formula);
+                    cell.setCellStyle(dataStyleLeft);
+                } else if (headerName.equalsIgnoreCase("Opção de Tratamento")) {
+                    String formula = "IF('ETAPA 4. RESPOSTA AOS RISCOS'!D" + rowNum + "=\"\",\"\",'ETAPA 4. RESPOSTA AOS RISCOS'!D" + rowNum + ")";
+                    cell.setCellFormula(formula);
+                    cell.setCellStyle(dataStyleCenter);
+                } else {
+                    cell.setCellValue("");
+                    if (headerName.contains("Evento") || headerName.contains("Ações") || headerName.contains("Gatilho")
+                            || headerName.contains("Monitoramento")) {
                         cell.setCellStyle(dataStyleLeft);
-                    } else if (headerName.equalsIgnoreCase("Opção de Tratamento")) {
-                        String formula = "IF('ETAPA 4. RESPOSTA AOS RISCOS'!D" + rowNum + "=\"\",\"\",'ETAPA 4. RESPOSTA AOS RISCOS'!D" + rowNum + ")";
-                        cell.setCellFormula(formula);
-                        cell.setCellStyle(dataStyleCenter);
                     } else {
-                        cell.setCellValue("");
-                        if (headerName.contains("Evento") || headerName.contains("Ações") || headerName.contains("Gatilho")
-                                || headerName.contains("Monitoramento")) {
-                            cell.setCellStyle(dataStyleLeft);
-                        } else {
-                            cell.setCellStyle(dataStyleCenter);
-                        }
+                        cell.setCellStyle(dataStyleCenter);
                     }
                 }
             }
@@ -231,21 +240,4 @@ public class AtividadesControleService {
         s.setBorderRight(BorderStyle.THIN);
     }
 
-    private boolean hasRealData(List<Map<String, Object>> rows) {
-        if (rows == null || rows.isEmpty()) {
-            return false;
-        }
-
-        for (Map<String, Object> row : rows) {
-            if (row == null || row.isEmpty()) {
-                continue;
-            }
-            for (Object value : row.values()) {
-                if (value != null && !String.valueOf(value).trim().isEmpty()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }
