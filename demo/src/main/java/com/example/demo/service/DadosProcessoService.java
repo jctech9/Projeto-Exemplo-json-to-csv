@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
@@ -19,6 +18,14 @@ import java.util.Map;
 @Service
 public class DadosProcessoService {
 
+    private static final String[] OBJETIVOS_KEYS = {
+            "Objetivos do Processo (Geral e específicos)",
+            "Objetivos Gerais"
+    };
+    private static final String[] RESPONSAVEL_KEYS = {
+            "Responsável"
+    };
+
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
 
         XSSFSheet sheet = wb.createSheet(sheetName);
@@ -31,7 +38,7 @@ public class DadosProcessoService {
         metaLabelStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         metaLabelStyle.setAlignment(HorizontalAlignment.LEFT);
         metaLabelStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        applyBorders(metaLabelStyle);
+        SheetServiceUtils.applyBorders(metaLabelStyle);
 
         Font boldFont = wb.createFont();
         boldFont.setBold(true);
@@ -41,7 +48,7 @@ public class DadosProcessoService {
         metaValueStyle.setAlignment(HorizontalAlignment.LEFT);
         metaValueStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         metaValueStyle.setWrapText(true);
-        applyBorders(metaValueStyle);
+        SheetServiceUtils.applyBorders(metaValueStyle);
 
         XSSFCellStyle sectionTitleStyle = wb.createCellStyle();
         sectionTitleStyle.cloneStyleFrom(metaLabelStyle);
@@ -56,10 +63,10 @@ public class DadosProcessoService {
         dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
         dataStyleLeft.setVerticalAlignment(VerticalAlignment.TOP);
         dataStyleLeft.setWrapText(true);
-        applyBorders(dataStyleLeft);
+        SheetServiceUtils.applyBorders(dataStyleLeft);
 
         String unidade = getFirstValue(rows, "Unidade");
-        String responsavel = getFirstValue(rows, "Responsável");
+        String responsavel = getFirstValue(rows, RESPONSAVEL_KEYS);
 
         int r = 0;
 
@@ -104,7 +111,7 @@ public class DadosProcessoService {
             for (int c = 1; c <= lastCol; c++) {
                 Cell objetivoCell = dataRow.createCell(c);
                 if (c == 1) {
-                    objetivoCell.setCellValue(String.valueOf(rowData.getOrDefault("Objetivos do Processo (Geral e específicos)", "")));
+                    objetivoCell.setCellValue(getValue(rowData, OBJETIVOS_KEYS));
                 }
                 objetivoCell.setCellStyle(dataStyleLeft);
             }
@@ -147,19 +154,26 @@ public class DadosProcessoService {
         sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(row.getRowNum(), row.getRowNum(), 1, lastCol));
     }
 
-    private String getFirstValue(List<Map<String, Object>> rows, String key) {
+    private String getFirstValue(List<Map<String, Object>> rows, String... keys) {
         if (rows == null || rows.isEmpty()) {
             return "";
         }
 
-        Object value = rows.get(0).get(key);
-        return value == null ? "" : String.valueOf(value);
+        return getValue(rows.get(0), keys);
     }
 
-    private void applyBorders(CellStyle style) {
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
+    private String getValue(Map<String, Object> row, String... keys) {
+        if (row == null || keys == null) {
+            return "";
+        }
+
+        for (String key : keys) {
+            if (key != null && row.containsKey(key)) {
+                Object value = row.get(key);
+                return value == null ? "" : String.valueOf(value);
+            }
+        }
+        return "";
     }
+
 }

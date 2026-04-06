@@ -1,12 +1,28 @@
 package com.example.demo.service;
 
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.ComparisonOperator;
+import org.apache.poi.ss.usermodel.ConditionalFormattingRule;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.PatternFormatting;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.SheetConditionalFormatting;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.ss.util.CellRangeAddressList;
-import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFPatternFormatting;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class AtividadesControleService {
@@ -30,8 +46,10 @@ public class AtividadesControleService {
 
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
-        String etapa2SheetName = resolveEtapa2SheetName(wb);
-        String etapa4SheetName = resolveEtapa4SheetName(wb);
+        String etapa2SheetName = SheetServiceUtils.resolveSheetName(wb, "ETAPA 2", ETAPA_2_SHEET_FALLBACK_NAME);
+        String etapa4SheetName = SheetServiceUtils.resolveSheetName(wb, "ETAPA 4", ETAPA_4_SHEET_FALLBACK_NAME);
+        int firstEditableRow = 2;
+        int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, rows.size(), EXTRA_EDITABLE_ROWS);
 
         // Cor Cinza para o Cabeçalho
         byte[] rgbGrey = new byte[]{(byte) 217, (byte) 217, (byte) 217};
@@ -46,17 +64,17 @@ public class AtividadesControleService {
         greyStyle.setAlignment(HorizontalAlignment.CENTER);
         greyStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         greyStyle.setWrapText(true);
-        applyBorders(greyStyle);
+        SheetServiceUtils.applyBorders(greyStyle);
         Font boldFont = wb.createFont();
         boldFont.setBold(true);
         greyStyle.setFont(boldFont);
 
         CellStyle dataStyleLeft = wb.createCellStyle();
-        applyBorders(dataStyleLeft);
+        SheetServiceUtils.applyBorders(dataStyleLeft);
         dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
 
         CellStyle dataStyleCenter = wb.createCellStyle();
-        applyBorders(dataStyleCenter);
+        SheetServiceUtils.applyBorders(dataStyleCenter);
         dataStyleCenter.setAlignment(HorizontalAlignment.CENTER);
 
         // 2. Criar Cabeçalho Duplo (Linha 1: Títulos de Grupo)
@@ -98,57 +116,30 @@ public class AtividadesControleService {
             cell.setCellStyle(greyStyle);
         }
 
-        // 4. Preenchimento de Dados
-        for (Map<String, Object> rowData : rows) {
+        // 4. Preenchimento de Dados (linhas do payload + linhas extras editáveis)
+        int totalRows = rows.size() + EXTRA_EDITABLE_ROWS;
+        for (int i = 0; i < totalRows; i++) {
+            Map<String, Object> rowData = i < rows.size() ? rows.get(i) : null;
             Row dataRow = sheet.createRow(r++);
             int rowNum = dataRow.getRowNum() + 1;
+
             for (int c = 0; c < headerList.size(); c++) {
                 String headerName = headerList.get(c);
                 Cell cell = dataRow.createCell(c);
-                Object val = rowData.get(headerName);
 
                 if (headerName.equalsIgnoreCase("Evento de Risco")) {
                     String formula = "IF('" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + ")";
                     cell.setCellFormula(formula);
                     cell.setCellStyle(dataStyleLeft);
-                } else if (headerName.equalsIgnoreCase("Opção de Tratamento")) {
-                    // Aponta para a Coluna D (índice 3) da planilha "ETAPA 4. RESPOSTA AOS RISCOS"
+                } else if (c == 1) {
                     String formula = "IF('" + etapa4SheetName.replace("'", "''") + "'!D" + rowNum + "=\"\",\"\",'" + etapa4SheetName.replace("'", "''") + "'!D" + rowNum + ")";
                     cell.setCellFormula(formula);
                     cell.setCellStyle(dataStyleCenter);
                 } else {
+                    Object val = rowData == null ? null : rowData.get(headerName);
                     cell.setCellValue(val == null ? "" : String.valueOf(val));
-                    if (headerName.contains("Evento") || headerName.contains("Ações") || headerName.contains("Gatilho")
-                            || headerName.contains("Monitoramento")) {
-                        cell.setCellStyle(dataStyleLeft);
-                    } else {
-                        cell.setCellStyle(dataStyleCenter);
-                    }
-                }
-
-
-            }
-        }
-
-        for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
-            Row dataRow = sheet.createRow(r++);
-            int rowNum = dataRow.getRowNum() + 1;
-            for (int c = 0; c < headerList.size(); c++) {
-                String headerName = headerList.get(c);
-                Cell cell = dataRow.createCell(c);
-
-                if (headerName.equalsIgnoreCase("Evento de Risco")) {
-                    String formula = "IF('" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + ")";
-                    cell.setCellFormula(formula);
-                    cell.setCellStyle(dataStyleLeft);
-                } else if (headerName.equalsIgnoreCase("Opção de Tratamento")) {
-                    String formula = "IF('" + etapa4SheetName.replace("'", "''") + "'!D" + rowNum + "=\"\",\"\",'" + etapa4SheetName.replace("'", "''") + "'!D" + rowNum + ")";
-                    cell.setCellFormula(formula);
-                    cell.setCellStyle(dataStyleCenter);
-                } else {
-                    cell.setCellValue("");
-                    if (headerName.contains("Evento") || headerName.contains("Ações") || headerName.contains("Gatilho")
-                            || headerName.contains("Monitoramento")) {
+                    boolean isTextColumn = c == 0 || c == 6 || c == 7 || c == 8 || c == 9;
+                    if (isTextColumn) {
                         cell.setCellStyle(dataStyleLeft);
                     } else {
                         cell.setCellStyle(dataStyleCenter);
@@ -158,53 +149,40 @@ public class AtividadesControleService {
         }
 
         // 5. Formatação Condicional para Status
-        applyStatusFormatting(sheet, headerList);
+        applyStatusFormatting(sheet, headerList, firstEditableRow, lastEditableRow);
 
         // 6. Selects e Larguras
-        setupValidations(sheet, headerList);
+        setupValidations(sheet, headerList, firstEditableRow, lastEditableRow);
         setColumnWidths(sheet, headerList);
     }
 
-    private String resolveEtapa2SheetName(XSSFWorkbook wb) {
-        for (int i = 0; i < wb.getNumberOfSheets(); i++) {
-            String name = wb.getSheetName(i);
-            if (name != null && name.contains("ETAPA 2")) {
-                return name;
-            }
-        }
-        return ETAPA_2_SHEET_FALLBACK_NAME;
-    }
-
-    private String resolveEtapa4SheetName(XSSFWorkbook wb) {
-        for (int i = 0; i < wb.getNumberOfSheets(); i++) {
-            String name = wb.getSheetName(i);
-            if (name != null && name.contains("ETAPA 4")) {
-                return name;
-            }
-        }
-        return ETAPA_4_SHEET_FALLBACK_NAME;
-    }
-
-    private void applyStatusFormatting(XSSFSheet sheet, List<String> headers) {
+    private void applyStatusFormatting(XSSFSheet sheet, List<String> headers, int firstEditableRow, int lastEditableRow) {
         int colStatus = headers.indexOf("Status");
         if (colStatus == -1) return;
 
         SheetConditionalFormatting scf = sheet.getSheetConditionalFormatting();
 
         // Implementado -> Verde
-        createRule(scf, colStatus, "\"Implementado\"", new byte[]{(byte) 146, (byte) 208, 80});
+        createRule(scf, colStatus, "\"Implementado\"", new byte[]{(byte) 146, (byte) 208, 80}, firstEditableRow, lastEditableRow);
         // Em implementação -> Amarelo
-        createRule(scf, colStatus, "\"Em implementação\"", new byte[]{(byte)255, (byte)255, 0});
+        createRule(scf, colStatus, "\"Em implementação\"", new byte[]{(byte)255, (byte)255, 0}, firstEditableRow, lastEditableRow);
         // Não implementado -> Vermelho
-        createRule(scf, colStatus, "\"Não implementado\"", new byte[]{(byte)255, 0, 0});
+        createRule(scf, colStatus, "\"Não implementado\"", new byte[]{(byte)255, 0, 0}, firstEditableRow, lastEditableRow);
     }
 
-    private void createRule(SheetConditionalFormatting scf, int col, String value, byte[] rgb) {
+    private void createRule(
+            SheetConditionalFormatting scf,
+            int col,
+            String value,
+            byte[] rgb,
+            int firstEditableRow,
+            int lastEditableRow
+    ) {
         ConditionalFormattingRule rule = scf.createConditionalFormattingRule(ComparisonOperator.EQUAL, value);
         XSSFPatternFormatting fill = (XSSFPatternFormatting) rule.createPatternFormatting();
         fill.setFillBackgroundColor(new XSSFColor(rgb, null));
         fill.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
-        CellRangeAddress[] regions = { new CellRangeAddress(2, 1000, col, col) };
+        CellRangeAddress[] regions = {new CellRangeAddress(firstEditableRow, lastEditableRow, col, col)};
         scf.addConditionalFormatting(regions, rule);
     }
 
@@ -216,19 +194,19 @@ public class AtividadesControleService {
         sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), start, end));
     }
 
-    private void setupValidations(XSSFSheet sheet, List<String> headers) {
+    private void setupValidations(XSSFSheet sheet, List<String> headers, int firstEditableRow, int lastEditableRow) {
         DataValidationHelper helper = sheet.getDataValidationHelper();
         int colStatus = headers.indexOf("Status");
-        if (colStatus != -1) applySelect(sheet, helper, new String[]{"Não implementado", "Em implementação", "Implementado"}, colStatus);
-    }
-
-    private void applySelect(XSSFSheet sheet, DataValidationHelper helper, String[] opts, int col) {
-        DataValidationConstraint c = helper.createExplicitListConstraint(opts);
-        CellRangeAddressList addr = new CellRangeAddressList(2, 1000, col, col);
-        DataValidation v = helper.createValidation(c, addr);
-        v.setSuppressDropDownArrow(true);
-        v.setShowErrorBox(true);
-        sheet.addValidationData(v);
+        if (colStatus != -1) {
+            SheetServiceUtils.applySelect(
+                    sheet,
+                    helper,
+                    new String[]{"Não implementado", "Em implementação", "Implementado"},
+                    colStatus,
+                    firstEditableRow,
+                    lastEditableRow
+            );
+        }
     }
 
     private void setColumnWidths(XSSFSheet sheet, List<String> headers) {
@@ -241,11 +219,6 @@ public class AtividadesControleService {
         }
     }
 
-    private void applyBorders(CellStyle s) {
-        s.setBorderBottom(BorderStyle.THIN);
-        s.setBorderTop(BorderStyle.THIN);
-        s.setBorderLeft(BorderStyle.THIN);
-        s.setBorderRight(BorderStyle.THIN);
-    }
-
 }
+
+

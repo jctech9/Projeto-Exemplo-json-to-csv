@@ -1,12 +1,23 @@
 package com.example.demo.service;
 
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.ss.util.CellRangeAddressList;
-import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class IdentificacaoEventosService {
@@ -26,6 +37,8 @@ public class IdentificacaoEventosService {
 
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
+        int firstEditableRow = 2;
+        int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, rows.size(), EXTRA_EDITABLE_ROWS);
 
         // COR AZUL PERSONALIZADA
         byte[] rgbBlue = new byte[]{(byte) 180, (byte) 198, (byte) 231};
@@ -39,7 +52,7 @@ public class IdentificacaoEventosService {
         blueStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         blueStyle.setAlignment(HorizontalAlignment.CENTER);
         blueStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        applyBorders(blueStyle);
+        SheetServiceUtils.applyBorders(blueStyle);
         Font boldFont = wb.createFont();
         boldFont.setBold(true);
         blueStyle.setFont(boldFont);
@@ -51,7 +64,9 @@ public class IdentificacaoEventosService {
         titleCell.setCellValue("Identificação e Categorização de Riscos");
         titleCell.setCellStyle(blueStyle);
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 7));
-        for(int i = 1; i <= 7; i++) titleRow.createCell(i).setCellStyle(blueStyle);
+        for (int i = 1; i <= 7; i++) {
+            titleRow.createCell(i).setCellStyle(blueStyle);
+        }
 
         // 3. Gerar Nomes das Colunas
         List<String> headerList = FIXED_HEADERS;
@@ -73,22 +88,17 @@ public class IdentificacaoEventosService {
             }
 
             cell.setCellStyle(blueStyle);
-
-
         }
 
-        // 4. DEFINIÇÃO DOS ESTILOS DE DADOS (Criados uma vez para evitar corromper o arquivo)
-
+        // 4. DEFINIÇÃO DOS ESTILOS DE DADOS
         CellStyle dataStyleCenter = wb.createCellStyle();
-        applyBorders(dataStyleCenter);
+        SheetServiceUtils.applyBorders(dataStyleCenter);
         dataStyleCenter.setAlignment(HorizontalAlignment.CENTER);
         dataStyleCenter.setVerticalAlignment(VerticalAlignment.CENTER);
         dataStyleCenter.setWrapText(false);
 
-
-
         CellStyle dataStyleLeft = wb.createCellStyle();
-        applyBorders(dataStyleLeft);
+        SheetServiceUtils.applyBorders(dataStyleLeft);
         dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
         dataStyleLeft.setVerticalAlignment(VerticalAlignment.CENTER);
         dataStyleLeft.setWrapText(false);
@@ -109,7 +119,6 @@ public class IdentificacaoEventosService {
                     cell.setCellValue(normalizeSelectValue(headerName, text));
                 }
 
-                // Aplica o estilo baseado no nome da coluna
                 if (isProcessoColumn ||
                         headerName.contains("Evento") ||
                         headerName.contains("Causas") ||
@@ -144,29 +153,46 @@ public class IdentificacaoEventosService {
             }
         }
 
-        setupValidations(wb, sheet, headerList);
+        setupValidations(sheet, headerList, firstEditableRow, lastEditableRow);
         setColumnWidths(sheet, headerList);
     }
 
-    private void setupValidations(XSSFWorkbook wb, XSSFSheet sheet, List<String> headers) {
+    private void setupValidations(XSSFSheet sheet, List<String> headers, int firstEditableRow, int lastEditableRow) {
         DataValidationHelper helper = sheet.getDataValidationHelper();
         int colTipo = headers.indexOf("Tipo de Risco");
         int colCat = headers.indexOf("Categoria");
         int colIntegridade = headers.indexOf("Tipo de Risco de Integridade");
 
-
-        if (colTipo != -1) applySelect(sheet, helper, new String[]{"Ameaça", "Oportunidade"}, colTipo);
-        if (colCat != -1) applySelect(sheet, helper, new String[]{"Estratégico", "Financeiro/orçamentário", "Operacionais", "Legal/de conformidade", "Imagem/reputação", "Integridade"}, colCat);
-        if (colIntegridade != -1) applySelect(sheet, helper, new String[]{"Corrupção", "Fraude", "Desvio de conduta"}, colIntegridade);
-    }
-
-    private void applySelect(XSSFSheet sheet, DataValidationHelper helper, String[] opts, int col) {
-        DataValidationConstraint c = helper.createExplicitListConstraint(opts);
-        CellRangeAddressList addr = new CellRangeAddressList(2, 1000, col, col);
-        DataValidation v = helper.createValidation(c, addr);
-        v.setSuppressDropDownArrow(true);
-        v.setShowErrorBox(true);
-        sheet.addValidationData(v);
+        if (colTipo != -1) {
+            SheetServiceUtils.applySelect(
+                    sheet,
+                    helper,
+                    new String[]{"Ameaça", "Oportunidade"},
+                    colTipo,
+                    firstEditableRow,
+                    lastEditableRow
+            );
+        }
+        if (colCat != -1) {
+            SheetServiceUtils.applySelect(
+                    sheet,
+                    helper,
+                    new String[]{"Estratégico", "Financeiro/orçamentário", "Operacionais", "Legal/de conformidade", "Imagem/reputação", "Integridade"},
+                    colCat,
+                    firstEditableRow,
+                    lastEditableRow
+            );
+        }
+        if (colIntegridade != -1) {
+            SheetServiceUtils.applySelect(
+                    sheet,
+                    helper,
+                    new String[]{"Corrupção", "Fraude", "Desvio de conduta"},
+                    colIntegridade,
+                    firstEditableRow,
+                    lastEditableRow
+            );
+        }
     }
 
     private void setColumnWidths(XSSFSheet sheet, List<String> headers) {
@@ -176,10 +202,9 @@ public class IdentificacaoEventosService {
                 sheet.setColumnWidth(i, 15000);
             } else if (h.equalsIgnoreCase("Processo")) {
                 sheet.setColumnWidth(i, 12000);
-            }
-            else if (h.contains("Consequências")){
+            } else if (h.contains("Consequências")) {
                 sheet.setColumnWidth(i, 40000);
-            }else {
+            } else {
                 sheet.setColumnWidth(i, 7000);
             }
         }
@@ -202,13 +227,6 @@ public class IdentificacaoEventosService {
             return "Oportunidade";
         }
         return value;
-    }
-
-    private void applyBorders(CellStyle s) {
-        s.setBorderBottom(BorderStyle.THIN);
-        s.setBorderTop(BorderStyle.THIN);
-        s.setBorderLeft(BorderStyle.THIN);
-        s.setBorderRight(BorderStyle.THIN);
     }
 
 }

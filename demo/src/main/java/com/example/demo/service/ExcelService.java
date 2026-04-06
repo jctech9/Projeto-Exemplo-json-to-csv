@@ -18,9 +18,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class ExcelService {
+
+    private static final Pattern ETAPA_PATTERN = Pattern.compile("\\bETAPA\\s+(\\d+)\\b");
 
     private final DadosProcessoService dadosProcessoService;
     private final IdentificacaoEventosService identificacaoEventosService;
@@ -55,28 +59,29 @@ public class ExcelService {
                 String sheetName = entry.getKey();
                 List<Map<String, Object>> rows = entry.getValue();
                 String sheetKey = normalizeSheetName(sheetName);
+                Integer etapa = extractEtapaNumber(sheetKey);
 
-                if (sheetKey.contains("DADOS DO PROCESSO") || sheetKey.contains("ETAPA 1")) {
+                if (sheetKey.contains("DADOS DO PROCESSO") || Integer.valueOf(1).equals(etapa)) {
                     dadosProcessoService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
-                if (sheetKey.contains("ETAPA 2")) {
+                if (Integer.valueOf(2).equals(etapa)) {
                     identificacaoEventosService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
-                if (sheetKey.contains("ETAPA 3")) {
+                if (Integer.valueOf(3).equals(etapa)) {
                     avaliacaoRiscosService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
-                if (sheetKey.contains("ETAPA 4")) {
+                if (Integer.valueOf(4).equals(etapa)) {
                     respostaRiscosService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
-                if (sheetKey.contains("ETAPA 5")) {
+                if (Integer.valueOf(5).equals(etapa)) {
                     atividadesControleService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
@@ -150,5 +155,13 @@ public class ExcelService {
         String withoutAccents = Normalizer.normalize(sheetName, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}+", "");
         return withoutAccents.toUpperCase(Locale.ROOT);
+    }
+
+    private Integer extractEtapaNumber(String sheetKey) {
+        Matcher matcher = ETAPA_PATTERN.matcher(sheetKey);
+        if (!matcher.find()) {
+            return null;
+        }
+        return Integer.parseInt(matcher.group(1));
     }
 }

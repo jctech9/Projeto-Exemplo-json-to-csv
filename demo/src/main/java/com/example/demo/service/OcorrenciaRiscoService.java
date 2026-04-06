@@ -1,10 +1,22 @@
 package com.example.demo.service;
 
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
-import java.util.*;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class OcorrenciaRiscoService {
@@ -34,18 +46,18 @@ public class OcorrenciaRiscoService {
         headerStyle.setAlignment(HorizontalAlignment.CENTER);
         headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         headerStyle.setWrapText(true);
-        applyBorders(headerStyle);
+        SheetServiceUtils.applyBorders(headerStyle);
         Font boldFont = wb.createFont();
         boldFont.setBold(true);
         headerStyle.setFont(boldFont);
 
         CellStyle dataStyleLeft = wb.createCellStyle();
-        applyBorders(dataStyleLeft);
+        SheetServiceUtils.applyBorders(dataStyleLeft);
         dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
         dataStyleLeft.setVerticalAlignment(VerticalAlignment.CENTER);
 
         CellStyle dataStyleCenter = wb.createCellStyle();
-        applyBorders(dataStyleCenter);
+        SheetServiceUtils.applyBorders(dataStyleCenter);
         dataStyleCenter.setAlignment(HorizontalAlignment.CENTER);
         dataStyleCenter.setVerticalAlignment(VerticalAlignment.CENTER);
 
@@ -57,7 +69,9 @@ public class OcorrenciaRiscoService {
 
         // Mesclar título das colunas A até F (0 a 5)
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));
-        for(int i=1; i<=5; i++) row1.createCell(i).setCellStyle(headerStyle);
+        for (int i = 1; i <= 5; i++) {
+            row1.createCell(i).setCellStyle(headerStyle);
+        }
 
         // 3. Nomes das Colunas (Linha 2)
         List<String> headerList = FIXED_HEADERS;
@@ -126,24 +140,14 @@ public class OcorrenciaRiscoService {
             String h = headers.get(i);
             if (h.contains("Descrição") || h.contains("Solução")) {
                 sheet.setColumnWidth(i, 18000);
-            }
-            else if (h.contains("Evento") || h.contains("Resultados")) {
+            } else if (h.contains("Evento") || h.contains("Resultados")) {
                 sheet.setColumnWidth(i, 20000);
-            }
-            else if (h.contains("Responsável")) {
+            } else if (h.contains("Responsável")) {
                 sheet.setColumnWidth(i, 9000);
-            }
-            else {
+            } else {
                 sheet.setColumnWidth(i, 7000);
             }
         }
-    }
-
-    private void applyBorders(CellStyle s) {
-        s.setBorderBottom(BorderStyle.THIN);
-        s.setBorderTop(BorderStyle.THIN);
-        s.setBorderLeft(BorderStyle.THIN);
-        s.setBorderRight(BorderStyle.THIN);
     }
 
 }
