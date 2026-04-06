@@ -3,9 +3,16 @@ package com.example.demo.transformers;
 import static com.example.demo.transformers.TransformerUtils.asMap;
 import static com.example.demo.transformers.TransformerUtils.getContent;
 import static com.example.demo.transformers.TransformerUtils.val;
-import java.util.*;
 
-public class RespostaRiscosTransformer {
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+public final class RespostaRiscosTransformer {
+
+    private RespostaRiscosTransformer() {
+    }
 
     // Aba ETAPA 4: Respostas aos riscos (processo, fase, evento, tratamento, justificativa)
     public static Map<String, List<Map<String, Object>>> transform(Map<String, Object> input) {
@@ -14,6 +21,7 @@ public class RespostaRiscosTransformer {
         for (Map<String, Object> respostaRisco : getContent(input)) {
             Map<String, Object> row = new LinkedHashMap<>();
             Map<String, Object> risco = asMap(respostaRisco.get("risco"));
+
             // Extrai informações do risco associado
             if (risco != null) {
                 row.put("Fase", val(risco.get("faseProcesso")));
@@ -26,10 +34,9 @@ public class RespostaRiscosTransformer {
 
             rows.add(row);
         }
-        
+
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
         result.put("ETAPA 4. RESPOSTA AOS RISCOS", rows);
         return result;
     }
-
 }

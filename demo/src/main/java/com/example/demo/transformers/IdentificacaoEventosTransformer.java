@@ -5,9 +5,15 @@ import static com.example.demo.transformers.TransformerUtils.getNestedString;
 import static com.example.demo.transformers.TransformerUtils.val;
 
 import java.text.Normalizer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-public class IdentificacaoEventosTransformer {
+public final class IdentificacaoEventosTransformer {
+
+    private IdentificacaoEventosTransformer() {
+    }
 
     // Aba ETAPA 2: Identificação e categorização de riscos
     public static Map<String, List<Map<String, Object>>> transform(Map<String, Object> input) {
@@ -47,5 +53,4 @@ public class IdentificacaoEventosTransformer {
 
         return "Integridade".equalsIgnoreCase(normalized);
     }
-
 }

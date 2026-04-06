@@ -1,15 +1,19 @@
 package com.example.demo.transformers;
 
 import static com.example.demo.transformers.TransformerUtils.asMap;
+import static com.example.demo.transformers.TransformerUtils.formatDateBr;
 import static com.example.demo.transformers.TransformerUtils.getContent;
 import static com.example.demo.transformers.TransformerUtils.val;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 
-public class AtividadeControleTransformer {
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-    private static final DateTimeFormatter FORMATTER_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+public final class AtividadeControleTransformer {
+
+    private AtividadeControleTransformer() {
+    }
 
     // Aba ETAPA 5: Plano de tratamento e contingência
     public static Map<String, List<Map<String, Object>>> transform(Map<String, Object> input) {
@@ -22,8 +26,8 @@ public class AtividadeControleTransformer {
             row.put("Evento de Risco", "");
             row.put("Opção de Tratamento", extrairOpcaoTratamento(risco));
             row.put("Responsável pelo Tratamento", val(atividade.get("responsavelTratamento")));
-            row.put("Data prevista para início da implementação", formatarData(atividade.get("dataInicio")));
-            row.put("Data prevista para o fim da implementação", formatarData(atividade.get("dataTermino")));
+            row.put("Data prevista para início da implementação", formatDateBr(atividade.get("dataInicio")));
+            row.put("Data prevista para o fim da implementação", formatDateBr(atividade.get("dataTermino")));
             row.put("Status", mapearStatusImplementacao(atividade.get("statusImplementacao")));
             row.put("Ações preventivas (descrever)", val(atividade.get("acoesPreventivas")));
             row.put("Monitoramento", val(atividade.get("monitoramentoAcoesPreventivas")));
@@ -33,8 +37,6 @@ public class AtividadeControleTransformer {
             row.put("Responsável", val(atividade.get("responsavelContingencia")));
 
             rows.add(row);
-
-
         }
 
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
@@ -44,8 +46,8 @@ public class AtividadeControleTransformer {
 
     private static String mapearStatusImplementacao(Object statusObj) {
         if (statusObj == null) return "Não implementado";
-        String status = String.valueOf(statusObj).toUpperCase();
 
+        String status = String.valueOf(statusObj).toUpperCase();
         // Converte os valores do banco para o padrão da planilha
         return switch (status) {
             case "IMPLEMENTADO" -> "Implementado";
@@ -61,7 +63,6 @@ public class AtividadeControleTransformer {
         if (resposta == null) return "";
 
         String opcao = val(resposta.get("opcaoTratamento"));
-
         return formatarTexto(opcao);
     }
 
@@ -69,19 +70,6 @@ public class AtividadeControleTransformer {
         if (texto == null || texto.isEmpty()) return "";
 
         texto = texto.toLowerCase();
-
         return texto.substring(0, 1).toUpperCase() + texto.substring(1);
     }
-
-    // Formata a data no padrão dd/MM/yyyy
-    private static String formatarData(Object data) {
-        if (data == null || data.toString().isEmpty()) return "";
-        try {
-            LocalDate date = LocalDate.parse(data.toString());
-            return date.format(FORMATTER_BR);
-        } catch (Exception e) {
-            return val(data); // retorna o valor original se não conseguir converter
-        }
-    }
-
 }

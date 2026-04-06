@@ -1,14 +1,18 @@
 package com.example.demo.transformers;
 
+import static com.example.demo.transformers.TransformerUtils.formatDateBr;
 import static com.example.demo.transformers.TransformerUtils.getContent;
 import static com.example.demo.transformers.TransformerUtils.val;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 
-public class AvaliacaoRiscosTransformer {
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-    private static final DateTimeFormatter FORMATTER_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+public final class AvaliacaoRiscosTransformer {
+
+    private AvaliacaoRiscosTransformer() {
+    }
 
     // Aba ETAPA 3: Probabilidade, Impacto e cálculos de risco
     public static Map<String, List<Map<String, Object>>> transform(Map<String, Object> input) {
@@ -31,7 +35,7 @@ public class AvaliacaoRiscosTransformer {
             row.put("FAC", "");
             row.put("Risco Residual", "");
             row.put("Classificação do Risco Residual", "");
-            row.put("Data da Última Avaliação", formatarData(avaliacao.get("dataUltimaAvaliacao")));
+            row.put("Data da Última Avaliação", formatDateBr(avaliacao.get("dataUltimaAvaliacao")));
 
             rows.add(row);
         }
@@ -43,62 +47,90 @@ public class AvaliacaoRiscosTransformer {
 
     // Mapeia valor numérico da probabilidade para texto descritivo
     private static String mapearProbabilidade(Object probObj) {
-        try {
-            int prob = Integer.parseInt(String.valueOf(probObj));
-            switch (prob) {
-                case 1: return "Muito baixa";
-                case 2: return "Baixa";
-                case 5: return "Média";
-                case 8: return "Alta";
-                case 10: return "Muito alta";
-                default: return String.valueOf(prob);
-            }
-        } catch (Exception e) {
-            return "";
-        }
+        Integer prob = parseEscalaInteira(probObj, "probabilidade");
+        if (prob == null) return "";
+
+        return switch (prob) {
+            case 1 -> "Muito baixa";
+            case 2 -> "Baixa";
+            case 5 -> "Média";
+            case 8 -> "Alta";
+            case 10 -> "Muito alta";
+            default -> throw new IllegalArgumentException("Valor de probabilidade invalido: " + probObj);
+        };
     }
 
     // Mapeia valor numérico do impacto para texto descritivo
     private static String mapearImpacto(Object impactoObj) {
-        try {
-            int impacto = Integer.parseInt(String.valueOf(impactoObj));
-            switch (impacto) {
-                case 1: return "Muito baixo";
-                case 2: return "Baixo";
-                case 5: return "Médio";
-                case 8: return "Alto";
-                case 10: return "Muito alto";
-                default: return String.valueOf(impacto);
-            }
-        } catch (Exception e) {
-            return "";
-        }
+        Integer impacto = parseEscalaInteira(impactoObj, "impacto");
+        if (impacto == null) return "";
+
+        return switch (impacto) {
+            case 1 -> "Muito baixo";
+            case 2 -> "Baixo";
+            case 5 -> "Médio";
+            case 8 -> "Alto";
+            case 10 -> "Muito alto";
+            default -> throw new IllegalArgumentException("Valor de impacto invalido: " + impactoObj);
+        };
     }
 
     // Mapeia o valor FAC para avaliação dos controles
     private static String mapearAvaliacaoControles(Object facObj) {
-        try {
-            double fac = Double.parseDouble(String.valueOf(facObj));
+        Double fac = parseFac(facObj);
+        if (fac == null) return "";
 
-            if (fac <= 0.2) return "Forte";
-            else if (fac <= 0.4) return "Satisfatório";
-            else if (fac <= 0.6) return "Mediano";
-            else if (fac <= 0.8) return "Fraco";
-            else return "Inexistente";
-        } catch (Exception e) {
-            return "";
+        if (fac < 0 || fac > 1) {
+            throw new IllegalArgumentException("Valor de fac invalido: " + facObj);
+        }
+
+        if (fac <= 0.2) return "Forte";
+        if (fac <= 0.4) return "Satisfatório";
+        if (fac <= 0.6) return "Mediano";
+        if (fac <= 0.8) return "Fraco";
+        return "Inexistente";
+    }
+
+    private static Integer parseEscalaInteira(Object rawValue, String fieldName) {
+        if (rawValue == null) return null;
+
+        if (rawValue instanceof Number n) {
+            double asDouble = n.doubleValue();
+            int asInt = (int) asDouble;
+            if (Double.compare(asDouble, (double) asInt) != 0) {
+                throw new IllegalArgumentException("Formato invalido para " + fieldName + ": " + rawValue);
+            }
+            return asInt;
+        }
+
+        String raw = String.valueOf(rawValue).trim();
+        if (raw.isEmpty()) return null;
+
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Formato invalido para " + fieldName + ": " + rawValue, e);
         }
     }
 
-    // Formata a data no padrão dd/MM/yyyy
-    private static String formatarData(Object data) {
-        if (data == null || data.toString().isEmpty()) return "";
+    private static Double parseFac(Object facObj) {
+        if (facObj == null) return null;
+
+        if (facObj instanceof Number n) {
+            double fac = n.doubleValue();
+            if (Double.isNaN(fac) || Double.isInfinite(fac)) {
+                throw new IllegalArgumentException("Formato invalido para fac: " + facObj);
+            }
+            return fac;
+        }
+
+        String raw = String.valueOf(facObj).trim();
+        if (raw.isEmpty()) return null;
+
         try {
-            LocalDate date = LocalDate.parse(data.toString());
-            return date.format(FORMATTER_BR);
-        } catch (Exception e) {
-            return val(data);
+            return Double.parseDouble(raw.replace(',', '.'));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Formato invalido para fac: " + facObj, e);
         }
     }
-
 }

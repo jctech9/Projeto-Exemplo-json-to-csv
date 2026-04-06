@@ -4,9 +4,16 @@ import static com.example.demo.transformers.TransformerUtils.asMap;
 import static com.example.demo.transformers.TransformerUtils.getContent;
 import static com.example.demo.transformers.TransformerUtils.getNestedString;
 import static com.example.demo.transformers.TransformerUtils.val;
-import java.util.*;
 
-public class DadosProcessoTransformer {
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+public final class DadosProcessoTransformer {
+
+    private DadosProcessoTransformer() {
+    }
 
     // Aba ETAPA 1: Processo, Objetivos, Unidade, Responsável
     public static Map<String, List<Map<String, Object>>> transform(Map<String, Object> input) {
@@ -31,5 +38,4 @@ public class DadosProcessoTransformer {
         result.put("ETAPA 1. DADOS DO PROCESSO", rows);
         return result;
     }
-
 }
