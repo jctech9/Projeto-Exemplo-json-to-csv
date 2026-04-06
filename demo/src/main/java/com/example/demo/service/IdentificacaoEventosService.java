@@ -12,6 +12,7 @@ import java.util.*;
 public class IdentificacaoEventosService {
 
     private static final String PROCESSO_REFERENCE_FORMULA = "'ETAPA 1. DADOS DO PROCESSO'!A$5";
+    private static final int EXTRA_EDITABLE_ROWS = 10;
 
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
@@ -120,6 +121,31 @@ public class IdentificacaoEventosService {
             }
         }
 
+        if (hasRealData(rows)) {
+            for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
+                Row extraRow = sheet.createRow(r++);
+                for (int c = 0; c < headerList.size(); c++) {
+                    String headerName = headerList.get(c);
+                    Cell cell = extraRow.createCell(c);
+
+                    if (headerName.equalsIgnoreCase("Processo")) {
+                        cell.setCellFormula(PROCESSO_REFERENCE_FORMULA);
+                    } else {
+                        cell.setCellValue("");
+                    }
+
+                    if (headerName.equalsIgnoreCase("Processo")
+                            || headerName.contains("Evento")
+                            || headerName.contains("Causas")
+                            || headerName.contains("Consequências")) {
+                        cell.setCellStyle(dataStyleLeft);
+                    } else {
+                        cell.setCellStyle(dataStyleCenter);
+                    }
+                }
+            }
+        }
+
         setupValidations(wb, sheet, headerList);
         setColumnWidths(sheet, headerList);
     }
@@ -166,5 +192,23 @@ public class IdentificacaoEventosService {
         s.setBorderTop(BorderStyle.THIN);
         s.setBorderLeft(BorderStyle.THIN);
         s.setBorderRight(BorderStyle.THIN);
+    }
+
+    private boolean hasRealData(List<Map<String, Object>> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return false;
+        }
+
+        for (Map<String, Object> row : rows) {
+            if (row == null || row.isEmpty()) {
+                continue;
+            }
+            for (Object value : row.values()) {
+                if (value != null && !String.valueOf(value).trim().isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

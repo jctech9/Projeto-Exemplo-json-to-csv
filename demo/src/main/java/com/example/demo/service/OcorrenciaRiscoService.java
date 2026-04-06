@@ -9,6 +9,8 @@ import java.util.*;
 @Service
 public class OcorrenciaRiscoService {
 
+    private static final int EXTRA_EDITABLE_ROWS = 10;
+
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
 
@@ -93,6 +95,24 @@ public class OcorrenciaRiscoService {
             }
         }
 
+        if (hasRealData(rows)) {
+            for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
+                Row dataRow = sheet.createRow(r++);
+                for (int c = 0; c < headerList.size(); c++) {
+                    String headerName = headerList.get(c);
+                    Cell cell = dataRow.createCell(c);
+                    cell.setCellValue("");
+
+                    if (headerName.contains("Evento") || headerName.contains("descritiva") || headerName.contains("Solução")
+                            || headerName.contains("Resultados") || headerName.contains("Descrição")) {
+                        cell.setCellStyle(dataStyleLeft);
+                    } else {
+                        cell.setCellStyle(dataStyleCenter);
+                    }
+                }
+            }
+        }
+
         setColumnWidths(sheet, headerList);
     }
 
@@ -119,5 +139,23 @@ public class OcorrenciaRiscoService {
         s.setBorderTop(BorderStyle.THIN);
         s.setBorderLeft(BorderStyle.THIN);
         s.setBorderRight(BorderStyle.THIN);
+    }
+
+    private boolean hasRealData(List<Map<String, Object>> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return false;
+        }
+
+        for (Map<String, Object> row : rows) {
+            if (row == null || row.isEmpty()) {
+                continue;
+            }
+            for (Object value : row.values()) {
+                if (value != null && !String.valueOf(value).trim().isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

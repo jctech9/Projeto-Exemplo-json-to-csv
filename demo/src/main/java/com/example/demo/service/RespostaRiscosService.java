@@ -12,6 +12,7 @@ import java.util.*;
 public class RespostaRiscosService {
 
     private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIFICAÇÃO DE EVENT";
+    private static final int EXTRA_EDITABLE_ROWS = 10;
 
     public void generateSheet(
             XSSFWorkbook wb,
@@ -97,7 +98,7 @@ public class RespostaRiscosService {
             int rowNum = dataRow.getRowNum() + 1;
 
             Cell cell0 = dataRow.createCell(0);
-            cell0.setCellFormula("'" + etapa2SheetName.replace("'", "''") + "'!A" + rowNum);
+            cell0.setCellFormula("IF('" + etapa2SheetName.replace("'", "''") + "'!A" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!A" + rowNum + ")");
             cell0.setCellStyle(dataStyleLeft);
 
             Cell cell1 = dataRow.createCell(1);
@@ -105,7 +106,7 @@ public class RespostaRiscosService {
             cell1.setCellStyle(dataStyleCenter);
 
             Cell cell2 = dataRow.createCell(2);
-            cell2.setCellFormula("'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum);
+            cell2.setCellFormula("IF('" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + ")");
             cell2.setCellStyle(dataStyleLeft);
 
             Cell cell3 = dataRow.createCell(3);
@@ -120,6 +121,33 @@ public class RespostaRiscosService {
             Cell cell4 = dataRow.createCell(4);
             cell4.setCellValue(String.valueOf(rowData.getOrDefault("Justificativa da escolha da opção de tratamento","")));
             cell4.setCellStyle(dataStyleLeft);
+        }
+
+        if (hasRealData(rows)) {
+            for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
+                Row dataRow = sheet.createRow(r++);
+                int rowNum = dataRow.getRowNum() + 1;
+
+                Cell cell0 = dataRow.createCell(0);
+                cell0.setCellFormula("IF('" + etapa2SheetName.replace("'", "''") + "'!A" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!A" + rowNum + ")");
+                cell0.setCellStyle(dataStyleLeft);
+
+                Cell cell1 = dataRow.createCell(1);
+                cell1.setCellValue("");
+                cell1.setCellStyle(dataStyleCenter);
+
+                Cell cell2 = dataRow.createCell(2);
+                cell2.setCellFormula("IF('" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + ")");
+                cell2.setCellStyle(dataStyleLeft);
+
+                Cell cell3 = dataRow.createCell(3);
+                cell3.setCellValue("");
+                cell3.setCellStyle(dataStyleCenter);
+
+                Cell cell4 = dataRow.createCell(4);
+                cell4.setCellValue("");
+                cell4.setCellStyle(dataStyleLeft);
+            }
         }
 
 
@@ -171,6 +199,24 @@ public class RespostaRiscosService {
         s.setBorderTop(BorderStyle.THIN);
         s.setBorderLeft(BorderStyle.THIN);
         s.setBorderRight(BorderStyle.THIN);
+    }
+
+    private boolean hasRealData(List<Map<String, Object>> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return false;
+        }
+
+        for (Map<String, Object> row : rows) {
+            if (row == null || row.isEmpty()) {
+                continue;
+            }
+            for (Object value : row.values()) {
+                if (value != null && !String.valueOf(value).trim().isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 

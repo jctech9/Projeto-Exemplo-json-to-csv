@@ -189,8 +189,9 @@ public class ExcelController {
             }
             
             // Ocorrências de Risco: busca por cada risco do processo usando /ocorrenciasRisco/risco/{riscoId}
+            // Mesmo sem risco canônico (ex.: ID inválido), a aba deve existir no arquivo final.
+            List<Map<String, Object>> todasOcorrencias = new ArrayList<>();
             if (!riscoIdsDoProcesso.isEmpty()) {
-                List<Map<String, Object>> todasOcorrencias = new ArrayList<>();
                 for (Integer riscoId : riscoIdsDoProcesso) {
                     try {
                         String url = baseUrl + "/ocorrenciasRisco/risco/" + riscoId + "?page=0&size=999999";
@@ -222,15 +223,16 @@ public class ExcelController {
                         System.err.println("[EXPORT] Erro ao buscar ocorrências do risco " + riscoId + ": " + e.getMessage());
                     }
                 }
-                List<Map<String, Object>> ocorrenciasAlinhadas = alignByRiscoIds(todasOcorrencias, riscoIdsDoProcesso);
-                applyCanonicalRiscoNome(ocorrenciasAlinhadas, riscoNomePorId);
-
-                Map<String, Object> ocPayload = new LinkedHashMap<>();
-                ocPayload.put("content", ocorrenciasAlinhadas);
-                // Hidrata @ref antes da transformação
-                RefResolver.resolve(ocPayload);
-                allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocPayload));
             }
+
+            List<Map<String, Object>> ocorrenciasAlinhadas = alignByRiscoIds(todasOcorrencias, riscoIdsDoProcesso);
+            applyCanonicalRiscoNome(ocorrenciasAlinhadas, riscoNomePorId);
+
+            Map<String, Object> ocPayload = new LinkedHashMap<>();
+            ocPayload.put("content", ocorrenciasAlinhadas);
+            // Hidrata @ref antes da transformação
+            RefResolver.resolve(ocPayload);
+            allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocPayload));
             
         } catch (Exception e) {
             return ResponseEntity.status(500).body(("Erro ao buscar dados da API: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
