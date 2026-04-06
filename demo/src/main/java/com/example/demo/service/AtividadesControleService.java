@@ -12,6 +12,7 @@ import java.util.*;
 public class AtividadesControleService {
 
     private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIF. DE EVENTOS";
+    private static final String ETAPA_4_SHEET_FALLBACK_NAME = "ETAPA 4. RESPOSTA AOS RISCOS";
     private static final int EXTRA_EDITABLE_ROWS = 10;
     private static final List<String> FIXED_HEADERS = Arrays.asList(
             "Evento de Risco",
@@ -30,6 +31,7 @@ public class AtividadesControleService {
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
         String etapa2SheetName = resolveEtapa2SheetName(wb);
+        String etapa4SheetName = resolveEtapa4SheetName(wb);
 
         // Cor Cinza para o Cabeçalho
         byte[] rgbGrey = new byte[]{(byte) 217, (byte) 217, (byte) 217};
@@ -93,11 +95,7 @@ public class AtividadesControleService {
                 cell.setCellValue(hName);
             }
 
-            if (hName.contains("Responsável") || hName.contains("Data") || hName.contains("Evento")) {
-                cell.setCellStyle(greyStyle);
-            } else {
-                cell.setCellStyle(greyStyle);
-            }
+            cell.setCellStyle(greyStyle);
         }
 
         // 4. Preenchimento de Dados
@@ -115,7 +113,7 @@ public class AtividadesControleService {
                     cell.setCellStyle(dataStyleLeft);
                 } else if (headerName.equalsIgnoreCase("Opção de Tratamento")) {
                     // Aponta para a Coluna D (índice 3) da planilha "ETAPA 4. RESPOSTA AOS RISCOS"
-                    String formula = "IF('ETAPA 4. RESPOSTA AOS RISCOS'!D" + rowNum + "=\"\",\"\",'ETAPA 4. RESPOSTA AOS RISCOS'!D" + rowNum + ")";
+                    String formula = "IF('" + etapa4SheetName.replace("'", "''") + "'!D" + rowNum + "=\"\",\"\",'" + etapa4SheetName.replace("'", "''") + "'!D" + rowNum + ")";
                     cell.setCellFormula(formula);
                     cell.setCellStyle(dataStyleCenter);
                 } else {
@@ -144,7 +142,7 @@ public class AtividadesControleService {
                     cell.setCellFormula(formula);
                     cell.setCellStyle(dataStyleLeft);
                 } else if (headerName.equalsIgnoreCase("Opção de Tratamento")) {
-                    String formula = "IF('ETAPA 4. RESPOSTA AOS RISCOS'!D" + rowNum + "=\"\",\"\",'ETAPA 4. RESPOSTA AOS RISCOS'!D" + rowNum + ")";
+                    String formula = "IF('" + etapa4SheetName.replace("'", "''") + "'!D" + rowNum + "=\"\",\"\",'" + etapa4SheetName.replace("'", "''") + "'!D" + rowNum + ")";
                     cell.setCellFormula(formula);
                     cell.setCellStyle(dataStyleCenter);
                 } else {
@@ -175,6 +173,16 @@ public class AtividadesControleService {
             }
         }
         return ETAPA_2_SHEET_FALLBACK_NAME;
+    }
+
+    private String resolveEtapa4SheetName(XSSFWorkbook wb) {
+        for (int i = 0; i < wb.getNumberOfSheets(); i++) {
+            String name = wb.getSheetName(i);
+            if (name != null && name.contains("ETAPA 4")) {
+                return name;
+            }
+        }
+        return ETAPA_4_SHEET_FALLBACK_NAME;
     }
 
     private void applyStatusFormatting(XSSFSheet sheet, List<String> headers) {

@@ -93,7 +93,8 @@ public class OcorrenciaRiscoService {
                 Object val = rowData.get(headerName);
                 cell.setCellValue(val == null ? "" : String.valueOf(val));
 
-                if (headerName.contains("Evento") || headerName.contains("descritiva") || headerName.contains("Solução") || headerName.contains("Resultados") || headerName.contains("Descrição")) {
+                if (headerName.contains("Evento") || headerName.contains("Descrição")
+                        || headerName.contains("Solução") || headerName.contains("Resultados")) {
                     cell.setCellStyle(dataStyleLeft);
                 } else {
                     cell.setCellStyle(dataStyleCenter);
@@ -108,8 +109,8 @@ public class OcorrenciaRiscoService {
                 Cell cell = dataRow.createCell(c);
                 cell.setCellValue("");
 
-                if (headerName.contains("Evento") || headerName.contains("descritiva") || headerName.contains("Solução")
-                        || headerName.contains("Resultados") || headerName.contains("Descrição")) {
+                if (headerName.contains("Evento") || headerName.contains("Descrição")
+                        || headerName.contains("Solução") || headerName.contains("Resultados")) {
                     cell.setCellStyle(dataStyleLeft);
                 } else {
                     cell.setCellStyle(dataStyleCenter);
@@ -123,14 +124,14 @@ public class OcorrenciaRiscoService {
     private void setColumnWidths(XSSFSheet sheet, List<String> headers) {
         for (int i = 0; i < headers.size(); i++) {
             String h = headers.get(i);
-            if (h.contains("(descrever)") || h.contains("descritiva")) {
+            if (h.contains("Descrição") || h.contains("Solução")) {
                 sheet.setColumnWidth(i, 18000);
             }
             else if (h.contains("Evento") || h.contains("Resultados")) {
                 sheet.setColumnWidth(i, 20000);
             }
             else if (h.contains("Responsável")) {
-                sheet.setColumnWidth(i, 7000);
+                sheet.setColumnWidth(i, 9000);
             }
             else {
                 sheet.setColumnWidth(i, 7000);

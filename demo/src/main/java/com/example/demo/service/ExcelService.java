@@ -12,9 +12,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -52,32 +54,34 @@ public class ExcelService {
 
                 String sheetName = entry.getKey();
                 List<Map<String, Object>> rows = entry.getValue();
+                String sheetKey = normalizeSheetName(sheetName);
 
-                if (sheetName.contains("DADOS DO PROCESSO") || sheetName.contains("ETAPA 1")) {
+                if (sheetKey.contains("DADOS DO PROCESSO") || sheetKey.contains("ETAPA 1")) {
                     dadosProcessoService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
-                if (sheetName.contains("ETAPA 2")) {
+                if (sheetKey.contains("ETAPA 2")) {
                     identificacaoEventosService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
-                if (sheetName.contains("ETAPA 3")) {
+                if (sheetKey.contains("ETAPA 3")) {
                     avaliacaoRiscosService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
-                if (sheetName.contains("ETAPA 4")) {
+                if (sheetKey.contains("ETAPA 4")) {
                     respostaRiscosService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
 
-                if (sheetName.contains("ETAPA 5")) {
+                if (sheetKey.contains("ETAPA 5")) {
                     atividadesControleService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
-                if(sheetName.contains("OCORRÊNCIAS DE RISCO")){
+
+                if (sheetKey.contains("OCORRENCIAS DE RISCO")) {
                     ocorrenciaRiscoService.generateSheet(wb, sheetName, rows);
                     continue;
                 }
@@ -136,5 +140,15 @@ public class ExcelService {
         for (int c = 0; c < headerList.size(); c++) {
             sheet.autoSizeColumn(c);
         }
+    }
+
+    private String normalizeSheetName(String sheetName) {
+        if (sheetName == null) {
+            return "";
+        }
+
+        String withoutAccents = Normalizer.normalize(sheetName, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "");
+        return withoutAccents.toUpperCase(Locale.ROOT);
     }
 }

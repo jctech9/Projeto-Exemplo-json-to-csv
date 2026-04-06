@@ -25,7 +25,6 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
@@ -179,12 +178,7 @@ public class AvaliacaoRiscosService {
                     }
                 }
 
-                if (columnName.equalsIgnoreCase("Classificação do Risco Inerente")
-                        || columnName.equalsIgnoreCase("Classificação do Risco Residual")) {
-                    cell.setCellStyle(defaultDataStyle);
-                } else {
-                    cell.setCellStyle(defaultDataStyle);
-                }
+                cell.setCellStyle(defaultDataStyle);
             }
         }
 
@@ -370,20 +364,6 @@ public class AvaliacaoRiscosService {
                 sheet.setColumnWidth(c, 5000);
             }
         }
-    }
-
-    private CellStyle createRGBStyle(XSSFWorkbook wb, byte[] rgb) {
-
-        XSSFCellStyle style = wb.createCellStyle();
-        XSSFColor color = new XSSFColor(rgb, null);
-
-        style.setFillForegroundColor(color);
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setAlignment(HorizontalAlignment.LEFT);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        applyBorders(style);
-
-        return style;
     }
 
     private void createGroupHeader(

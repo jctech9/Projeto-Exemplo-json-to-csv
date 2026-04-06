@@ -106,15 +106,7 @@ public class IdentificacaoEventosService {
                 } else {
                     Object val = rowData.get(headerName);
                     String text = val == null ? "" : String.valueOf(val);
-
-                    if(!text.isEmpty()){
-                        text = text.substring(0,1).toUpperCase() + text.substring(1).toLowerCase();
-                    }
-                    if (text.equalsIgnoreCase("Ameaca")) {
-                        text = "Ameaça";
-                    }
-
-                    cell.setCellValue(text);
+                    cell.setCellValue(normalizeSelectValue(headerName, text));
                 }
 
                 // Aplica o estilo baseado no nome da coluna
@@ -191,6 +183,25 @@ public class IdentificacaoEventosService {
                 sheet.setColumnWidth(i, 7000);
             }
         }
+    }
+
+    private String normalizeSelectValue(String headerName, String value) {
+        if (value == null) {
+            return "";
+        }
+
+        if (!"Tipo de Risco".equalsIgnoreCase(headerName)) {
+            return value;
+        }
+
+        String trimmed = value.trim();
+        if (trimmed.equalsIgnoreCase("Ameaca") || trimmed.equalsIgnoreCase("Ameaça")) {
+            return "Ameaça";
+        }
+        if (trimmed.equalsIgnoreCase("Oportunidade")) {
+            return "Oportunidade";
+        }
+        return value;
     }
 
     private void applyBorders(CellStyle s) {

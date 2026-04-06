@@ -11,7 +11,7 @@ import java.util.*;
 @Service
 public class RespostaRiscosService {
 
-    private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIFICAÇÃO DE EVENT";
+    private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIF. DE EVENTOS";
     private static final int EXTRA_EDITABLE_ROWS = 10;
 
     public void generateSheet(
@@ -81,8 +81,6 @@ public class RespostaRiscosService {
         }
 
         CellStyle dataStyleLeft = wb.createCellStyle();
-        CellStyle textStyle = wb.createCellStyle();
-        textStyle.setAlignment(HorizontalAlignment.LEFT);
         dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
         dataStyleLeft.setVerticalAlignment(VerticalAlignment.CENTER);
         applyBorders(dataStyleLeft);
