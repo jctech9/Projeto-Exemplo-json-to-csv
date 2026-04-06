@@ -119,8 +119,9 @@ public class ExcelController {
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
         
         // Se o ID for passado no corpo, usa ele. Sem ID, não aplica filtro por processo.
+        Integer requestId = (body != null && body.containsKey("id")) ? body.get("id") : null;
         java.util.concurrent.atomic.AtomicInteger mainProcessId = new java.util.concurrent.atomic.AtomicInteger(
-            (body != null && body.containsKey("id")) ? body.get("id") : -1
+            requestId != null ? requestId : -1
         );
         
         try {
@@ -168,6 +169,7 @@ public class ExcelController {
             Map<String, Object> avaliacoesData = fetchEndpointData(restTemplate, baseUrl, "/avaliacoesRiscoControle");
             if (avaliacoesData != null) {
                 List<Map<String, Object>> content = filterByProcessIfNeeded(avaliacoesData, mainProcessId.get());
+                validateStrictRiscoCollection("avaliacoesRiscoControle", content, riscoIdsDoProcesso);
                 avaliacoesData.put("content", alignByRiscoIds(content, riscoIdsDoProcesso));
                 allSheets.putAll(AvaliacaoRiscosTransformer.transform(avaliacoesData));
             }
@@ -176,6 +178,7 @@ public class ExcelController {
             Map<String, Object> respostasData = fetchEndpointData(restTemplate, baseUrl, "/respostasRisco");
             if (respostasData != null) {
                 List<Map<String, Object>> content = filterByProcessIfNeeded(respostasData, mainProcessId.get());
+                validateStrictRiscoCollection("respostasRisco", content, riscoIdsDoProcesso);
                 respostasData.put("content", alignByRiscoIds(content, riscoIdsDoProcesso));
                 allSheets.putAll(RespostaRiscosTransformer.transform(respostasData));
             }
@@ -184,6 +187,7 @@ public class ExcelController {
             Map<String, Object> atividadesData = fetchEndpointData(restTemplate, baseUrl, "/atividadeControles");
             if (atividadesData != null) {
                 List<Map<String, Object>> content = filterByProcessIfNeeded(atividadesData, mainProcessId.get());
+                validateStrictRiscoCollection("atividadeControles", content, riscoIdsDoProcesso);
                 atividadesData.put("content", alignByRiscoIds(content, riscoIdsDoProcesso));
                 allSheets.putAll(AtividadeControleTransformer.transform(atividadesData));
             }
@@ -695,28 +699,6 @@ public class ExcelController {
             return (List<Map<String, Object>>) data.get("content");
         }
         return null;
-    }
-
-    private java.util.function.Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> filterByProcess(
-            java.util.function.Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> original,
-            java.util.concurrent.atomic.AtomicInteger processId) {
-        return data -> {
-            if (processId.get() != -1) {
-                List<Map<String, Object>> content = getList(data);
-                if (content != null) {
-                    List<Map<String, Object>> filtered = new java.util.ArrayList<>();
-                    Map<String, Integer> refCache = new java.util.HashMap<>();
-                    
-                    for (Map<String, Object> item : content) {
-                        if (isRelatedToProcess(item, processId.get(), refCache)) {
-                            filtered.add(item);
-                        }
-                    }
-                    data.put("content", filtered);
-                }
-            }
-            return original.apply(data);
-        };
     }
 
     @SuppressWarnings("unchecked")
