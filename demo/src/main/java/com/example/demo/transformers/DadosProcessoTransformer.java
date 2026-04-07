@@ -1,5 +1,7 @@
 package com.example.demo.transformers;
 
+import com.example.demo.contracts.SheetNames;
+
 import static com.example.demo.transformers.TransformerUtils.asMap;
 import static com.example.demo.transformers.TransformerUtils.getContent;
 import static com.example.demo.transformers.TransformerUtils.getNestedString;
@@ -35,7 +37,7 @@ public final class DadosProcessoTransformer {
         }
 
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
-        result.put("ETAPA 1. DADOS DO PROCESSO", rows);
+        result.put(SheetNames.ETAPA_1.displayName(), rows);
         return result;
     }
 }

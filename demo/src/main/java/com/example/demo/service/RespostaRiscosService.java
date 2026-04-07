@@ -1,5 +1,8 @@
 package com.example.demo.service;
 
+import com.example.demo.contracts.RespostaRiscosColumns;
+import com.example.demo.contracts.SheetNames;
+import com.example.demo.contracts.ValidationOptions;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataValidationHelper;
@@ -15,29 +18,14 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class RespostaRiscosService {
 
-    private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIF. DE EVENTOS";
     private static final int EXTRA_EDITABLE_ROWS = 10;
-    private static final List<String> FIXED_HEADERS = Arrays.asList(
-            "Processo",
-            "Fase",
-            "Evento de Risco",
-            "Opção de Tratamento",
-            "Justificativa da escolha da opção de tratamento"
-    );
-
-    private static final String[] OPCOES_TRATAMENTO = {
-            "Aceitar",
-            "Mitigar",
-            "Compartilhar",
-            "Evitar"
-    };
+    private static final List<RespostaRiscosColumns> FIXED_COLUMNS = RespostaRiscosColumns.ordered();
 
     public void generateSheet(
             XSSFWorkbook wb,
@@ -46,7 +34,11 @@ public class RespostaRiscosService {
     ) {
 
         XSSFSheet sheet = wb.createSheet(sheetName);
-        String etapa2SheetName = SheetServiceUtils.resolveSheetName(wb, "ETAPA 2", ETAPA_2_SHEET_FALLBACK_NAME);
+        String etapa2SheetName = SheetServiceUtils.resolveSheetName(
+                wb,
+                SheetNames.ETAPA_2.marker(),
+                SheetNames.ETAPA_2.displayName()
+        );
         int firstEditableRow = 2;
         int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, rows.size(), EXTRA_EDITABLE_ROWS);
 
@@ -67,9 +59,9 @@ public class RespostaRiscosService {
         bold.setBold(true);
         titleStyle.setFont(bold);
 
-        for (int c = 0; c <= 4; c++) {
+        for (int c = 0; c <= RespostaRiscosColumns.lastIndex(); c++) {
             Cell cell = titleRow.createCell(c);
-            if (c == 2) {
+            if (c == RespostaRiscosColumns.EVENTO_RISCO.index()) {
                 cell.setCellValue("Resposta aos Riscos");
             }
             cell.setCellStyle(titleStyle);
@@ -78,8 +70,8 @@ public class RespostaRiscosService {
         sheet.addMergedRegion(new CellRangeAddress(
                 titleRow.getRowNum(),
                 titleRow.getRowNum(),
-                2,
-                4
+                RespostaRiscosColumns.EVENTO_RISCO.index(),
+                RespostaRiscosColumns.lastIndex()
         ));
 
         Row headerRow = sheet.createRow(r++);
@@ -94,9 +86,9 @@ public class RespostaRiscosService {
         headerFont.setBold(true);
         headerStyle.setFont(headerFont);
 
-        for (int c = 0; c < FIXED_HEADERS.size(); c++) {
-            Cell cell = headerRow.createCell(c);
-            cell.setCellValue(FIXED_HEADERS.get(c));
+        for (RespostaRiscosColumns column : FIXED_COLUMNS) {
+            Cell cell = headerRow.createCell(column.index());
+            cell.setCellValue(column.headerLabel());
             cell.setCellStyle(headerStyle);
         }
 
@@ -119,14 +111,18 @@ public class RespostaRiscosService {
         }
 
         DataValidationHelper helper = sheet.getDataValidationHelper();
-        SheetServiceUtils.applySelect(sheet, helper, OPCOES_TRATAMENTO, 3, firstEditableRow, lastEditableRow);
+        SheetServiceUtils.applySelect(
+                sheet,
+                helper,
+                ValidationOptions.OPCOES_TRATAMENTO,
+                RespostaRiscosColumns.OPCAO_TRATAMENTO.index(),
+                firstEditableRow,
+                lastEditableRow
+        );
 
-        // ---------- TAMANHO COLUNAS ----------
-        sheet.setColumnWidth(0, 9000);
-        sheet.setColumnWidth(1, 6000);
-        sheet.setColumnWidth(2, 22000);
-        sheet.setColumnWidth(3, 7000);
-        sheet.setColumnWidth(4, 50000);
+        for (RespostaRiscosColumns column : FIXED_COLUMNS) {
+            sheet.setColumnWidth(column.index(), column.columnWidth());
+        }
     }
 
     private void populateDataRow(
@@ -137,40 +133,30 @@ public class RespostaRiscosService {
             CellStyle dataStyleLeft,
             CellStyle dataStyleCenter
     ) {
-        Cell cell0 = dataRow.createCell(0);
+        Cell cell0 = dataRow.createCell(RespostaRiscosColumns.PROCESSO.index());
         cell0.setCellFormula("IF('" + etapa2SheetName.replace("'", "''") + "'!A" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!A" + rowNum + ")");
         cell0.setCellStyle(dataStyleLeft);
 
-        Cell cell1 = dataRow.createCell(1);
-        cell1.setCellValue(rowData == null ? "" : String.valueOf(rowData.getOrDefault("Fase", "")));
+        Cell cell1 = dataRow.createCell(RespostaRiscosColumns.FASE.index());
+        cell1.setCellValue(rowData == null ? "" : String.valueOf(rowData.getOrDefault(RespostaRiscosColumns.FASE.key(), "")));
         cell1.setCellStyle(dataStyleCenter);
 
-        Cell cell2 = dataRow.createCell(2);
+        Cell cell2 = dataRow.createCell(RespostaRiscosColumns.EVENTO_RISCO.index());
         cell2.setCellFormula("IF('" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + ")");
         cell2.setCellStyle(dataStyleLeft);
 
-        Cell cell3 = dataRow.createCell(3);
-        String rawOpcao = rowData == null ? "" : String.valueOf(rowData.getOrDefault("Opção de Tratamento", ""));
+        Cell cell3 = dataRow.createCell(RespostaRiscosColumns.OPCAO_TRATAMENTO.index());
+        String rawOpcao = rowData == null ? "" : String.valueOf(rowData.getOrDefault(RespostaRiscosColumns.OPCAO_TRATAMENTO.key(), ""));
         cell3.setCellValue(normalizeOpcaoTratamento(rawOpcao));
         cell3.setCellStyle(dataStyleCenter);
 
-        Cell cell4 = dataRow.createCell(4);
-        cell4.setCellValue(rowData == null ? "" : String.valueOf(rowData.getOrDefault("Justificativa da escolha da opção de tratamento", "")));
+        Cell cell4 = dataRow.createCell(RespostaRiscosColumns.JUSTIFICATIVA_TRATAMENTO.index());
+        cell4.setCellValue(rowData == null ? "" : String.valueOf(rowData.getOrDefault(RespostaRiscosColumns.JUSTIFICATIVA_TRATAMENTO.key(), "")));
         cell4.setCellStyle(dataStyleLeft);
     }
 
     private String normalizeOpcaoTratamento(String opcao) {
-        if (opcao == null) {
-            return "";
-        }
-
-        String trimmed = opcao.trim();
-        for (String option : OPCOES_TRATAMENTO) {
-            if (option.equalsIgnoreCase(trimmed)) {
-                return option;
-            }
-        }
-        return trimmed;
+        return ValidationOptions.normalizeOpcaoTratamento(opcao);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.contracts.SheetNames;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataValidationHelper;
@@ -22,7 +23,6 @@ import java.util.Map;
 @Service
 public class IdentificacaoEventosService {
 
-    private static final String ETAPA_1_SHEET_FALLBACK_NAME = "ETAPA 1. DADOS DO PROCESSO";
     private static final int EXTRA_EDITABLE_ROWS = 10;
     private static final List<String> FIXED_HEADERS = Arrays.asList(
             "Processo",
@@ -37,7 +37,11 @@ public class IdentificacaoEventosService {
 
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
-        String etapa1SheetName = SheetServiceUtils.resolveSheetName(wb, "ETAPA 1", ETAPA_1_SHEET_FALLBACK_NAME);
+        String etapa1SheetName = SheetServiceUtils.resolveSheetName(
+                wb,
+                SheetNames.ETAPA_1.marker(),
+                SheetNames.ETAPA_1.displayName()
+        );
         String processoReferenceFormula = buildProcessoReferenceFormula(etapa1SheetName);
         int firstEditableRow = 2;
         int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, rows.size(), EXTRA_EDITABLE_ROWS);

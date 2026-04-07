@@ -1,5 +1,9 @@
 package com.example.demo.transformers;
 
+import com.example.demo.contracts.AtividadesControleColumns;
+import com.example.demo.contracts.SheetNames;
+import com.example.demo.contracts.ValidationOptions;
+
 import static com.example.demo.transformers.TransformerUtils.asMap;
 import static com.example.demo.transformers.TransformerUtils.formatDateBr;
 import static com.example.demo.transformers.TransformerUtils.getContent;
@@ -23,36 +27,35 @@ public final class AtividadeControleTransformer {
             Map<String, Object> row = new LinkedHashMap<>();
 
             Map<String, Object> risco = asMap(atividade.get("risco"));
-            row.put("Evento de Risco", "");
-            row.put("Opção de Tratamento", extrairOpcaoTratamento(risco));
-            row.put("Responsável pelo Tratamento", val(atividade.get("responsavelTratamento")));
-            row.put("Data prevista para início da implementação", formatDateBr(atividade.get("dataInicio")));
-            row.put("Data prevista para o fim da implementação", formatDateBr(atividade.get("dataTermino")));
-            row.put("Status", mapearStatusImplementacao(atividade.get("statusImplementacao")));
-            row.put("Ações preventivas (descrever)", val(atividade.get("acoesPreventivas")));
-            row.put("Monitoramento", val(atividade.get("monitoramentoAcoesPreventivas")));
-
-            row.put("Gatilho (descrever)", val(atividade.get("gatilho")));
-            row.put("Ações de Contingência (descrever)", val(atividade.get("acoesContingencia")));
-            row.put("Responsável", val(atividade.get("responsavelContingencia")));
+            row.put(AtividadesControleColumns.EVENTO_RISCO.key(), "");
+            row.put(AtividadesControleColumns.OPCAO_TRATAMENTO.key(), extrairOpcaoTratamento(risco));
+            row.put(AtividadesControleColumns.RESPONSAVEL_TRATAMENTO.key(), val(atividade.get("responsavelTratamento")));
+            row.put(AtividadesControleColumns.DATA_INICIO.key(), formatDateBr(atividade.get("dataInicio")));
+            row.put(AtividadesControleColumns.DATA_FIM.key(), formatDateBr(atividade.get("dataTermino")));
+            row.put(AtividadesControleColumns.STATUS.key(), mapearStatusImplementacao(atividade.get("statusImplementacao")));
+            row.put(AtividadesControleColumns.ACOES_PREVENTIVAS.key(), val(atividade.get("acoesPreventivas")));
+            row.put(AtividadesControleColumns.MONITORAMENTO.key(), val(atividade.get("monitoramentoAcoesPreventivas")));
+            row.put(AtividadesControleColumns.GATILHO.key(), val(atividade.get("gatilho")));
+            row.put(AtividadesControleColumns.ACOES_CONTINGENCIA.key(), val(atividade.get("acoesContingencia")));
+            row.put(AtividadesControleColumns.RESPONSAVEL_CONTINGENCIA.key(), val(atividade.get("responsavelContingencia")));
 
             rows.add(row);
         }
 
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
-        result.put("ETAPA 5. ATIVIDADES DE CONTROLE", rows);
+        result.put(SheetNames.ETAPA_5.displayName(), rows);
         return result;
     }
 
     private static String mapearStatusImplementacao(Object statusObj) {
-        if (statusObj == null) return "Não implementado";
+        if (statusObj == null) return ValidationOptions.STATUS_IMPLEMENTACAO[0];
 
         String status = String.valueOf(statusObj).toUpperCase();
         // Converte os valores do banco para o padrão da planilha
         return switch (status) {
-            case "IMPLEMENTADO" -> "Implementado";
-            case "EM_IMPLEMENTACAO", "EMIMPLEMENTACAO" -> "Em implementação";
-            default -> "Não implementado"; // Caso seja NAO_IMPLEMENTADO ou nulo
+            case "IMPLEMENTADO" -> ValidationOptions.STATUS_IMPLEMENTACAO[2];
+            case "EM_IMPLEMENTACAO", "EMIMPLEMENTACAO" -> ValidationOptions.STATUS_IMPLEMENTACAO[1];
+            default -> ValidationOptions.STATUS_IMPLEMENTACAO[0]; // Caso seja NAO_IMPLEMENTADO ou nulo
         };
     }
 
@@ -63,13 +66,6 @@ public final class AtividadeControleTransformer {
         if (resposta == null) return "";
 
         String opcao = val(resposta.get("opcaoTratamento"));
-        return formatarTexto(opcao);
-    }
-
-    private static String formatarTexto(String texto) {
-        if (texto == null || texto.isEmpty()) return "";
-
-        texto = texto.toLowerCase();
-        return texto.substring(0, 1).toUpperCase() + texto.substring(1);
+        return ValidationOptions.normalizeOpcaoTratamento(opcao);
     }
 }

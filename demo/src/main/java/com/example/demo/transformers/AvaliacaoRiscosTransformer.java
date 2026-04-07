@@ -1,5 +1,7 @@
 package com.example.demo.transformers;
 
+import com.example.demo.contracts.SheetNames;
+
 import static com.example.demo.transformers.TransformerUtils.formatDateBr;
 import static com.example.demo.transformers.TransformerUtils.getContent;
 import static com.example.demo.transformers.TransformerUtils.val;
@@ -41,7 +43,7 @@ public final class AvaliacaoRiscosTransformer {
         }
 
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
-        result.put("ETAPA 3. AVALIAÇÃO DE RISCOS", rows);
+        result.put(SheetNames.ETAPA_3.displayName(), rows);
         return result;
     }
 

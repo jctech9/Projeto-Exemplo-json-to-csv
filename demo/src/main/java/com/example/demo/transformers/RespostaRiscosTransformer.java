@@ -1,5 +1,8 @@
 package com.example.demo.transformers;
 
+import com.example.demo.contracts.RespostaRiscosColumns;
+import com.example.demo.contracts.SheetNames;
+
 import static com.example.demo.transformers.TransformerUtils.asMap;
 import static com.example.demo.transformers.TransformerUtils.getContent;
 import static com.example.demo.transformers.TransformerUtils.val;
@@ -24,19 +27,19 @@ public final class RespostaRiscosTransformer {
 
             // Extrai informações do risco associado
             if (risco != null) {
-                row.put("Fase", val(risco.get("faseProcesso")));
+                row.put(RespostaRiscosColumns.FASE.key(), val(risco.get("faseProcesso")));
             } else {
-                row.put("Fase", "");
+                row.put(RespostaRiscosColumns.FASE.key(), "");
             }
 
-            row.put("Opção de Tratamento", val(respostaRisco.get("opcaoTratamento")));
-            row.put("Justificativa da escolha da opção de tratamento", val(respostaRisco.get("justificativa")));
+            row.put(RespostaRiscosColumns.OPCAO_TRATAMENTO.key(), val(respostaRisco.get("opcaoTratamento")));
+            row.put(RespostaRiscosColumns.JUSTIFICATIVA_TRATAMENTO.key(), val(respostaRisco.get("justificativa")));
 
             rows.add(row);
         }
 
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
-        result.put("ETAPA 4. RESPOSTA AOS RISCOS", rows);
+        result.put(SheetNames.ETAPA_4.displayName(), rows);
         return result;
     }
 }

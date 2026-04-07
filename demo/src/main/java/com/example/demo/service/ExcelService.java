@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.contracts.SheetNames;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -160,8 +161,10 @@ public class ExcelService {
     private SheetType classifySheetType(String sheetName) {
         String sheetKey = normalizeSheetName(sheetName);
         Integer etapa = extractEtapaNumber(sheetKey);
+        String etapa1Keyword = normalizeSheetName(SheetNames.ETAPA_1.displayName())
+                .replaceFirst("^ETAPA\\s+\\d+\\.?\\s*", "");
 
-        if (sheetKey.contains("DADOS DO PROCESSO") || Integer.valueOf(1).equals(etapa)) {
+        if (sheetKey.contains(etapa1Keyword) || Integer.valueOf(1).equals(etapa)) {
             return SheetType.ETAPA_1;
         }
         if (Integer.valueOf(2).equals(etapa)) {
@@ -176,7 +179,7 @@ public class ExcelService {
         if (Integer.valueOf(5).equals(etapa)) {
             return SheetType.ETAPA_5;
         }
-        if (sheetKey.contains("OCORRENCIAS DE RISCO")) {
+        if (sheetKey.contains(SheetNames.OCORRENCIAS_RISCO.marker())) {
             return SheetType.OCORRENCIA_RISCO;
         }
         return SheetType.OTHER;

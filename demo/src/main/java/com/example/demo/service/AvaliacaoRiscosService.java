@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.contracts.SheetNames;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.ConditionalFormattingRule;
@@ -28,7 +29,6 @@ import java.util.Map;
 @Service
 public class AvaliacaoRiscosService {
 
-    private static final String ETAPA_2_SHEET_FALLBACK_NAME = "ETAPA 2. IDENTIF. DE EVENTOS";
     private static final int EXTRA_EDITABLE_ROWS = 10;
     private static final List<String> FIXED_HEADERS = Arrays.asList(
             "Evento de Risco",
@@ -50,7 +50,11 @@ public class AvaliacaoRiscosService {
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
 
         XSSFSheet sheet = wb.createSheet(sheetName);
-        String etapa2SheetName = SheetServiceUtils.resolveSheetName(wb, "ETAPA 2", ETAPA_2_SHEET_FALLBACK_NAME);
+        String etapa2SheetName = SheetServiceUtils.resolveSheetName(
+                wb,
+                SheetNames.ETAPA_2.marker(),
+                SheetNames.ETAPA_2.displayName()
+        );
         int firstEditableRow = 2;
         int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, rows.size(), EXTRA_EDITABLE_ROWS);
 
