@@ -1,0 +1,34 @@
+PRÉ-REQUISITO
+- Para exportação via API remota, a API de origem deve estar acessível (padrão: http://localhost:8090).
+
+WINDOWS - EXECUTAR PROJETO
+1. Abra o PowerShell na pasta demo:
+  cd .\demo
+2. Inicie a aplicação:
+  .\mvnw.cmd spring-boot:run
+
+GERAR O ARQUIVO EXCEL FINAL (.xlsx)
+1. Via navegador (GET com id):
+  Abra no navegador:
+  http://localhost:8080/export/xlsx/api?id=76
+  O download do Excel inicia automaticamente (nome padrão: dados.xlsx).
+
+ONDE VER OS IDS (VIA JSON)
+1. Abra no navegador a API de processos (origem):
+  http://localhost:8090/processos?page=0&size=5000
+2. No JSON retornado, use o campo content[].id.
+3. Exemplo de retorno:
+  {
+    "content": [
+      { "id": 76, "nome": "Processo X" }
+    ]
+  }
+4. Use esse id no link de exportacao:
+  http://localhost:8080/export/xlsx/api?id=76
+
+RESULTADO
+- O arquivo final Excel é salvo na pasta de downloads do navegador (ou na pasta configurada no browser).
+
+
+
+

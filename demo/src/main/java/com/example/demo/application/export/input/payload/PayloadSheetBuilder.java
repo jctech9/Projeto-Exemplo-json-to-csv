@@ -1,4 +1,7 @@
-package com.example.demo.service;
+package com.example.demo.application.export.input.payload;
+
+import com.example.demo.domain.risco.RiscoAlignmentService;
+import com.example.demo.domain.risco.RiscoValidationService;
 
 import com.example.demo.transformers.AtividadeControleTransformer;
 import com.example.demo.transformers.AvaliacaoRiscosTransformer;

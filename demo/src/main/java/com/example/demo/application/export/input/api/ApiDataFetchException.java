@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.application.export.input.api;
 
 public class ApiDataFetchException extends RuntimeException {
 
