@@ -14,6 +14,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +34,7 @@ public class ExcelService {
     private final RespostaRiscosService respostaRiscosService;
     private final AtividadesControleService atividadesControleService;
     private final OcorrenciaRiscoService ocorrenciaRiscoService;
+    private final Map<SheetType, SheetGenerator> sheetGenerators;
 
     public ExcelService(
             DadosProcessoService dadosProcessoService,
@@ -47,6 +50,15 @@ public class ExcelService {
         this.respostaRiscosService = respostaRiscosService;
         this.atividadesControleService = atividadesControleService;
         this.ocorrenciaRiscoService = ocorrenciaRiscoService;
+
+        this.sheetGenerators = new EnumMap<>(SheetType.class);
+        this.sheetGenerators.put(SheetType.ETAPA_1, dadosProcessoService::generateSheet);
+        this.sheetGenerators.put(SheetType.ETAPA_2, identificacaoEventosService::generateSheet);
+        this.sheetGenerators.put(SheetType.ETAPA_3, avaliacaoRiscosService::generateSheet);
+        this.sheetGenerators.put(SheetType.ETAPA_4, respostaRiscosService::generateSheet);
+        this.sheetGenerators.put(SheetType.ETAPA_5, atividadesControleService::generateSheet);
+        this.sheetGenerators.put(SheetType.OCORRENCIA_RISCO, ocorrenciaRiscoService::generateSheet);
+        this.sheetGenerators.put(SheetType.OTHER, this::createDefaultSheet);
     }
 
     public byte[] generateXlsx(Map<String, List<Map<String, Object>>> etapas) throws IOException {
@@ -58,40 +70,12 @@ public class ExcelService {
 
                 String sheetName = entry.getKey();
                 List<Map<String, Object>> rows = entry.getValue();
-                String sheetKey = normalizeSheetName(sheetName);
-                Integer etapa = extractEtapaNumber(sheetKey);
-
-                if (sheetKey.contains("DADOS DO PROCESSO") || Integer.valueOf(1).equals(etapa)) {
-                    dadosProcessoService.generateSheet(wb, sheetName, rows);
-                    continue;
+                SheetType sheetType = classifySheetType(sheetName);
+                SheetGenerator generator = sheetGenerators.get(sheetType);
+                if (generator == null) {
+                    throw new IllegalStateException("No sheet generator registered for type: " + sheetType);
                 }
-
-                if (Integer.valueOf(2).equals(etapa)) {
-                    identificacaoEventosService.generateSheet(wb, sheetName, rows);
-                    continue;
-                }
-
-                if (Integer.valueOf(3).equals(etapa)) {
-                    avaliacaoRiscosService.generateSheet(wb, sheetName, rows);
-                    continue;
-                }
-
-                if (Integer.valueOf(4).equals(etapa)) {
-                    respostaRiscosService.generateSheet(wb, sheetName, rows);
-                    continue;
-                }
-
-                if (Integer.valueOf(5).equals(etapa)) {
-                    atividadesControleService.generateSheet(wb, sheetName, rows);
-                    continue;
-                }
-
-                if (sheetKey.contains("OCORRENCIAS DE RISCO")) {
-                    ocorrenciaRiscoService.generateSheet(wb, sheetName, rows);
-                    continue;
-                }
-
-                createDefaultSheet(wb, sheetName, rows);
+                generator.generate(wb, sheetName, rows);
             }
 
             wb.write(out);
@@ -168,53 +152,58 @@ public class ExcelService {
     private List<Map.Entry<String, List<Map<String, Object>>>> orderByDependencies(
             Map<String, List<Map<String, Object>>> etapas
     ) {
-        List<Map.Entry<String, List<Map<String, Object>>>> etapa1Sheets = new ArrayList<>();
-        List<Map.Entry<String, List<Map<String, Object>>>> etapa2Sheets = new ArrayList<>();
-        List<Map.Entry<String, List<Map<String, Object>>>> etapa3Sheets = new ArrayList<>();
-        List<Map.Entry<String, List<Map<String, Object>>>> etapa4Sheets = new ArrayList<>();
-        List<Map.Entry<String, List<Map<String, Object>>>> etapa5Sheets = new ArrayList<>();
-        List<Map.Entry<String, List<Map<String, Object>>>> ocorrenciaSheets = new ArrayList<>();
-        List<Map.Entry<String, List<Map<String, Object>>>> otherSheets = new ArrayList<>();
+        List<Map.Entry<String, List<Map<String, Object>>>> ordered = new ArrayList<>(etapas.entrySet());
+        ordered.sort(Comparator.comparingInt(entry -> classifySheetType(entry.getKey()).priority()));
+        return ordered;
+    }
 
-        for (Map.Entry<String, List<Map<String, Object>>> entry : etapas.entrySet()) {
-            String sheetKey = normalizeSheetName(entry.getKey());
-            Integer etapa = extractEtapaNumber(sheetKey);
+    private SheetType classifySheetType(String sheetName) {
+        String sheetKey = normalizeSheetName(sheetName);
+        Integer etapa = extractEtapaNumber(sheetKey);
 
-            if (sheetKey.contains("DADOS DO PROCESSO") || Integer.valueOf(1).equals(etapa)) {
-                etapa1Sheets.add(entry);
-                continue;
-            }
-            if (Integer.valueOf(2).equals(etapa)) {
-                etapa2Sheets.add(entry);
-                continue;
-            }
-            if (Integer.valueOf(3).equals(etapa)) {
-                etapa3Sheets.add(entry);
-                continue;
-            }
-            if (Integer.valueOf(4).equals(etapa)) {
-                etapa4Sheets.add(entry);
-                continue;
-            }
-            if (Integer.valueOf(5).equals(etapa)) {
-                etapa5Sheets.add(entry);
-                continue;
-            }
-            if (sheetKey.contains("OCORRENCIAS DE RISCO")) {
-                ocorrenciaSheets.add(entry);
-                continue;
-            }
-            otherSheets.add(entry);
+        if (sheetKey.contains("DADOS DO PROCESSO") || Integer.valueOf(1).equals(etapa)) {
+            return SheetType.ETAPA_1;
+        }
+        if (Integer.valueOf(2).equals(etapa)) {
+            return SheetType.ETAPA_2;
+        }
+        if (Integer.valueOf(3).equals(etapa)) {
+            return SheetType.ETAPA_3;
+        }
+        if (Integer.valueOf(4).equals(etapa)) {
+            return SheetType.ETAPA_4;
+        }
+        if (Integer.valueOf(5).equals(etapa)) {
+            return SheetType.ETAPA_5;
+        }
+        if (sheetKey.contains("OCORRENCIAS DE RISCO")) {
+            return SheetType.OCORRENCIA_RISCO;
+        }
+        return SheetType.OTHER;
+    }
+
+    @FunctionalInterface
+    private interface SheetGenerator {
+        void generate(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows);
+    }
+
+    private enum SheetType {
+        ETAPA_1(1),
+        ETAPA_2(2),
+        ETAPA_3(3),
+        ETAPA_4(4),
+        ETAPA_5(5),
+        OCORRENCIA_RISCO(6),
+        OTHER(7);
+
+        private final int priority;
+
+        SheetType(int priority) {
+            this.priority = priority;
         }
 
-        List<Map.Entry<String, List<Map<String, Object>>>> ordered = new ArrayList<>(etapas.size());
-        ordered.addAll(etapa1Sheets);
-        ordered.addAll(etapa2Sheets);
-        ordered.addAll(etapa3Sheets);
-        ordered.addAll(etapa4Sheets);
-        ordered.addAll(etapa5Sheets);
-        ordered.addAll(ocorrenciaSheets);
-        ordered.addAll(otherSheets);
-        return ordered;
+        private int priority() {
+            return priority;
+        }
     }
 }
