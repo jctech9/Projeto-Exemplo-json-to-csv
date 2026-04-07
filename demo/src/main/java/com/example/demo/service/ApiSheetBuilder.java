@@ -8,7 +8,6 @@ import com.example.demo.transformers.OcorrenciaRiscoTransformer;
 import com.example.demo.transformers.RefResolver;
 import com.example.demo.transformers.RespostaRiscosTransformer;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,23 +24,25 @@ public class ApiSheetBuilder {
 
     private final RiscoAlignmentService riscoAlignmentService;
     private final RiscoValidationService riscoValidationService;
+    private final ApiHttpClient apiHttpClient;
 
     public ApiSheetBuilder(
             RiscoAlignmentService riscoAlignmentService,
-            RiscoValidationService riscoValidationService
+            RiscoValidationService riscoValidationService,
+            ApiHttpClient apiHttpClient
     ) {
         this.riscoAlignmentService = riscoAlignmentService;
         this.riscoValidationService = riscoValidationService;
+        this.apiHttpClient = apiHttpClient;
     }
 
     public Map<String, List<Map<String, Object>>> buildSheetsFromApi(String baseUrl, Map<String, Integer> body) {
-        RestTemplate restTemplate = new RestTemplate();
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
 
         Integer requestId = (body != null && body.containsKey("id")) ? body.get("id") : null;
         int mainProcessId = requestId != null ? requestId : -1;
 
-        addSheetIfAvailable(allSheets, restTemplate, baseUrl, "/processos", data -> {
+        addSheetIfAvailable(allSheets, baseUrl, "/processos", data -> {
             List<Map<String, Object>> content = getList(data);
             if (content != null && !content.isEmpty()) {
                 if (mainProcessId != -1) {
@@ -60,7 +61,7 @@ public class ApiSheetBuilder {
 
         Set<Integer> riscoIdsDoProcesso = new LinkedHashSet<>();
         Map<Integer, String> riscoNomePorId = new LinkedHashMap<>();
-        Map<String, Object> riscosData = fetchEndpointData(restTemplate, baseUrl, "/riscos");
+        Map<String, Object> riscosData = fetchEndpointData(baseUrl, "/riscos");
         if (riscosData != null) {
             List<Map<String, Object>> riscosFiltrados = filterByProcessIfNeeded(riscosData, mainProcessId);
             riscosData.put("content", riscosFiltrados);
@@ -77,7 +78,7 @@ public class ApiSheetBuilder {
             allSheets.putAll(IdentificacaoEventosTransformer.transform(riscosData));
         }
 
-        Map<String, Object> avaliacoesData = fetchEndpointData(restTemplate, baseUrl, "/avaliacoesRiscoControle");
+        Map<String, Object> avaliacoesData = fetchEndpointData(baseUrl, "/avaliacoesRiscoControle");
         if (avaliacoesData != null) {
             List<Map<String, Object>> content = filterByProcessIfNeeded(avaliacoesData, mainProcessId);
             riscoValidationService.validateStrictRiscoCollection("avaliacoesRiscoControle", content, riscoIdsDoProcesso);
@@ -85,7 +86,7 @@ public class ApiSheetBuilder {
             allSheets.putAll(AvaliacaoRiscosTransformer.transform(avaliacoesData));
         }
 
-        Map<String, Object> respostasData = fetchEndpointData(restTemplate, baseUrl, "/respostasRisco");
+        Map<String, Object> respostasData = fetchEndpointData(baseUrl, "/respostasRisco");
         if (respostasData != null) {
             List<Map<String, Object>> content = filterByProcessIfNeeded(respostasData, mainProcessId);
             riscoValidationService.validateStrictRiscoCollection("respostasRisco", content, riscoIdsDoProcesso);
@@ -93,7 +94,7 @@ public class ApiSheetBuilder {
             allSheets.putAll(RespostaRiscosTransformer.transform(respostasData));
         }
 
-        Map<String, Object> atividadesData = fetchEndpointData(restTemplate, baseUrl, "/atividadeControles");
+        Map<String, Object> atividadesData = fetchEndpointData(baseUrl, "/atividadeControles");
         if (atividadesData != null) {
             List<Map<String, Object>> content = filterByProcessIfNeeded(atividadesData, mainProcessId);
             riscoValidationService.validateStrictRiscoCollection("atividadeControles", content, riscoIdsDoProcesso);
@@ -104,34 +105,28 @@ public class ApiSheetBuilder {
         List<Map<String, Object>> todasOcorrencias = new ArrayList<>();
         if (!riscoIdsDoProcesso.isEmpty()) {
             for (Integer riscoId : riscoIdsDoProcesso) {
-                try {
-                    String url = baseUrl + "/ocorrenciasRisco/risco/" + riscoId + "?page=0&size=999999";
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> ocData = restTemplate.getForObject(url, Map.class);
-                    if (ocData != null) {
-                        List<Map<String, Object>> ocContent = getList(ocData);
-                        if (ocContent != null) {
-                            String nomeRisco = riscoNomePorId.getOrDefault(riscoId, "");
-                            // Garante risco.id/nome antes do transformer da aba de ocorrencias.
-                            for (Map<String, Object> ocorrencia : ocContent) {
-                                @SuppressWarnings("unchecked")
-                                Map<String, Object> risco = ocorrencia.get("risco") instanceof Map<?, ?> m
-                                        ? (Map<String, Object>) m
-                                        : new LinkedHashMap<>();
+                Map<String, Object> ocData = fetchEndpointData(baseUrl, "/ocorrenciasRisco/risco/" + riscoId);
+                if (ocData != null) {
+                    List<Map<String, Object>> ocContent = getList(ocData);
+                    if (ocContent != null) {
+                        String nomeRisco = riscoNomePorId.getOrDefault(riscoId, "");
+                        // Garante risco.id/nome antes do transformer da aba de ocorrencias.
+                        for (Map<String, Object> ocorrencia : ocContent) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> risco = ocorrencia.get("risco") instanceof Map<?, ?> m
+                                    ? (Map<String, Object>) m
+                                    : new LinkedHashMap<>();
 
-                                if (risco.get("id") == null) {
-                                    risco.put("id", riscoId);
-                                }
-                                if (!nomeRisco.isBlank()) {
-                                    risco.put("nome", nomeRisco);
-                                }
-                                ocorrencia.put("risco", risco);
+                            if (risco.get("id") == null) {
+                                risco.put("id", riscoId);
                             }
-                            todasOcorrencias.addAll(ocContent);
+                            if (!nomeRisco.isBlank()) {
+                                risco.put("nome", nomeRisco);
+                            }
+                            ocorrencia.put("risco", risco);
                         }
+                        todasOcorrencias.addAll(ocContent);
                     }
-                } catch (Exception e) {
-                    System.err.println("[EXPORT] Erro ao buscar ocorrencias do risco " + riscoId + ": " + e.getMessage());
                 }
             }
         }
@@ -149,37 +144,22 @@ public class ApiSheetBuilder {
 
     private void addSheetIfAvailable(
             Map<String, List<Map<String, Object>>> allSheets,
-            RestTemplate restTemplate,
             String baseUrl,
             String endpoint,
             Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer
     ) {
-        try {
-            String url = baseUrl + endpoint + "?page=0&size=999999";
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = restTemplate.getForObject(url, Map.class);
-            if (data != null) {
-                RefResolver.resolve(data);
-                allSheets.putAll(transformer.apply(data));
-            }
-        } catch (Exception e) {
-            System.err.println("[EXPORT] Erro ao buscar " + endpoint + ": " + e.getMessage());
+        Map<String, Object> data = fetchEndpointData(baseUrl, endpoint);
+        if (data != null) {
+            allSheets.putAll(transformer.apply(data));
         }
     }
 
-    private Map<String, Object> fetchEndpointData(RestTemplate restTemplate, String baseUrl, String endpoint) {
-        try {
-            String url = baseUrl + endpoint + "?page=0&size=999999";
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = restTemplate.getForObject(url, Map.class);
-            if (data != null) {
-                RefResolver.resolve(data);
-            }
-            return data;
-        } catch (Exception e) {
-            System.err.println("[EXPORT] Erro ao buscar " + endpoint + ": " + e.getMessage());
-            return null;
+    private Map<String, Object> fetchEndpointData(String baseUrl, String endpoint) {
+        Map<String, Object> data = apiHttpClient.fetchPage(baseUrl, endpoint);
+        if (data != null) {
+            RefResolver.resolve(data);
         }
+        return data;
     }
 
     private List<Map<String, Object>> filterByProcessIfNeeded(Map<String, Object> data, int processId) {

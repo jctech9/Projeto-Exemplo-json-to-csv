@@ -1,8 +1,12 @@
 package com.example.demo;
 
+import com.example.demo.service.ApiDataFetchException;
 import com.example.demo.service.ExcelService;
 import com.example.demo.service.ExportSheetBuilderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +25,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/export")
 public class ExcelController {
+
+    private static final Logger log = LoggerFactory.getLogger(ExcelController.class);
 
     private final ExcelService excelService;
     private final ExportSheetBuilderService exportSheetBuilderService;
@@ -67,9 +73,19 @@ public class ExcelController {
 
         try {
             allSheets = exportSheetBuilderService.buildSheetsFromApi(baseUrl, body);
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                    .body(("Erro ao buscar dados da API: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
+        } catch (ApiDataFetchException e) {
+            log.error(
+                "event=api_export_failed policy=fail_fast endpoint={} url={} message={}",
+                e.getEndpoint(),
+                e.getUrl(),
+                e.getMessage(),
+                e
+            );
+            String message = "Falha de integracao com API origem (politica fail-fast). Nenhum arquivo parcial foi gerado. "
+                + e.getMessage();
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(message.getBytes(StandardCharsets.UTF_8));
         }
 
         return buildExcelResponse(allSheets);
