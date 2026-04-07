@@ -22,7 +22,7 @@ import java.util.Map;
 @Service
 public class IdentificacaoEventosService {
 
-    private static final String PROCESSO_REFERENCE_FORMULA = "'ETAPA 1. DADOS DO PROCESSO'!A$5";
+    private static final String ETAPA_1_SHEET_FALLBACK_NAME = "ETAPA 1. DADOS DO PROCESSO";
     private static final int EXTRA_EDITABLE_ROWS = 10;
     private static final List<String> FIXED_HEADERS = Arrays.asList(
             "Processo",
@@ -37,6 +37,8 @@ public class IdentificacaoEventosService {
 
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
         XSSFSheet sheet = wb.createSheet(sheetName);
+        String etapa1SheetName = SheetServiceUtils.resolveSheetName(wb, "ETAPA 1", ETAPA_1_SHEET_FALLBACK_NAME);
+        String processoReferenceFormula = buildProcessoReferenceFormula(etapa1SheetName);
         int firstEditableRow = 2;
         int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, rows.size(), EXTRA_EDITABLE_ROWS);
 
@@ -112,7 +114,7 @@ public class IdentificacaoEventosService {
                 boolean isProcessoColumn = headerName.equalsIgnoreCase("Processo");
 
                 if (isProcessoColumn) {
-                    cell.setCellFormula(PROCESSO_REFERENCE_FORMULA);
+                    cell.setCellFormula(processoReferenceFormula);
                 } else {
                     Object val = rowData.get(headerName);
                     String text = val == null ? "" : String.valueOf(val);
@@ -137,7 +139,7 @@ public class IdentificacaoEventosService {
                 Cell cell = extraRow.createCell(c);
 
                 if (headerName.equalsIgnoreCase("Processo")) {
-                    cell.setCellFormula(PROCESSO_REFERENCE_FORMULA);
+                    cell.setCellFormula(processoReferenceFormula);
                 } else {
                     cell.setCellValue("");
                 }
@@ -227,6 +229,10 @@ public class IdentificacaoEventosService {
             return "Oportunidade";
         }
         return value;
+    }
+
+    private String buildProcessoReferenceFormula(String etapa1SheetName) {
+        return "'" + etapa1SheetName.replace("'", "''") + "'!A$5";
     }
 
 }

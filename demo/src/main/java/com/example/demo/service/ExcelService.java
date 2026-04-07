@@ -54,7 +54,7 @@ public class ExcelService {
         try (XSSFWorkbook wb = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
-            for (Map.Entry<String, List<Map<String, Object>>> entry : etapas.entrySet()) {
+            for (Map.Entry<String, List<Map<String, Object>>> entry : orderByDependencies(etapas)) {
 
                 String sheetName = entry.getKey();
                 List<Map<String, Object>> rows = entry.getValue();
@@ -163,5 +163,58 @@ public class ExcelService {
             return null;
         }
         return Integer.parseInt(matcher.group(1));
+    }
+
+    private List<Map.Entry<String, List<Map<String, Object>>>> orderByDependencies(
+            Map<String, List<Map<String, Object>>> etapas
+    ) {
+        List<Map.Entry<String, List<Map<String, Object>>>> etapa1Sheets = new ArrayList<>();
+        List<Map.Entry<String, List<Map<String, Object>>>> etapa2Sheets = new ArrayList<>();
+        List<Map.Entry<String, List<Map<String, Object>>>> etapa3Sheets = new ArrayList<>();
+        List<Map.Entry<String, List<Map<String, Object>>>> etapa4Sheets = new ArrayList<>();
+        List<Map.Entry<String, List<Map<String, Object>>>> etapa5Sheets = new ArrayList<>();
+        List<Map.Entry<String, List<Map<String, Object>>>> ocorrenciaSheets = new ArrayList<>();
+        List<Map.Entry<String, List<Map<String, Object>>>> otherSheets = new ArrayList<>();
+
+        for (Map.Entry<String, List<Map<String, Object>>> entry : etapas.entrySet()) {
+            String sheetKey = normalizeSheetName(entry.getKey());
+            Integer etapa = extractEtapaNumber(sheetKey);
+
+            if (sheetKey.contains("DADOS DO PROCESSO") || Integer.valueOf(1).equals(etapa)) {
+                etapa1Sheets.add(entry);
+                continue;
+            }
+            if (Integer.valueOf(2).equals(etapa)) {
+                etapa2Sheets.add(entry);
+                continue;
+            }
+            if (Integer.valueOf(3).equals(etapa)) {
+                etapa3Sheets.add(entry);
+                continue;
+            }
+            if (Integer.valueOf(4).equals(etapa)) {
+                etapa4Sheets.add(entry);
+                continue;
+            }
+            if (Integer.valueOf(5).equals(etapa)) {
+                etapa5Sheets.add(entry);
+                continue;
+            }
+            if (sheetKey.contains("OCORRENCIAS DE RISCO")) {
+                ocorrenciaSheets.add(entry);
+                continue;
+            }
+            otherSheets.add(entry);
+        }
+
+        List<Map.Entry<String, List<Map<String, Object>>>> ordered = new ArrayList<>(etapas.size());
+        ordered.addAll(etapa1Sheets);
+        ordered.addAll(etapa2Sheets);
+        ordered.addAll(etapa3Sheets);
+        ordered.addAll(etapa4Sheets);
+        ordered.addAll(etapa5Sheets);
+        ordered.addAll(ocorrenciaSheets);
+        ordered.addAll(otherSheets);
+        return ordered;
     }
 }

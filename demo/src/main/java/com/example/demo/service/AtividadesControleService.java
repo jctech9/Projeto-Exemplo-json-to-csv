@@ -1,4 +1,4 @@
-package com.example.demo.service;
+﻿package com.example.demo.service;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.PatternFormatting;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.SheetConditionalFormatting;
@@ -15,7 +16,6 @@ import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
-import org.apache.poi.xssf.usermodel.XSSFPatternFormatting;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -163,24 +163,24 @@ public class AtividadesControleService {
         SheetConditionalFormatting scf = sheet.getSheetConditionalFormatting();
 
         // Implementado -> Verde
-        createRule(scf, colStatus, "\"Implementado\"", new byte[]{(byte) 146, (byte) 208, 80}, firstEditableRow, lastEditableRow);
+        createRule(scf, colStatus, "\"Implementado\"", IndexedColors.BRIGHT_GREEN.getIndex(), firstEditableRow, lastEditableRow);
         // Em implementação -> Amarelo
-        createRule(scf, colStatus, "\"Em implementação\"", new byte[]{(byte)255, (byte)255, 0}, firstEditableRow, lastEditableRow);
+        createRule(scf, colStatus, "\"Em implementação\"", IndexedColors.YELLOW.getIndex(), firstEditableRow, lastEditableRow);
         // Não implementado -> Vermelho
-        createRule(scf, colStatus, "\"Não implementado\"", new byte[]{(byte)255, 0, 0}, firstEditableRow, lastEditableRow);
+        createRule(scf, colStatus, "\"Não implementado\"", IndexedColors.RED.getIndex(), firstEditableRow, lastEditableRow);
     }
 
     private void createRule(
             SheetConditionalFormatting scf,
             int col,
             String value,
-            byte[] rgb,
+            short colorIndex,
             int firstEditableRow,
             int lastEditableRow
     ) {
         ConditionalFormattingRule rule = scf.createConditionalFormattingRule(ComparisonOperator.EQUAL, value);
-        XSSFPatternFormatting fill = (XSSFPatternFormatting) rule.createPatternFormatting();
-        fill.setFillBackgroundColor(new XSSFColor(rgb, null));
+        PatternFormatting fill = rule.createPatternFormatting();
+        fill.setFillForegroundColor(colorIndex);
         fill.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
         CellRangeAddress[] regions = {new CellRangeAddress(firstEditableRow, lastEditableRow, col, col)};
         scf.addConditionalFormatting(regions, rule);
@@ -220,5 +220,6 @@ public class AtividadesControleService {
     }
 
 }
+
 
 
