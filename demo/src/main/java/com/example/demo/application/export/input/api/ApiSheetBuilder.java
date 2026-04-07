@@ -70,9 +70,8 @@ public class ApiSheetBuilder {
             riscosData.put("content", riscosFiltrados);
 
             for (Map<String, Object> risco : riscosFiltrados) {
-                Object riscoId = risco.get("id");
-                if (riscoId instanceof Number) {
-                    Integer id = ((Number) riscoId).intValue();
+                Integer id = parseIntegerId(risco.get("id"));
+                if (id != null) {
                     riscoIdsDoProcesso.add(id);
                     riscoNomePorId.put(id, String.valueOf(risco.getOrDefault("nome", "")));
                 }
@@ -105,34 +104,8 @@ public class ApiSheetBuilder {
             allSheets.putAll(AtividadeControleTransformer.transform(atividadesData));
         }
 
-        List<Map<String, Object>> todasOcorrencias = new ArrayList<>();
-        if (!riscoIdsDoProcesso.isEmpty()) {
-            for (Integer riscoId : riscoIdsDoProcesso) {
-                Map<String, Object> ocData = fetchEndpointData(baseUrl, "/ocorrenciasRisco/risco/" + riscoId);
-                if (ocData != null) {
-                    List<Map<String, Object>> ocContent = getList(ocData);
-                    if (ocContent != null) {
-                        String nomeRisco = riscoNomePorId.getOrDefault(riscoId, "");
-                        // Garante risco.id/nome antes do transformer da aba de ocorrencias.
-                        for (Map<String, Object> ocorrencia : ocContent) {
-                            @SuppressWarnings("unchecked")
-                            Map<String, Object> risco = ocorrencia.get("risco") instanceof Map<?, ?> m
-                                    ? (Map<String, Object>) m
-                                    : new LinkedHashMap<>();
-
-                            if (risco.get("id") == null) {
-                                risco.put("id", riscoId);
-                            }
-                            if (!nomeRisco.isBlank()) {
-                                risco.put("nome", nomeRisco);
-                            }
-                            ocorrencia.put("risco", risco);
-                        }
-                        todasOcorrencias.addAll(ocContent);
-                    }
-                }
-            }
-        }
+        List<Map<String, Object>> todasOcorrencias = fetchOcorrencias(baseUrl, riscoIdsDoProcesso, riscoNomePorId);
+        enrichOcorrenciasWithCanonicalRisco(todasOcorrencias, riscoNomePorId);
 
         List<Map<String, Object>> ocorrenciasAlinhadas = riscoAlignmentService.alignByRiscoIds(todasOcorrencias, riscoIdsDoProcesso);
         riscoAlignmentService.applyCanonicalRiscoNome(ocorrenciasAlinhadas, riscoNomePorId);
@@ -158,11 +131,133 @@ public class ApiSheetBuilder {
     }
 
     private Map<String, Object> fetchEndpointData(String baseUrl, String endpoint) {
-        Map<String, Object> data = apiHttpClient.fetchPage(baseUrl, endpoint);
+        Map<String, Object> data = apiHttpClient.fetchAllPages(baseUrl, endpoint);
         if (data != null) {
             RefResolver.resolve(data);
         }
         return data;
+    }
+
+    private List<Map<String, Object>> fetchOcorrencias(
+            String baseUrl,
+            Set<Integer> riscoIdsDoProcesso,
+            Map<Integer, String> riscoNomePorId
+    ) {
+        if (riscoIdsDoProcesso == null || riscoIdsDoProcesso.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Map<String, Object> ocorrenciasData = fetchEndpointData(baseUrl, "/ocorrenciasRisco");
+        if (ocorrenciasData == null) {
+            return new ArrayList<>();
+        }
+
+        List<Map<String, Object>> ocorrenciasContent = getList(ocorrenciasData);
+        if (ocorrenciasContent == null || ocorrenciasContent.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Map<String, Object>> filtradas = new ArrayList<>();
+        int withRiscoId = 0;
+        for (Map<String, Object> ocorrencia : ocorrenciasContent) {
+            Integer riscoId = riscoAlignmentService.extractRiscoId(ocorrencia);
+            if (riscoId != null) {
+                withRiscoId++;
+            }
+            if (riscoId != null && riscoIdsDoProcesso.contains(riscoId)) {
+                filtradas.add(ocorrencia);
+            }
+        }
+
+        // Fallback de compatibilidade: algumas APIs nao retornam risco.id no endpoint agregado.
+        if (withRiscoId == 0) {
+            return fetchOcorrenciasByRisco(baseUrl, riscoIdsDoProcesso, riscoNomePorId);
+        }
+
+        return filtradas;
+    }
+
+    private List<Map<String, Object>> fetchOcorrenciasByRisco(
+            String baseUrl,
+            Set<Integer> riscoIdsDoProcesso,
+            Map<Integer, String> riscoNomePorId
+    ) {
+        List<Map<String, Object>> todasOcorrencias = new ArrayList<>();
+        for (Integer riscoId : riscoIdsDoProcesso) {
+            Map<String, Object> ocData = fetchEndpointData(baseUrl, "/ocorrenciasRisco/risco/" + riscoId);
+            if (ocData == null) {
+                continue;
+            }
+
+            List<Map<String, Object>> ocContent = getList(ocData);
+            if (ocContent == null || ocContent.isEmpty()) {
+                continue;
+            }
+
+            bindRiscoToOcorrencias(ocContent, riscoId, riscoNomePorId.getOrDefault(riscoId, ""));
+            todasOcorrencias.addAll(ocContent);
+        }
+        return todasOcorrencias;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void bindRiscoToOcorrencias(List<Map<String, Object>> ocorrencias, Integer riscoId, String nomeRisco) {
+        if (ocorrencias == null || ocorrencias.isEmpty() || riscoId == null) {
+            return;
+        }
+
+        for (Map<String, Object> ocorrencia : ocorrencias) {
+            if (ocorrencia == null) {
+                continue;
+            }
+
+            Map<String, Object> risco = ocorrencia.get("risco") instanceof Map<?, ?> m
+                    ? (Map<String, Object>) m
+                    : new LinkedHashMap<>();
+            if (risco.get("id") == null) {
+                risco.put("id", riscoId);
+            }
+            if (nomeRisco != null && !nomeRisco.isBlank()) {
+                risco.put("nome", nomeRisco);
+            }
+            ocorrencia.put("risco", risco);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void enrichOcorrenciasWithCanonicalRisco(
+            List<Map<String, Object>> ocorrencias,
+            Map<Integer, String> riscoNomePorId
+    ) {
+        if (ocorrencias == null || ocorrencias.isEmpty()) {
+            return;
+        }
+
+        for (Map<String, Object> ocorrencia : ocorrencias) {
+            if (ocorrencia == null) {
+                continue;
+            }
+
+            Integer riscoId = riscoAlignmentService.extractRiscoId(ocorrencia);
+            if (riscoId == null) {
+                continue;
+            }
+
+            Map<String, Object> risco = ocorrencia.get("risco") instanceof Map<?, ?> m
+                    ? (Map<String, Object>) m
+                    : new LinkedHashMap<>();
+
+            if (risco.get("id") == null) {
+                risco.put("id", riscoId);
+            }
+
+            String nomeRisco = riscoNomePorId.getOrDefault(riscoId, "");
+            if (!nomeRisco.isBlank()) {
+                risco.put("nome", nomeRisco);
+            }
+
+            ocorrencia.put("risco", risco);
+        }
     }
 
     private List<Map<String, Object>> filterByProcessIfNeeded(Map<String, Object> data, int processId) {
@@ -225,8 +320,8 @@ public class ApiSheetBuilder {
         Object atId = obj.get("@id");
         Object atRef = obj.get("@ref");
 
-        if (idVal instanceof Number) {
-            int currentId = ((Number) idVal).intValue();
+        Integer currentId = parseIntegerId(idVal);
+        if (currentId != null) {
             if (atId != null) {
                 refCache.put(atId.toString(), currentId);
             }
@@ -247,5 +342,25 @@ public class ApiSheetBuilder {
             return (List<Map<String, Object>>) data.get("content");
         }
         return null;
+    }
+
+    private Integer parseIntegerId(Object rawId) {
+        if (rawId == null) {
+            return null;
+        }
+        if (rawId instanceof Number number) {
+            return number.intValue();
+        }
+
+        String value = String.valueOf(rawId).trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 }

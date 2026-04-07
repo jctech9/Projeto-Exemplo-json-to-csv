@@ -129,9 +129,7 @@ public class RiscoAlignmentService {
         Object riscoObj = item.get("risco");
         if (riscoObj instanceof Map<?, ?> riscoMap) {
             Object nestedId = riscoMap.get("id");
-            if (nestedId instanceof Number) {
-                return ((Number) nestedId).intValue();
-            }
+            return parseIntegerId(nestedId);
         }
 
         return null;
@@ -141,10 +139,26 @@ public class RiscoAlignmentService {
         if (item == null) {
             return null;
         }
-        Object id = item.get("id");
-        if (id instanceof Number) {
-            return ((Number) id).intValue();
+        return parseIntegerId(item.get("id"));
+    }
+
+    private Integer parseIntegerId(Object rawId) {
+        if (rawId == null) {
+            return null;
         }
-        return null;
+        if (rawId instanceof Number number) {
+            return number.intValue();
+        }
+
+        String value = String.valueOf(rawId).trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 }

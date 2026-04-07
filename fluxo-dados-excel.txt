@@ -1,0 +1,41 @@
+FLUXO BASICO - JSON ATE EXCEL FINAL
+
+1. O usuario chama a exportacao (navegador ou POST).
+2. O ExcelController recebe a requisicao.
+3. O service monta as abas com dados de API ou payload.
+4. O ExcelService gera o arquivo .xlsx.
+5. A API responde com download (dados.xlsx).
+
+------------------------------------------------------------
+
+FLUXO DETALHADO  - JSON ATE EXCEL FINAL
+
+0. A aplicacao Spring Boot e iniciada.
+
+1. Entrada da requisicao (2 formas):
+   - Navegador: GET /export/xlsx/api?id=76 (opcional: baseUrl).
+   - Payload direto: POST /export/xlsx com JSON no body.
+
+2. O ExcelController recebe a chamada e delega para o ExportSheetBuilderService.
+
+3. Quando a origem e API (/xlsx/api):
+   - ApiSheetBuilder chama o ApiHttpClient.
+   - O cliente consulta a API de origem em colecoes como:
+     /processos, /riscos, /avaliacoesRiscoControle, /respostasRisco,
+     /atividadeControles e /ocorrenciasRisco/risco/{id}.
+   - Os dados podem ser filtrados pelo id do processo enviado na URL.
+
+4. Quando a origem e payload (/xlsx):
+   - PayloadSheetBuilder valida o JSON (ex.: campo content e contrato tipo/etapa quando necessario).
+   - Em seguida, organiza os dados nas colecoes de trabalho.
+
+5. Montagem das abas:
+   - Referencias sao resolvidas e os registros sao alinhados por risco.id.
+   - Transformers convertem cada colecao em linhas de planilha.
+
+6. Geracao do arquivo:
+   - ExcelService gera o .xlsx em memoria (bytes).
+
+7. Resposta final:
+   - API retorna download (attachment: dados.xlsx).
+   - O navegador baixa o arquivo Excel final.
