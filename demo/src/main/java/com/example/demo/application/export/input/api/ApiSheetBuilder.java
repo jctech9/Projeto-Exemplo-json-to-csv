@@ -305,9 +305,6 @@ public class ApiSheetBuilder {
             }
         }
 
-        if (procObj == null && riscoObj == null) {
-            return false;
-        }
         return false;
     }
 
