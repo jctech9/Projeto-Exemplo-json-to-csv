@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -20,6 +22,45 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ApiSheetBuilderTest {
+
+    @Test
+    void shouldFailWhenProcessIdIsInvalid() {
+        ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
+        ApiSheetBuilder builder = new ApiSheetBuilder(
+                new RiscoAlignmentService(),
+                new RiscoValidationService(new RiscoAlignmentService()),
+                apiHttpClient
+        );
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.buildSheetsFromApi("http://localhost:8090", 0)
+        );
+
+        assertTrue(ex.getMessage().contains("maior que zero"));
+    }
+
+    @Test
+    void shouldFailWhenProcessIdDoesNotExistOnSourceApi() {
+        String baseUrl = "http://localhost:8090";
+        ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
+        ApiSheetBuilder builder = new ApiSheetBuilder(
+                new RiscoAlignmentService(),
+                new RiscoValidationService(new RiscoAlignmentService()),
+                apiHttpClient
+        );
+
+        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
+                processo(2, "Processo 2")
+        )));
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.buildSheetsFromApi(baseUrl, 1)
+        );
+
+        assertTrue(ex.getMessage().contains("nao foi encontrado"));
+    }
 
     @Test
     void shouldFetchOcorrenciasInBatchWithoutNPlusOne() {
@@ -56,7 +97,7 @@ class ApiSheetBuilderTest {
                 ocorrencia(99, "Risco 99")
         )));
 
-        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, Map.of("id", 1));
+        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, 1);
 
         String ocorrenciasSheet = sheets.keySet().stream()
                 .filter(name -> name.toUpperCase().contains("OCORR"))
@@ -96,7 +137,7 @@ class ApiSheetBuilderTest {
                 ocorrenciaComIdString("10", "")
         )));
 
-        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, Map.of("id", 1));
+        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, 1);
 
         String ocorrenciasSheet = sheets.keySet().stream()
                 .filter(name -> name.toUpperCase().contains("OCORR"))
@@ -139,7 +180,7 @@ class ApiSheetBuilderTest {
         when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/ocorrenciasRisco/risco/10")))
                 .thenReturn(payload(List.of(ocorrenciaComIdString("10", ""))));
 
-        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, Map.of("id", 1));
+        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, 1);
 
         String ocorrenciasSheet = sheets.keySet().stream()
                 .filter(name -> name.toUpperCase().contains("OCORR"))

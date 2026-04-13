@@ -19,7 +19,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 @Service
 // Consulta endpoints da API e monta as abas com alinhamento por risco.
@@ -39,34 +38,38 @@ public class ApiSheetBuilder {
         this.apiHttpClient = apiHttpClient;
     }
 
-    public Map<String, List<Map<String, Object>>> buildSheetsFromApi(String baseUrl, Map<String, Integer> body) {
+    public Map<String, List<Map<String, Object>>> buildSheetsFromApi(String baseUrl, int processId) {
+        if (processId <= 0) {
+            throw new IllegalArgumentException("Parametro id deve ser maior que zero.");
+        }
+
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
 
-        Integer requestId = (body != null && body.containsKey("id")) ? body.get("id") : null;
-        int mainProcessId = requestId != null ? requestId : -1;
-
-        addSheetIfAvailable(allSheets, baseUrl, "/processos", data -> {
-            List<Map<String, Object>> content = getList(data);
+        int mainProcessId = processId;
+        Map<String, Object> processosData = fetchEndpointData(baseUrl, "/processos");
+        if (processosData != null) {
+            List<Map<String, Object>> content = getList(processosData);
+            List<Map<String, Object>> filteredInfo = new ArrayList<>();
             if (content != null && !content.isEmpty()) {
-                if (mainProcessId != -1) {
-                    List<Map<String, Object>> filteredInfo = new ArrayList<>();
-                    for (Map<String, Object> p : content) {
-                        if (checkId(p, mainProcessId, new HashMap<>())) {
-                            filteredInfo.add(p);
-                            break;
-                        }
+                for (Map<String, Object> processo : content) {
+                    if (checkId(processo, mainProcessId, new HashMap<>())) {
+                        filteredInfo.add(processo);
+                        break;
                     }
-                    data.put("content", filteredInfo);
                 }
             }
-            return DadosProcessoTransformer.transform(data);
-        });
+            if (filteredInfo.isEmpty()) {
+                throw new IllegalArgumentException("Processo com id " + mainProcessId + " nao foi encontrado na API origem.");
+            }
+            processosData.put("content", filteredInfo);
+            allSheets.putAll(DadosProcessoTransformer.transform(processosData));
+        }
 
         Set<Integer> riscoIdsDoProcesso = new LinkedHashSet<>();
         Map<Integer, String> riscoNomePorId = new LinkedHashMap<>();
         Map<String, Object> riscosData = fetchEndpointData(baseUrl, "/riscos");
         if (riscosData != null) {
-            List<Map<String, Object>> riscosFiltrados = filterByProcessIfNeeded(riscosData, mainProcessId);
+            List<Map<String, Object>> riscosFiltrados = filterByProcess(riscosData, mainProcessId);
             riscosData.put("content", riscosFiltrados);
 
             for (Map<String, Object> risco : riscosFiltrados) {
@@ -82,7 +85,7 @@ public class ApiSheetBuilder {
 
         Map<String, Object> avaliacoesData = fetchEndpointData(baseUrl, "/avaliacoesRiscoControle");
         if (avaliacoesData != null) {
-            List<Map<String, Object>> content = filterByProcessIfNeeded(avaliacoesData, mainProcessId);
+            List<Map<String, Object>> content = filterByProcess(avaliacoesData, mainProcessId);
             riscoValidationService.validateStrictRiscoCollection("avaliacoesRiscoControle", content, riscoIdsDoProcesso);
             avaliacoesData.put("content", riscoAlignmentService.alignByRiscoIds(content, riscoIdsDoProcesso));
             allSheets.putAll(AvaliacaoRiscosTransformer.transform(avaliacoesData));
@@ -90,7 +93,7 @@ public class ApiSheetBuilder {
 
         Map<String, Object> respostasData = fetchEndpointData(baseUrl, "/respostasRisco");
         if (respostasData != null) {
-            List<Map<String, Object>> content = filterByProcessIfNeeded(respostasData, mainProcessId);
+            List<Map<String, Object>> content = filterByProcess(respostasData, mainProcessId);
             riscoValidationService.validateStrictRiscoCollection("respostasRisco", content, riscoIdsDoProcesso);
             respostasData.put("content", riscoAlignmentService.alignByRiscoIds(content, riscoIdsDoProcesso));
             allSheets.putAll(RespostaRiscosTransformer.transform(respostasData));
@@ -98,7 +101,7 @@ public class ApiSheetBuilder {
 
         Map<String, Object> atividadesData = fetchEndpointData(baseUrl, "/atividadeControles");
         if (atividadesData != null) {
-            List<Map<String, Object>> content = filterByProcessIfNeeded(atividadesData, mainProcessId);
+            List<Map<String, Object>> content = filterByProcess(atividadesData, mainProcessId);
             riscoValidationService.validateStrictRiscoCollection("atividadeControles", content, riscoIdsDoProcesso);
             atividadesData.put("content", riscoAlignmentService.alignByRiscoIds(content, riscoIdsDoProcesso));
             allSheets.putAll(AtividadeControleTransformer.transform(atividadesData));
@@ -116,18 +119,6 @@ public class ApiSheetBuilder {
         allSheets.putAll(OcorrenciaRiscoTransformer.transform(ocPayload));
 
         return allSheets;
-    }
-
-    private void addSheetIfAvailable(
-            Map<String, List<Map<String, Object>>> allSheets,
-            String baseUrl,
-            String endpoint,
-            Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer
-    ) {
-        Map<String, Object> data = fetchEndpointData(baseUrl, endpoint);
-        if (data != null) {
-            allSheets.putAll(transformer.apply(data));
-        }
     }
 
     private Map<String, Object> fetchEndpointData(String baseUrl, String endpoint) {
@@ -260,13 +251,10 @@ public class ApiSheetBuilder {
         }
     }
 
-    private List<Map<String, Object>> filterByProcessIfNeeded(Map<String, Object> data, int processId) {
+    private List<Map<String, Object>> filterByProcess(Map<String, Object> data, int processId) {
         List<Map<String, Object>> content = getList(data);
         if (content == null) {
             return new ArrayList<>();
-        }
-        if (processId == -1) {
-            return new ArrayList<>(content);
         }
 
         List<Map<String, Object>> filtered = new ArrayList<>();
