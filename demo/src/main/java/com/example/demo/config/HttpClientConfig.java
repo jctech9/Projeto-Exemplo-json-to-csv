@@ -13,7 +13,6 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.UnknownHttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
@@ -22,30 +21,36 @@ public class HttpClientConfig {
 
     @Bean
     public RestTemplate exportApiRestTemplate(ExportApiProperties properties) {
+        ExportApiProperties.Http http = properties.getHttp();
+
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout((int) properties.getHttp().getConnectTimeout().toMillis());
-        requestFactory.setReadTimeout((int) properties.getHttp().getReadTimeout().toMillis());
+        requestFactory.setConnectTimeout((int) http.getConnectTimeout().toMillis());
+        requestFactory.setReadTimeout((int) http.getReadTimeout().toMillis());
         return new RestTemplate(requestFactory);
     }
 
     @Bean
     public RetryTemplate exportApiRetryTemplate(ExportApiProperties properties) {
-        Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
-        retryableExceptions.put(ResourceAccessException.class, true);
-        retryableExceptions.put(HttpServerErrorException.class, true);
-        retryableExceptions.put(UnknownHttpStatusCodeException.class, true);
-        retryableExceptions.put(HttpClientErrorException.TooManyRequests.class, true);
+        ExportApiProperties.Http http = properties.getHttp();
+        ExportApiProperties.Retry retry = http.getRetry();
+
+        Map<Class<? extends Throwable>, Boolean> retryableExceptions = Map.of(
+            ResourceAccessException.class, true,
+            HttpServerErrorException.class, true,
+            UnknownHttpStatusCodeException.class, true,
+            HttpClientErrorException.TooManyRequests.class, true
+        );
 
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(
-                properties.getHttp().getRetry().getMaxAttempts(),
+                retry.getMaxAttempts(),
                 retryableExceptions,
                 true
         );
 
         ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
-        backOffPolicy.setInitialInterval(properties.getHttp().getRetry().getInitialInterval().toMillis());
-        backOffPolicy.setMaxInterval(properties.getHttp().getRetry().getMaxInterval().toMillis());
-        backOffPolicy.setMultiplier(properties.getHttp().getRetry().getMultiplier());
+        backOffPolicy.setInitialInterval(retry.getInitialInterval().toMillis());
+        backOffPolicy.setMaxInterval(retry.getMaxInterval().toMillis());
+        backOffPolicy.setMultiplier(retry.getMultiplier());
 
         RetryTemplate retryTemplate = new RetryTemplate();
         retryTemplate.setRetryPolicy(retryPolicy);
