@@ -18,35 +18,6 @@ public class RiscoValidationService {
         this.riscoAlignmentService = riscoAlignmentService;
     }
 
-    public Set<Integer> buildCanonicalRiscoIds(
-            List<Map<String, Object>> riscosContent,
-            List<Map<String, Object>> avaliacoesContent,
-            List<Map<String, Object>> respostasContent,
-            List<Map<String, Object>> atividadesContent,
-            List<Map<String, Object>> ocorrenciasContent
-    ) {
-        if (riscosContent != null && !riscosContent.isEmpty()) {
-            return extractCanonicalRiscoIdsFromRiscos(riscosContent);
-        }
-
-        Set<Integer> inferred = new LinkedHashSet<>();
-        appendRiscoIds(inferred, avaliacoesContent);
-        appendRiscoIds(inferred, respostasContent);
-        appendRiscoIds(inferred, atividadesContent);
-        appendRiscoIds(inferred, ocorrenciasContent);
-        return inferred;
-    }
-
-    public int countNonEmptyCollections(List<Map<String, Object>>... collections) {
-        int count = 0;
-        for (List<Map<String, Object>> collection : collections) {
-            if (collection != null && !collection.isEmpty()) {
-                count++;
-            }
-        }
-        return count;
-    }
-
     public void validateStrictRiscoCollection(
             String collectionName,
             List<Map<String, Object>> content,
@@ -98,60 +69,5 @@ public class RiscoValidationService {
                             + "' possui risco.id duplicado " + duplicated + "."
             );
         }
-    }
-
-    private Set<Integer> extractCanonicalRiscoIdsFromRiscos(List<Map<String, Object>> riscosContent) {
-        Set<Integer> canonical = new LinkedHashSet<>();
-        Set<Integer> duplicated = new LinkedHashSet<>();
-        List<Integer> missingPositions = new ArrayList<>();
-
-        for (int i = 0; i < riscosContent.size(); i++) {
-            Integer riscoId = extractEntityId(riscosContent.get(i));
-            if (riscoId == null) {
-                missingPositions.add(i + 1);
-                continue;
-            }
-
-            if (!canonical.add(riscoId)) {
-                duplicated.add(riscoId);
-            }
-        }
-
-        if (!missingPositions.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Inconsistencia no payload: colecao 'riscos' possui itens sem id nas posicoes " + missingPositions + "."
-            );
-        }
-
-        if (!duplicated.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Inconsistencia no payload: colecao 'riscos' possui ids duplicados " + duplicated + "."
-            );
-        }
-
-        return canonical;
-    }
-
-    private void appendRiscoIds(Set<Integer> target, List<Map<String, Object>> content) {
-        if (content == null || content.isEmpty()) {
-            return;
-        }
-        for (Map<String, Object> item : content) {
-            Integer riscoId = riscoAlignmentService.extractRiscoId(item);
-            if (riscoId != null) {
-                target.add(riscoId);
-            }
-        }
-    }
-
-    private Integer extractEntityId(Map<String, Object> item) {
-        if (item == null) {
-            return null;
-        }
-        Object id = item.get("id");
-        if (id instanceof Number) {
-            return ((Number) id).intValue();
-        }
-        return null;
     }
 }

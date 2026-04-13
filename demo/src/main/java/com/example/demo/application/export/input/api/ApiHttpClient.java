@@ -75,12 +75,6 @@ public class ApiHttpClient {
         return mergedResponse;
     }
 
-    public Map<String, Object> fetchPage(String baseUrl, String endpoint) {
-        String normalizedEndpoint = normalizeEndpoint(endpoint);
-        String normalizedBaseUrl = normalizeBaseUrl(baseUrl, normalizedEndpoint);
-        return fetchPageInternal(normalizedBaseUrl, normalizedEndpoint, 0);
-    }
-
     private Map<String, Object> fetchPageInternal(String normalizedBaseUrl, String normalizedEndpoint, int page) {
         URI uri = buildUri(normalizedBaseUrl, normalizedEndpoint, page);
 

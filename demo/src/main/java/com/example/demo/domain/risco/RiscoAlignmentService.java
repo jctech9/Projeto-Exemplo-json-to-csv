@@ -63,22 +63,6 @@ public class RiscoAlignmentService {
         return aligned;
     }
 
-    public Map<Integer, String> buildRiscoNomePorId(List<Map<String, Object>> riscosContent) {
-        Map<Integer, String> riscoNomePorId = new LinkedHashMap<>();
-        if (riscosContent == null || riscosContent.isEmpty()) {
-            return riscoNomePorId;
-        }
-
-        for (Map<String, Object> risco : riscosContent) {
-            Integer riscoId = extractEntityId(risco);
-            if (riscoId == null) {
-                continue;
-            }
-            riscoNomePorId.put(riscoId, String.valueOf(risco.getOrDefault("nome", "")));
-        }
-        return riscoNomePorId;
-    }
-
     @SuppressWarnings("unchecked")
     public void applyCanonicalRiscoNome(List<Map<String, Object>> items, Map<Integer, String> riscoNomePorId) {
         if (items == null || items.isEmpty() || riscoNomePorId == null || riscoNomePorId.isEmpty()) {
@@ -133,13 +117,6 @@ public class RiscoAlignmentService {
         }
 
         return null;
-    }
-
-    private Integer extractEntityId(Map<String, Object> item) {
-        if (item == null) {
-            return null;
-        }
-        return parseIntegerId(item.get("id"));
     }
 
     private Integer parseIntegerId(Object rawId) {

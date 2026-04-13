@@ -7,13 +7,6 @@ import com.example.demo.infrastructure.excel.sheet.DadosProcessoService;
 import com.example.demo.infrastructure.excel.sheet.IdentificacaoEventosService;
 import com.example.demo.infrastructure.excel.sheet.OcorrenciaRiscoService;
 import com.example.demo.infrastructure.excel.sheet.RespostaRiscosService;
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +16,6 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -65,7 +57,6 @@ public class ExcelService {
         this.sheetGenerators.put(SheetType.ETAPA_4, respostaRiscosService::generateSheet);
         this.sheetGenerators.put(SheetType.ETAPA_5, atividadesControleService::generateSheet);
         this.sheetGenerators.put(SheetType.OCORRENCIA_RISCO, ocorrenciaRiscoService::generateSheet);
-        this.sheetGenerators.put(SheetType.OTHER, this::createDefaultSheet);
     }
 
     public byte[] generateXlsx(Map<String, List<Map<String, Object>>> etapas) throws IOException {
@@ -87,54 +78,6 @@ public class ExcelService {
 
             wb.write(out);
             return out.toByteArray();
-        }
-    }
-
-    private void createDefaultSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
-
-        XSSFSheet sheet = wb.createSheet(sheetName);
-
-        LinkedHashSet<String> headers = new LinkedHashSet<>();
-        for (Map<String, Object> row : rows) {
-            headers.addAll(row.keySet());
-        }
-
-        List<String> headerList = new ArrayList<>(headers);
-        int r = 0;
-
-        CellStyle headerStyle = wb.createCellStyle();
-        Font headerFont = wb.createFont();
-        headerFont.setBold(true);
-        headerStyle.setFont(headerFont);
-        headerStyle.setAlignment(HorizontalAlignment.CENTER);
-        headerStyle.setBorderBottom(BorderStyle.THIN);
-
-        Row headerRow = sheet.createRow(r++);
-        for (int c = 0; c < headerList.size(); c++) {
-            Cell cell = headerRow.createCell(c);
-            cell.setCellValue(headerList.get(c));
-            cell.setCellStyle(headerStyle);
-        }
-
-        for (Map<String, Object> rowData : rows) {
-            Row dataRow = sheet.createRow(r++);
-            for (int c = 0; c < headerList.size(); c++) {
-                String columnName = headerList.get(c);
-                Cell cell = dataRow.createCell(c);
-                Object val = rowData.get(columnName);
-                String strVal = val == null ? "" : String.valueOf(val);
-
-                try {
-                    double num = Double.parseDouble(strVal.replace(",", "."));
-                    cell.setCellValue(num);
-                } catch (Exception e) {
-                    cell.setCellValue(strVal);
-                }
-            }
-        }
-
-        for (int c = 0; c < headerList.size(); c++) {
-            sheet.autoSizeColumn(c);
         }
     }
 
@@ -188,7 +131,7 @@ public class ExcelService {
         if (sheetKey.contains(SheetNames.OCORRENCIAS_RISCO.marker())) {
             return SheetType.OCORRENCIA_RISCO;
         }
-        return SheetType.OTHER;
+        throw new IllegalArgumentException("Nome de aba nao suportado para exportacao: " + sheetName);
     }
 
     @FunctionalInterface
@@ -202,8 +145,7 @@ public class ExcelService {
         ETAPA_3(3),
         ETAPA_4(4),
         ETAPA_5(5),
-        OCORRENCIA_RISCO(6),
-        OTHER(7);
+        OCORRENCIA_RISCO(6);
 
         private final int priority;
 
