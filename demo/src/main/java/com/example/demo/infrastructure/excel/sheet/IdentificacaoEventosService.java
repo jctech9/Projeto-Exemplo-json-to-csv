@@ -17,7 +17,9 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +27,9 @@ import java.util.Map;
 public class IdentificacaoEventosService {
 
     private static final int EXTRA_EDITABLE_ROWS = 10;
+    private static final String META_ROW_TYPE_KEY = "__meta_row_type";
+    private static final String META_ROW_TYPE_OPTIONS = "etapa2_options";
+    private static final String META_CATEGORIA_OPTIONS_KEY = "__meta_categoria_options";
     private static final List<String> FIXED_HEADERS = Arrays.asList(
             "Processo",
             "Fase",
@@ -37,6 +42,10 @@ public class IdentificacaoEventosService {
     );
 
     public void generateSheet(XSSFWorkbook wb, String sheetName, List<Map<String, Object>> rows) {
+        PreparedRows preparedRows = prepareRows(rows);
+        List<Map<String, Object>> dataRows = preparedRows.dataRows;
+        List<String> categoriaOptions = preparedRows.categoriaOptions;
+
         XSSFSheet sheet = wb.createSheet(sheetName);
         String etapa1SheetName = SheetServiceUtils.resolveSheetName(
                 wb,
@@ -45,7 +54,7 @@ public class IdentificacaoEventosService {
         );
         String processoReferenceFormula = buildProcessoReferenceFormula(etapa1SheetName);
         int firstEditableRow = 2;
-        int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, rows.size(), EXTRA_EDITABLE_ROWS);
+        int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, dataRows.size(), EXTRA_EDITABLE_ROWS);
 
         // COR AZUL PERSONALIZADA
         byte[] rgbBlue = new byte[]{(byte) 180, (byte) 198, (byte) 231};
@@ -111,7 +120,7 @@ public class IdentificacaoEventosService {
         dataStyleLeft.setWrapText(false);
 
         // 5. Preenchimento de Dados com Lógica de Alinhamento
-        for (Map<String, Object> rowData : rows) {
+        for (Map<String, Object> rowData : dataRows) {
             Row dataRow = sheet.createRow(r++);
             for (int c = 0; c < headerList.size(); c++) {
                 String headerName = headerList.get(c);
@@ -160,11 +169,17 @@ public class IdentificacaoEventosService {
             }
         }
 
-        setupValidations(sheet, headerList, firstEditableRow, lastEditableRow);
+        setupValidations(sheet, headerList, firstEditableRow, lastEditableRow, categoriaOptions);
         setColumnWidths(sheet, headerList);
     }
 
-    private void setupValidations(XSSFSheet sheet, List<String> headers, int firstEditableRow, int lastEditableRow) {
+    private void setupValidations(
+            XSSFSheet sheet,
+            List<String> headers,
+            int firstEditableRow,
+            int lastEditableRow,
+            List<String> categoriaOptions
+    ) {
         DataValidationHelper helper = sheet.getDataValidationHelper();
         int colTipo = headers.indexOf("Tipo de Risco");
         int colCat = headers.indexOf("Categoria");
@@ -180,11 +195,11 @@ public class IdentificacaoEventosService {
                     lastEditableRow
             );
         }
-        if (colCat != -1) {
+        if (colCat != -1 && categoriaOptions != null && !categoriaOptions.isEmpty()) {
             SheetServiceUtils.applySelect(
                     sheet,
                     helper,
-                    new String[]{"Estratégico", "Financeiro/orçamentário", "Operacionais", "Legal/de conformidade", "Imagem/reputação", "Integridade"},
+                    categoriaOptions.toArray(new String[0]),
                     colCat,
                     firstEditableRow,
                     lastEditableRow
@@ -199,6 +214,77 @@ public class IdentificacaoEventosService {
                     firstEditableRow,
                     lastEditableRow
             );
+        }
+    }
+
+    private PreparedRows prepareRows(List<Map<String, Object>> rows) {
+        List<Map<String, Object>> dataRows = new ArrayList<>();
+        LinkedHashSet<String> categoriaOptions = new LinkedHashSet<>();
+        if (rows == null || rows.isEmpty()) {
+            return new PreparedRows(dataRows, new ArrayList<>(categoriaOptions));
+        }
+
+        for (Map<String, Object> row : rows) {
+            if (isMetadataRow(row)) {
+                collectCategoriaOptionsFromMetadata(row, categoriaOptions);
+                continue;
+            }
+
+            if (row == null) {
+                continue;
+            }
+
+            dataRows.add(row);
+            collectCategoriaOptionsFromData(row, categoriaOptions);
+        }
+
+        return new PreparedRows(dataRows, new ArrayList<>(categoriaOptions));
+    }
+
+    private boolean isMetadataRow(Map<String, Object> row) {
+        if (row == null) {
+            return false;
+        }
+        Object rowType = row.get(META_ROW_TYPE_KEY);
+        return META_ROW_TYPE_OPTIONS.equals(rowType);
+    }
+
+    private void collectCategoriaOptionsFromMetadata(Map<String, Object> row, LinkedHashSet<String> categoriaOptions) {
+        Object value = row.get(META_CATEGORIA_OPTIONS_KEY);
+        if (!(value instanceof List<?> list)) {
+            return;
+        }
+
+        for (Object item : list) {
+            if (item == null) {
+                continue;
+            }
+            String option = String.valueOf(item).trim();
+            if (!option.isBlank()) {
+                categoriaOptions.add(option);
+            }
+        }
+    }
+
+    private void collectCategoriaOptionsFromData(Map<String, Object> row, LinkedHashSet<String> categoriaOptions) {
+        Object categoria = row.get("Categoria");
+        if (categoria == null) {
+            return;
+        }
+
+        String option = String.valueOf(categoria).trim();
+        if (!option.isBlank()) {
+            categoriaOptions.add(option);
+        }
+    }
+
+    private static final class PreparedRows {
+        private final List<Map<String, Object>> dataRows;
+        private final List<String> categoriaOptions;
+
+        private PreparedRows(List<Map<String, Object>> dataRows, List<String> categoriaOptions) {
+            this.dataRows = dataRows;
+            this.categoriaOptions = categoriaOptions;
         }
     }
 

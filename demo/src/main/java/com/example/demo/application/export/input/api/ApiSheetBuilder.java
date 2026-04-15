@@ -10,6 +10,8 @@ import com.example.demo.transformers.IdentificacaoEventosTransformer;
 import com.example.demo.transformers.OcorrenciaRiscoTransformer;
 import com.example.demo.transformers.RefResolver;
 import com.example.demo.transformers.RespostaRiscosTransformer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,6 +25,11 @@ import java.util.Set;
 @Service
 // Consulta endpoints da API e monta as abas com alinhamento por risco.
 public class ApiSheetBuilder {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiSheetBuilder.class);
+    private static final String META_ROW_TYPE_KEY = "__meta_row_type";
+    private static final String META_ROW_TYPE_OPTIONS = "etapa2_options";
+    private static final String META_CATEGORIA_OPTIONS_KEY = "__meta_categoria_options";
 
     private final RiscoAlignmentService riscoAlignmentService;
     private final RiscoValidationService riscoValidationService;
@@ -69,6 +76,7 @@ public class ApiSheetBuilder {
         Map<Integer, String> riscoNomePorId = new LinkedHashMap<>();
         Map<String, Object> riscosData = fetchEndpointData(baseUrl, "/riscos");
         if (riscosData != null) {
+            List<String> categoriaOptions = fetchCategoriaOptions(baseUrl);
             List<Map<String, Object>> riscosFiltrados = filterByProcess(riscosData, mainProcessId);
             riscosData.put("content", riscosFiltrados);
 
@@ -80,7 +88,9 @@ public class ApiSheetBuilder {
                 }
             }
 
-            allSheets.putAll(IdentificacaoEventosTransformer.transform(riscosData));
+            Map<String, List<Map<String, Object>>> etapa2Sheets = IdentificacaoEventosTransformer.transform(riscosData);
+            attachCategoriaOptionsMetadata(etapa2Sheets, categoriaOptions);
+            allSheets.putAll(etapa2Sheets);
         }
 
         Map<String, Object> avaliacoesData = fetchEndpointData(baseUrl, "/avaliacoesRiscoControle");
@@ -127,6 +137,80 @@ public class ApiSheetBuilder {
             RefResolver.resolve(data);
         }
         return data;
+    }
+
+    private List<String> fetchCategoriaOptions(String baseUrl) {
+        try {
+            Map<String, Object> categoriasData = fetchEndpointData(baseUrl, "/categoriasRisco");
+            List<Map<String, Object>> content = getList(categoriasData);
+            if (content == null || content.isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            LinkedHashSet<String> names = new LinkedHashSet<>();
+            for (Map<String, Object> item : content) {
+                if (item == null) {
+                    continue;
+                }
+                Object nome = item.get("nome");
+                if (nome == null) {
+                    continue;
+                }
+
+                String normalized = String.valueOf(nome).trim();
+                if (!normalized.isBlank()) {
+                    names.add(normalized);
+                }
+            }
+
+            return new ArrayList<>(names);
+        } catch (ApiDataFetchException ex) {
+            log.warn(
+                    "event=api_export_optional_endpoint_failed endpoint={} url={} message={}",
+                    ex.getEndpoint(),
+                    ex.getUrl(),
+                    ex.getMessage()
+            );
+            return new ArrayList<>();
+        }
+    }
+
+    private void attachCategoriaOptionsMetadata(
+            Map<String, List<Map<String, Object>>> etapa2Sheets,
+            List<String> categoriaOptions
+    ) {
+        if (etapa2Sheets == null || etapa2Sheets.isEmpty() || categoriaOptions == null || categoriaOptions.isEmpty()) {
+            return;
+        }
+
+        LinkedHashSet<String> normalizedOptions = new LinkedHashSet<>();
+        for (String option : categoriaOptions) {
+            if (option == null) {
+                continue;
+            }
+            String trimmed = option.trim();
+            if (!trimmed.isBlank()) {
+                normalizedOptions.add(trimmed);
+            }
+        }
+
+        if (normalizedOptions.isEmpty()) {
+            return;
+        }
+
+        List<String> optionsList = new ArrayList<>(normalizedOptions);
+        for (Map.Entry<String, List<Map<String, Object>>> entry : etapa2Sheets.entrySet()) {
+            List<Map<String, Object>> rows = entry.getValue();
+            if (rows == null) {
+                rows = new ArrayList<>();
+                entry.setValue(rows);
+            }
+
+            Map<String, Object> metadataRow = new LinkedHashMap<>();
+            metadataRow.put(META_ROW_TYPE_KEY, META_ROW_TYPE_OPTIONS);
+            metadataRow.put(META_CATEGORIA_OPTIONS_KEY, optionsList);
+            rows.add(0, metadataRow);
+        }
     }
 
     private List<Map<String, Object>> fetchOcorrencias(
@@ -323,7 +407,7 @@ public class ApiSheetBuilder {
 
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> getList(Map<String, Object> data) {
-        if (data.containsKey("content")) {
+        if (data != null && data.containsKey("content")) {
             return (List<Map<String, Object>>) data.get("content");
         }
         return null;

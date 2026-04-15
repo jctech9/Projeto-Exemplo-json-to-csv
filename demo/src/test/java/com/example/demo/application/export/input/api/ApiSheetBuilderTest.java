@@ -194,6 +194,48 @@ class ApiSheetBuilderTest {
         verify(apiHttpClient, times(1)).fetchAllPages(baseUrl, "/ocorrenciasRisco/risco/10");
     }
 
+    @Test
+    void shouldAttachDynamicCategoriaOptionsMetadataToEtapa2Rows() {
+        String baseUrl = "http://localhost:8090";
+        ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
+        ApiSheetBuilder builder = new ApiSheetBuilder(
+                new RiscoAlignmentService(),
+                new RiscoValidationService(new RiscoAlignmentService()),
+                apiHttpClient
+        );
+
+        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
+                processo(1, "Processo 1")
+        )));
+        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/categoriasRisco"))).thenReturn(payload(List.of(
+                categoria(1, "Categoria A"),
+                categoria(2, "Categoria B")
+        )));
+        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/riscos"))).thenReturn(payload(List.of(
+                risco(10, 1, "Risco 10")
+        )));
+        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/avaliacoesRiscoControle"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/respostasRisco"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/atividadeControles"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/ocorrenciasRisco"))).thenReturn(payload(List.of()));
+
+        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, 1);
+
+        String etapa2Sheet = sheets.keySet().stream()
+                .filter(name -> name.toUpperCase().contains("ETAPA 2") || name.toUpperCase().contains("EVENTOS"))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(etapa2Sheet);
+
+        List<Map<String, Object>> etapa2Rows = sheets.get(etapa2Sheet);
+        assertNotNull(etapa2Rows);
+        assertTrue(!etapa2Rows.isEmpty());
+
+        Map<String, Object> metadataRow = etapa2Rows.get(0);
+        assertEquals("etapa2_options", metadataRow.get("__meta_row_type"));
+        assertEquals(List.of("Categoria A", "Categoria B"), metadataRow.get("__meta_categoria_options"));
+    }
+
     private Map<String, Object> payload(List<Map<String, Object>> content) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("content", new ArrayList<>(content));
@@ -211,6 +253,13 @@ class ApiSheetBuilderTest {
         processo.put("responsavel", new LinkedHashMap<>(Map.of("nome", "Responsavel " + id)));
         return processo;
     }
+
+        private Map<String, Object> categoria(int id, String nome) {
+                Map<String, Object> categoria = new LinkedHashMap<>();
+                categoria.put("id", id);
+                categoria.put("nome", nome);
+                return categoria;
+        }
 
     private Map<String, Object> risco(int riscoId, int processoId, String nomeRisco) {
         Map<String, Object> risco = new LinkedHashMap<>();
