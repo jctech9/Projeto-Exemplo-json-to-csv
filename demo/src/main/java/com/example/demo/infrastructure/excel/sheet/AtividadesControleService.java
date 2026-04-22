@@ -102,10 +102,12 @@ public class AtividadesControleService {
                 Cell cell = dataRow.createCell(column.index());
 
                 if (column == AtividadesControleColumns.EVENTO_RISCO) {
+                    // Evento replica ETAPA 2 para manter o plano de ação alinhado ao risco original.
                     String formula = "IF('" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!C" + rowNum + ")";
                     cell.setCellFormula(formula);
                     cell.setCellStyle(dataStyleLeft);
                 } else if (column == AtividadesControleColumns.OPCAO_TRATAMENTO) {
+                    // Opção de tratamento vem da ETAPA 4 para evitar divergência manual entre abas.
                     String formula = "IF('" + etapa4SheetName.replace("'", "''") + "'!D" + rowNum + "=\"\",\"\",'" + etapa4SheetName.replace("'", "''") + "'!D" + rowNum + ")";
                     cell.setCellFormula(formula);
                     cell.setCellStyle(dataStyleCenter);
@@ -150,6 +152,7 @@ public class AtividadesControleService {
             int firstEditableRow,
             int lastEditableRow
     ) {
+        // Comparação exata evita falsos positivos em textos parecidos de status.
         ConditionalFormattingRule rule = scf.createConditionalFormattingRule(ComparisonOperator.EQUAL, value);
         PatternFormatting fill = rule.createPatternFormatting();
         fill.setFillForegroundColor(colorIndex);

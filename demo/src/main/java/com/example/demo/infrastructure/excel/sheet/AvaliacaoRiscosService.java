@@ -145,6 +145,7 @@ public class AvaliacaoRiscosService {
             Object val = rowData == null ? null : rowData.get(columnName);
             String strVal = val == null ? "" : String.valueOf(val);
 
+            // Colunas derivadas são mantidas por fórmula para recalcular quando o usuário editar selects.
             if (columnName.equalsIgnoreCase("Risco Inerente (PxI)")) {
                 cell.setCellFormula("IF(OR(C" + rowNum + "=\"\",E" + rowNum + "=\"\"),\"\",C" + rowNum + "*E" + rowNum + ")");
             } else if (columnName.equalsIgnoreCase("Evento de Risco")) {
@@ -217,6 +218,7 @@ public class AvaliacaoRiscosService {
 
         SheetConditionalFormatting sheetCF = sheet.getSheetConditionalFormatting();
         String colLetter = CellReference.convertNumToColString(classificationCol);
+        // A regra é criada uma vez com referência relativa e replicada para todo o intervalo.
         String baseRef = "$" + colLetter + (firstEditableRow + 1);
 
         ConditionalFormattingRule ruleExtremo = sheetCF.createConditionalFormattingRule(

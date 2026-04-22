@@ -128,6 +128,7 @@ public class IdentificacaoEventosService {
                 boolean isProcessoColumn = headerName.equalsIgnoreCase("Processo");
 
                 if (isProcessoColumn) {
+                    // Processo é referência fixa da ETAPA 1 para manter consistência em todas as linhas.
                     cell.setCellFormula(processoReferenceFormula);
                 } else {
                     Object val = rowData.get(headerName);
@@ -225,6 +226,7 @@ public class IdentificacaoEventosService {
         }
 
         for (Map<String, Object> row : rows) {
+            // Linhas de metadado são injetadas no builder para transportar opções dinâmicas de select.
             if (isMetadataRow(row)) {
                 collectCategoriaOptionsFromMetadata(row, categoriaOptions);
                 continue;

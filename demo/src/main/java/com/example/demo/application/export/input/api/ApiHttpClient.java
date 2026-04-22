@@ -44,6 +44,7 @@ public class ApiHttpClient {
 
         int page = 0;
         while (true) {
+            // Proteção contra laço infinito em APIs com metadados inconsistentes.
             if (page >= MAX_PAGES) {
                 URI maxUri = buildUri(normalizedBaseUrl, normalizedEndpoint, page);
                 throw new ApiDataFetchException(
@@ -55,6 +56,7 @@ public class ApiHttpClient {
 
             Map<String, Object> response = fetchPageInternal(normalizedBaseUrl, normalizedEndpoint, page);
             if (mergedResponse == null) {
+                // Preserva metadados da primeira página e substitui apenas o content no final.
                 mergedResponse = new LinkedHashMap<>(response);
             }
 
@@ -220,6 +222,7 @@ public class ApiHttpClient {
     }
 
     private boolean hasNextPage(Map<String, Object> response, int currentPage, int pageContentSize) {
+        // Ordem de decisão: totalPages -> flag last -> heurística por tamanho da página.
         Integer totalPages = parseIntOrNull(response.get("totalPages"));
         if (totalPages == null) {
             totalPages = parseIntOrNull(getFromPageMetadata(response, "totalPages"));

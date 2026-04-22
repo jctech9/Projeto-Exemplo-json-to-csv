@@ -26,11 +26,7 @@ class ApiSheetBuilderTest {
     @Test
     void shouldFailWhenProcessIdIsInvalid() {
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
-        ApiSheetBuilder builder = new ApiSheetBuilder(
-                new RiscoAlignmentService(),
-                new RiscoValidationService(new RiscoAlignmentService()),
-                apiHttpClient
-        );
+        ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
@@ -44,11 +40,7 @@ class ApiSheetBuilderTest {
     void shouldFailWhenProcessIdDoesNotExistOnSourceApi() {
         String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
-        ApiSheetBuilder builder = new ApiSheetBuilder(
-                new RiscoAlignmentService(),
-                new RiscoValidationService(new RiscoAlignmentService()),
-                apiHttpClient
-        );
+        ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
         when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
                 processo(2, "Processo 2")
@@ -66,11 +58,7 @@ class ApiSheetBuilderTest {
     void shouldFetchOcorrenciasInBatchWithoutNPlusOne() {
         String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
-        ApiSheetBuilder builder = new ApiSheetBuilder(
-                new RiscoAlignmentService(),
-                new RiscoValidationService(new RiscoAlignmentService()),
-                apiHttpClient
-        );
+        ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
         when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
                 processo(1, "Processo 1"),
@@ -118,11 +106,7 @@ class ApiSheetBuilderTest {
     void shouldCaptureOcorrenciasWhenRiscoIdsComeAsString() {
         String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
-        ApiSheetBuilder builder = new ApiSheetBuilder(
-                new RiscoAlignmentService(),
-                new RiscoValidationService(new RiscoAlignmentService()),
-                apiHttpClient
-        );
+        ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
         when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
                 processo(1, "Processo 1")
@@ -152,11 +136,7 @@ class ApiSheetBuilderTest {
     void shouldFallbackToPerRiskEndpointWhenBatchOcorrenciasHasNoRiscoReference() {
         String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
-        ApiSheetBuilder builder = new ApiSheetBuilder(
-                new RiscoAlignmentService(),
-                new RiscoValidationService(new RiscoAlignmentService()),
-                apiHttpClient
-        );
+        ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
         when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
                 processo(1, "Processo 1")
@@ -198,11 +178,7 @@ class ApiSheetBuilderTest {
     void shouldAttachDynamicCategoriaOptionsMetadataToEtapa2Rows() {
         String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
-        ApiSheetBuilder builder = new ApiSheetBuilder(
-                new RiscoAlignmentService(),
-                new RiscoValidationService(new RiscoAlignmentService()),
-                apiHttpClient
-        );
+        ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
         when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
                 processo(1, "Processo 1")
@@ -234,6 +210,26 @@ class ApiSheetBuilderTest {
         Map<String, Object> metadataRow = etapa2Rows.get(0);
         assertEquals("etapa2_options", metadataRow.get("__meta_row_type"));
         assertEquals(List.of("Categoria A", "Categoria B"), metadataRow.get("__meta_categoria_options"));
+    }
+
+    private ApiSheetBuilder createBuilder(ApiHttpClient apiHttpClient) {
+        RiscoAlignmentService riscoAlignmentService = new RiscoAlignmentService();
+        RiscoValidationService riscoValidationService = new RiscoValidationService(riscoAlignmentService);
+
+        ApiEndpointDataService endpointDataService = new ApiEndpointDataService(apiHttpClient);
+        ApiPayloadFilterService payloadFilterService = new ApiPayloadFilterService();
+
+        return new ApiSheetBuilder(
+                new ApiProcessSheetService(endpointDataService, payloadFilterService),
+                new ApiRiscoSheetService(endpointDataService, payloadFilterService),
+                new ApiRiscoCollectionSheetService(
+                        endpointDataService,
+                        payloadFilterService,
+                        riscoAlignmentService,
+                        riscoValidationService
+                ),
+                new ApiOcorrenciaSheetService(endpointDataService, payloadFilterService, riscoAlignmentService)
+        );
     }
 
     private Map<String, Object> payload(List<Map<String, Object>> content) {

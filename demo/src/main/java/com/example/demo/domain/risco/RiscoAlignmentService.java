@@ -46,9 +46,11 @@ public class RiscoAlignmentService {
         for (Integer riscoId : canonicalRiscoIds) {
             List<Map<String, Object>> items = byRiscoId.get(riscoId);
             if (items != null && !items.isEmpty()) {
+                // Mantém a ordem canônica para preservar o vínculo de linha entre etapas.
                 aligned.addAll(items);
                 includedRiscoIds.add(riscoId);
             } else {
+                // Placeholder evita quebrar fórmulas quando uma etapa não devolve aquele risco.
                 aligned.add(createPlaceholderByRiscoId(riscoId));
             }
         }

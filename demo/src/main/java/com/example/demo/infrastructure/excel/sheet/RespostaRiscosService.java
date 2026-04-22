@@ -134,6 +134,7 @@ public class RespostaRiscosService {
             CellStyle dataStyleLeft,
             CellStyle dataStyleCenter
     ) {
+        // Processo e Evento de Risco são espelhados da ETAPA 2 para manter vínculo por linha.
         Cell cell0 = dataRow.createCell(RespostaRiscosColumns.PROCESSO.index());
         cell0.setCellFormula("IF('" + etapa2SheetName.replace("'", "''") + "'!A" + rowNum + "=\"\",\"\",'" + etapa2SheetName.replace("'", "''") + "'!A" + rowNum + ")");
         cell0.setCellStyle(dataStyleLeft);
@@ -148,6 +149,7 @@ public class RespostaRiscosService {
 
         Cell cell3 = dataRow.createCell(RespostaRiscosColumns.OPCAO_TRATAMENTO.index());
         String rawOpcao = rowData == null ? "" : String.valueOf(rowData.getOrDefault(RespostaRiscosColumns.OPCAO_TRATAMENTO.key(), ""));
+        // Força valor canônico para casar com a lista de validação do Excel.
         cell3.setCellValue(normalizeOpcaoTratamento(rawOpcao));
         cell3.setCellStyle(dataStyleCenter);
 

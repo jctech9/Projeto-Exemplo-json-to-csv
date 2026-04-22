@@ -34,6 +34,7 @@ public class HttpClientConfig {
         ExportApiProperties.Http http = properties.getHttp();
         ExportApiProperties.Retry retry = http.getRetry();
 
+        // Erros transitórios: rede indisponível, 5xx e throttle (429).
         Map<Class<? extends Throwable>, Boolean> retryableExceptions = Map.of(
             ResourceAccessException.class, true,
             HttpServerErrorException.class, true,
@@ -41,12 +42,14 @@ public class HttpClientConfig {
             HttpClientErrorException.TooManyRequests.class, true
         );
 
+        // "true" habilita varredura da causa raiz para não perder retries em exceções encapsuladas.
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(
                 retry.getMaxAttempts(),
                 retryableExceptions,
                 true
         );
 
+        // Backoff exponencial reduz pressão no endpoint durante indisponibilidade temporária.
         ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
         backOffPolicy.setInitialInterval(retry.getInitialInterval().toMillis());
         backOffPolicy.setMaxInterval(retry.getMaxInterval().toMillis());

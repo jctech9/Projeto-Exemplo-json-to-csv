@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 @Service
 public class ExcelService {
 
+    // Reconhece o número da etapa mesmo quando o nome da aba muda parcialmente.
     private static final Pattern ETAPA_PATTERN = Pattern.compile("\\bETAPA\\s+(\\d+)\\b");
 
     private final DadosProcessoService dadosProcessoService;
@@ -103,6 +104,7 @@ public class ExcelService {
             Map<String, List<Map<String, Object>>> etapas
     ) {
         List<Map.Entry<String, List<Map<String, Object>>>> ordered = new ArrayList<>(etapas.entrySet());
+        // Garante a ordem funcional das dependências entre abas (fórmulas cruzadas).
         ordered.sort(Comparator.comparingInt(entry -> classifySheetType(entry.getKey()).priority()));
         return ordered;
     }
@@ -110,6 +112,7 @@ public class ExcelService {
     private SheetType classifySheetType(String sheetName) {
         String sheetKey = normalizeSheetName(sheetName);
         Integer etapa = extractEtapaNumber(sheetKey);
+        // ETAPA 1 aceita variações no título após o prefixo para suportar layouts customizados.
         String etapa1Keyword = normalizeSheetName(SheetNames.ETAPA_1.displayName())
                 .replaceFirst("^ETAPA\\s+\\d+\\.?\\s*", "");
 
