@@ -7,12 +7,9 @@ import com.example.demo.infrastructure.excel.shared.SheetServiceUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataValidationHelper;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
-import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -23,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class RespostaRiscosService {
+public class RespostaRiscosService extends AbstractWorksheetTemplateService {
 
     private static final int EXTRA_EDITABLE_ROWS = 10;
     private static final List<RespostaRiscosColumns> FIXED_COLUMNS = RespostaRiscosColumns.ordered();
@@ -43,49 +40,38 @@ public class RespostaRiscosService {
         int firstEditableRow = 2;
         int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, rows.size(), EXTRA_EDITABLE_ROWS);
 
-        byte[] rgbYellow = new byte[]{(byte) 255, (byte) 255, (byte) 0};
-        XSSFColor headerColor = new XSSFColor(rgbYellow, null);
+        XSSFColor headerColor = color((byte) 255, (byte) 255, (byte) 0);
 
         int r = 0;
 
         Row titleRow = sheet.createRow(r++);
 
-        XSSFCellStyle titleStyle = wb.createCellStyle();
-        titleStyle.setFillForegroundColor(headerColor);
-        titleStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        titleStyle.setAlignment(HorizontalAlignment.CENTER);
-        SheetServiceUtils.applyBorders(titleStyle);
-
-        Font bold = wb.createFont();
-        bold.setBold(true);
-        titleStyle.setFont(bold);
-
-        for (int c = 0; c <= RespostaRiscosColumns.lastIndex(); c++) {
-            Cell cell = titleRow.createCell(c);
-            if (c == RespostaRiscosColumns.EVENTO_RISCO.index()) {
-                cell.setCellValue("Resposta aos Riscos");
-            }
-            cell.setCellStyle(titleStyle);
-        }
-
-        sheet.addMergedRegion(new CellRangeAddress(
-                titleRow.getRowNum(),
-                titleRow.getRowNum(),
-                RespostaRiscosColumns.EVENTO_RISCO.index(),
-                RespostaRiscosColumns.lastIndex()
-        ));
+        XSSFCellStyle titleStyle = createFilledBoldStyle(
+            wb,
+            headerColor,
+            HorizontalAlignment.CENTER,
+            null,
+            false
+        );
+        applyStyleToRange(titleRow, 0, RespostaRiscosColumns.lastIndex(), titleStyle);
+        createMergedHeaderInRow(
+            titleRow,
+            RespostaRiscosColumns.EVENTO_RISCO.index(),
+            RespostaRiscosColumns.lastIndex(),
+            "Resposta aos Riscos",
+            titleStyle,
+            sheet
+        );
 
         Row headerRow = sheet.createRow(r++);
 
-        XSSFCellStyle headerStyle = wb.createCellStyle();
-        headerStyle.setFillForegroundColor(headerColor);
-        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        headerStyle.setAlignment(HorizontalAlignment.CENTER);
-        SheetServiceUtils.applyBorders(headerStyle);
-
-        Font headerFont = wb.createFont();
-        headerFont.setBold(true);
-        headerStyle.setFont(headerFont);
+        XSSFCellStyle headerStyle = createFilledBoldStyle(
+            wb,
+            headerColor,
+            HorizontalAlignment.CENTER,
+            null,
+            false
+        );
 
         for (RespostaRiscosColumns column : FIXED_COLUMNS) {
             Cell cell = headerRow.createCell(column.index());
@@ -93,26 +79,33 @@ public class RespostaRiscosService {
             cell.setCellStyle(headerStyle);
         }
 
-        CellStyle dataStyleLeft = wb.createCellStyle();
-        dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
-        dataStyleLeft.setVerticalAlignment(VerticalAlignment.CENTER);
-        SheetServiceUtils.applyBorders(dataStyleLeft);
+        CellStyle dataStyleLeft = createDataStyle(
+            wb,
+            HorizontalAlignment.LEFT,
+            VerticalAlignment.CENTER,
+            false
+        );
 
-        CellStyle dataStyleCenter = wb.createCellStyle();
-        dataStyleCenter.setAlignment(HorizontalAlignment.CENTER);
-        dataStyleCenter.setVerticalAlignment(VerticalAlignment.CENTER);
-        SheetServiceUtils.applyBorders(dataStyleCenter);
+        CellStyle dataStyleCenter = createDataStyle(
+            wb,
+            HorizontalAlignment.CENTER,
+            VerticalAlignment.CENTER,
+            false
+        );
 
-        int totalRows = rows.size() + EXTRA_EDITABLE_ROWS;
-        for (int i = 0; i < totalRows; i++) {
-            Map<String, Object> rowData = i < rows.size() ? rows.get(i) : null;
-            Row dataRow = sheet.createRow(r++);
-            int rowNum = dataRow.getRowNum() + 1;
-            populateDataRow(dataRow, rowData, rowNum, etapa2SheetName, dataStyleLeft, dataStyleCenter);
-        }
+        r = appendDataRowsWithExtra(
+            sheet,
+            r,
+            rows,
+            EXTRA_EDITABLE_ROWS,
+            (dataRow, rowData) -> {
+                int rowNum = dataRow.getRowNum() + 1;
+                populateDataRow(dataRow, rowData, rowNum, etapa2SheetName, dataStyleLeft, dataStyleCenter);
+            }
+        );
 
         DataValidationHelper helper = sheet.getDataValidationHelper();
-        SheetServiceUtils.applySelect(
+        applySelectValidation(
                 sheet,
                 helper,
                 ValidationOptions.OPCOES_TRATAMENTO,
@@ -121,9 +114,7 @@ public class RespostaRiscosService {
                 lastEditableRow
         );
 
-        for (RespostaRiscosColumns column : FIXED_COLUMNS) {
-            sheet.setColumnWidth(column.index(), column.columnWidth());
-        }
+        applyColumnWidths(sheet, FIXED_COLUMNS.size(), index -> FIXED_COLUMNS.get(index).columnWidth());
     }
 
     private void populateDataRow(

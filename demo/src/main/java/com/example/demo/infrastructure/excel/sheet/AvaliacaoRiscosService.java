@@ -6,8 +6,6 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.ConditionalFormattingRule;
 import org.apache.poi.ss.usermodel.DataValidationHelper;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.FontFormatting;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IndexedColors;
@@ -28,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class AvaliacaoRiscosService {
+public class AvaliacaoRiscosService extends AbstractWorksheetTemplateService {
 
     private static final int EXTRA_EDITABLE_ROWS = 10;
     private static final List<String> FIXED_HEADERS = Arrays.asList(
@@ -59,28 +57,30 @@ public class AvaliacaoRiscosService {
         int firstEditableRow = 2;
         int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, rows.size(), EXTRA_EDITABLE_ROWS);
 
-        byte[] rgbPink = new byte[]{(byte) 230, (byte) 145, (byte) 145};
-        XSSFColor headerColor = new XSSFColor(rgbPink, null);
+        XSSFColor headerColor = color((byte) 230, (byte) 145, (byte) 145);
 
         List<String> headerList = FIXED_HEADERS;
         int r = 0;
 
         Row groupRow = sheet.createRow(r++);
-        createGroupHeader(wb, groupRow, 0, 6, "Avaliação dos Riscos", headerColor, sheet);
-        createGroupHeader(wb, groupRow, 7, 9, "Avaliação dos Controles", headerColor, sheet);
-        createGroupHeader(wb, groupRow, 10, 13, "Risco Residual", headerColor, sheet);
+        XSSFCellStyle groupHeaderStyle = createFilledBoldStyle(
+            wb,
+            headerColor,
+            HorizontalAlignment.CENTER,
+            VerticalAlignment.CENTER,
+            false
+        );
+        createMergedHeaderInRow(groupRow, 0, 6, "Avaliação dos Riscos", groupHeaderStyle, sheet);
+        createMergedHeaderInRow(groupRow, 7, 9, "Avaliação dos Controles", groupHeaderStyle, sheet);
+        createMergedHeaderInRow(groupRow, 10, 13, "Risco Residual", groupHeaderStyle, sheet);
 
-        XSSFCellStyle headerStyle = wb.createCellStyle();
-        headerStyle.setFillForegroundColor(headerColor);
-        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        headerStyle.setAlignment(HorizontalAlignment.CENTER);
-        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        SheetServiceUtils.applyBorders(headerStyle);
-        headerStyle.setWrapText(true);
-
-        Font headerFont = wb.createFont();
-        headerFont.setBold(true);
-        headerStyle.setFont(headerFont);
+        XSSFCellStyle headerStyle = createFilledBoldStyle(
+            wb,
+            headerColor,
+            HorizontalAlignment.CENTER,
+            VerticalAlignment.CENTER,
+            true
+        );
 
         Row headerRow = sheet.createRow(r++);
         headerRow.setHeightInPoints(35);
@@ -112,18 +112,23 @@ public class AvaliacaoRiscosService {
             cell.setCellStyle(headerStyle);
         }
 
-        CellStyle defaultDataStyle = wb.createCellStyle();
-        SheetServiceUtils.applyBorders(defaultDataStyle);
-        defaultDataStyle.setAlignment(HorizontalAlignment.LEFT);
-        defaultDataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        CellStyle defaultDataStyle = createDataStyle(
+            wb,
+            HorizontalAlignment.LEFT,
+            VerticalAlignment.CENTER,
+            false
+        );
 
-        int totalRows = rows.size() + EXTRA_EDITABLE_ROWS;
-        for (int i = 0; i < totalRows; i++) {
-            Map<String, Object> rowData = i < rows.size() ? rows.get(i) : null;
-            Row dataRow = sheet.createRow(r++);
-            int rowNum = dataRow.getRowNum() + 1;
-            populateDataRow(headerList, dataRow, rowData, rowNum, etapa2SheetName, defaultDataStyle);
-        }
+        r = appendDataRowsWithExtra(
+            sheet,
+            r,
+            rows,
+            EXTRA_EDITABLE_ROWS,
+            (dataRow, rowData) -> {
+                int rowNum = dataRow.getRowNum() + 1;
+                populateDataRow(headerList, dataRow, rowData, rowNum, etapa2SheetName, defaultDataStyle);
+            }
+        );
 
         applyClassificationConditionalFormatting(sheet, headerList, "Classificação do Risco Inerente", firstEditableRow, lastEditableRow);
         applyClassificationConditionalFormatting(sheet, headerList, "Classificação do Risco Residual", firstEditableRow, lastEditableRow);
@@ -267,100 +272,59 @@ public class AvaliacaoRiscosService {
         DataValidationHelper helper = sheet.getDataValidationHelper();
 
         int colImpacto = headers.indexOf("Impacto");
-        if (colImpacto != -1) {
-            SheetServiceUtils.applySelect(
-                    sheet,
-                    helper,
-                    new String[]{"Muito baixo", "Baixo", "Médio", "Alto", "Muito alto"},
-                    colImpacto,
-                    firstEditableRow,
-                    lastEditableRow
-            );
-        }
+        applySelectValidation(
+                sheet,
+                helper,
+                new String[]{"Muito baixo", "Baixo", "Médio", "Alto", "Muito alto"},
+                colImpacto,
+                firstEditableRow,
+                lastEditableRow
+        );
 
         int colAvaliacao = headers.indexOf("Avaliação dos Controles");
-        if (colAvaliacao != -1) {
-            SheetServiceUtils.applySelect(
-                    sheet,
-                    helper,
-                    new String[]{"Inexistente", "Fraco", "Mediano", "Satisfatório", "Forte"},
-                    colAvaliacao,
-                    firstEditableRow,
-                    lastEditableRow
-            );
-        }
+        applySelectValidation(
+                sheet,
+                helper,
+                new String[]{"Inexistente", "Fraco", "Mediano", "Satisfatório", "Forte"},
+                colAvaliacao,
+                firstEditableRow,
+                lastEditableRow
+        );
 
         int colProbabilidade = headers.indexOf("Probabilidade");
-        if (colProbabilidade != -1) {
-            SheetServiceUtils.applySelect(
-                    sheet,
-                    helper,
-                    new String[]{"Muito baixa", "Baixa", "Média", "Alta", "Muito alta"},
-                    colProbabilidade,
-                    firstEditableRow,
-                    lastEditableRow
-            );
-        }
+        applySelectValidation(
+                sheet,
+                helper,
+                new String[]{"Muito baixa", "Baixa", "Média", "Alta", "Muito alta"},
+                colProbabilidade,
+                firstEditableRow,
+                lastEditableRow
+        );
     }
 
     private void setColumnWidths(XSSFSheet sheet, List<String> headers) {
-        for (int c = 0; c < headers.size(); c++) {
-            String header = headers.get(c);
-
+        applyColumnWidthsByHeaders(sheet, headers, header -> {
             if (header.equals("P") || header.equals("I") || header.equals("FAC")) {
-                sheet.setColumnWidth(c, 1500);
-            } else if (header.contains("Classificação")) {
-                sheet.setColumnWidth(c, 6000);
-            } else if (header.contains("Evento de Risco")) {
-                sheet.setColumnWidth(c, 25000);
-            } else if (header.contains("Data da Última Avaliação") || header.contains("Data")) {
-                sheet.setColumnWidth(c, 5000);
-            } else if (header.contains("Avaliação dos Controles")) {
-                sheet.setColumnWidth(c, 5500);
-            } else if (header.contains("Controles Preventivos")
+                return 1500;
+            }
+            if (header.contains("Classificação")) {
+                return 6000;
+            }
+            if (header.contains("Evento de Risco")) {
+                return 25000;
+            }
+            if (header.contains("Data da Última Avaliação") || header.contains("Data")) {
+                return 5000;
+            }
+            if (header.contains("Avaliação dos Controles")) {
+                return 5500;
+            }
+            if (header.contains("Controles Preventivos")
                     || header.contains("Controles de Atenuação e recuperação")) {
-                sheet.setColumnWidth(c, 15000);
-            } else {
-                sheet.setColumnWidth(c, 5000);
+                return 15000;
             }
-        }
-    }
-
-    private void createGroupHeader(
-            XSSFWorkbook wb,
-            Row row,
-            int start,
-            int end,
-            String text,
-            XSSFColor color,
-            XSSFSheet sheet
-    ) {
-
-        XSSFCellStyle style = wb.createCellStyle();
-        style.setFillForegroundColor(color);
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        SheetServiceUtils.applyBorders(style);
-
-        Font font = wb.createFont();
-        font.setBold(true);
-        style.setFont(font);
-
-        for (int i = start; i <= end; i++) {
-            Cell cell = row.createCell(i);
-            if (i == start) {
-                cell.setCellValue(text);
-            }
-            cell.setCellStyle(style);
-        }
-
-        sheet.addMergedRegion(new CellRangeAddress(
-                row.getRowNum(),
-                row.getRowNum(),
-                start,
-                end
-        ));
+            return 5000;
+        });
     }
 
 }

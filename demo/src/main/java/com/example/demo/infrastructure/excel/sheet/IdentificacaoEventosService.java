@@ -5,12 +5,9 @@ import com.example.demo.infrastructure.excel.shared.SheetServiceUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataValidationHelper;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
-import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -24,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class IdentificacaoEventosService {
+public class IdentificacaoEventosService extends AbstractWorksheetTemplateService {
 
     private static final int EXTRA_EDITABLE_ROWS = 10;
     private static final String META_ROW_TYPE_KEY = "__meta_row_type";
@@ -57,32 +54,22 @@ public class IdentificacaoEventosService {
         int lastEditableRow = SheetServiceUtils.computeLastEditableRow(firstEditableRow, dataRows.size(), EXTRA_EDITABLE_ROWS);
 
         // COR AZUL PERSONALIZADA
-        byte[] rgbBlue = new byte[]{(byte) 180, (byte) 198, (byte) 231};
-        XSSFColor npiBlue = new XSSFColor(rgbBlue, null);
+        XSSFColor npiBlue = color((byte) 180, (byte) 198, (byte) 231);
 
         int r = 0;
 
         // 1. Estilo para o Cabeçalho Azul
-        XSSFCellStyle blueStyle = wb.createCellStyle();
-        blueStyle.setFillForegroundColor(npiBlue);
-        blueStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        blueStyle.setAlignment(HorizontalAlignment.CENTER);
-        blueStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        SheetServiceUtils.applyBorders(blueStyle);
-        Font boldFont = wb.createFont();
-        boldFont.setBold(true);
-        blueStyle.setFont(boldFont);
-        blueStyle.setWrapText(true);
+        XSSFCellStyle blueStyle = createFilledBoldStyle(
+            wb,
+            npiBlue,
+            HorizontalAlignment.CENTER,
+            VerticalAlignment.CENTER,
+            true
+        );
 
         // 2. Criar Linha 1: Título Mesclado
         Row titleRow = sheet.createRow(r++);
-        Cell titleCell = titleRow.createCell(0);
-        titleCell.setCellValue("Identificação e Categorização de Riscos");
-        titleCell.setCellStyle(blueStyle);
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 7));
-        for (int i = 1; i <= 7; i++) {
-            titleRow.createCell(i).setCellStyle(blueStyle);
-        }
+        createMergedHeaderInRow(titleRow, 0, 7, "Identificação e Categorização de Riscos", blueStyle, sheet);
 
         // 3. Gerar Nomes das Colunas
         List<String> headerList = FIXED_HEADERS;
@@ -107,68 +94,35 @@ public class IdentificacaoEventosService {
         }
 
         // 4. DEFINIÇÃO DOS ESTILOS DE DADOS
-        CellStyle dataStyleCenter = wb.createCellStyle();
-        SheetServiceUtils.applyBorders(dataStyleCenter);
-        dataStyleCenter.setAlignment(HorizontalAlignment.CENTER);
-        dataStyleCenter.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataStyleCenter.setWrapText(false);
+        CellStyle dataStyleCenter = createDataStyle(
+                wb,
+                HorizontalAlignment.CENTER,
+                VerticalAlignment.CENTER,
+                false
+        );
 
-        CellStyle dataStyleLeft = wb.createCellStyle();
-        SheetServiceUtils.applyBorders(dataStyleLeft);
-        dataStyleLeft.setAlignment(HorizontalAlignment.LEFT);
-        dataStyleLeft.setVerticalAlignment(VerticalAlignment.CENTER);
-        dataStyleLeft.setWrapText(false);
+        CellStyle dataStyleLeft = createDataStyle(
+                wb,
+                HorizontalAlignment.LEFT,
+                VerticalAlignment.CENTER,
+                false
+        );
 
         // 5. Preenchimento de Dados com Lógica de Alinhamento
-        for (Map<String, Object> rowData : dataRows) {
-            Row dataRow = sheet.createRow(r++);
-            for (int c = 0; c < headerList.size(); c++) {
-                String headerName = headerList.get(c);
-                Cell cell = dataRow.createCell(c);
-                boolean isProcessoColumn = headerName.equalsIgnoreCase("Processo");
-
-                if (isProcessoColumn) {
-                    // Processo é referência fixa da ETAPA 1 para manter consistência em todas as linhas.
-                    cell.setCellFormula(processoReferenceFormula);
-                } else {
-                    Object val = rowData.get(headerName);
-                    String text = val == null ? "" : String.valueOf(val);
-                    cell.setCellValue(normalizeSelectValue(headerName, text));
-                }
-
-                if (isProcessoColumn ||
-                        headerName.contains("Evento") ||
-                        headerName.contains("Causas") ||
-                        headerName.contains("Consequências")) {
-                    cell.setCellStyle(dataStyleLeft);
-                } else {
-                    cell.setCellStyle(dataStyleCenter);
-                }
-            }
-        }
-
-        for (int i = 0; i < EXTRA_EDITABLE_ROWS; i++) {
-            Row extraRow = sheet.createRow(r++);
-            for (int c = 0; c < headerList.size(); c++) {
-                String headerName = headerList.get(c);
-                Cell cell = extraRow.createCell(c);
-
-                if (headerName.equalsIgnoreCase("Processo")) {
-                    cell.setCellFormula(processoReferenceFormula);
-                } else {
-                    cell.setCellValue("");
-                }
-
-                if (headerName.equalsIgnoreCase("Processo")
-                        || headerName.contains("Evento")
-                        || headerName.contains("Causas")
-                        || headerName.contains("Consequências")) {
-                    cell.setCellStyle(dataStyleLeft);
-                } else {
-                    cell.setCellStyle(dataStyleCenter);
-                }
-            }
-        }
+        r = appendDataRowsWithExtra(
+                sheet,
+                r,
+                dataRows,
+                EXTRA_EDITABLE_ROWS,
+                (dataRow, rowData) -> populateDataRow(
+                        headerList,
+                        dataRow,
+                        rowData,
+                        processoReferenceFormula,
+                        dataStyleLeft,
+                        dataStyleCenter
+                )
+        );
 
         setupValidations(sheet, headerList, firstEditableRow, lastEditableRow, categoriaOptions);
         setColumnWidths(sheet, headerList);
@@ -186,18 +140,16 @@ public class IdentificacaoEventosService {
         int colCat = headers.indexOf("Categoria");
         int colIntegridade = headers.indexOf("Tipo de Risco de Integridade");
 
-        if (colTipo != -1) {
-            SheetServiceUtils.applySelect(
-                    sheet,
-                    helper,
-                    new String[]{"Ameaça", "Oportunidade"},
-                    colTipo,
-                    firstEditableRow,
-                    lastEditableRow
-            );
-        }
+        applySelectValidation(
+            sheet,
+            helper,
+            new String[]{"Ameaça", "Oportunidade"},
+            colTipo,
+            firstEditableRow,
+            lastEditableRow
+        );
         if (colCat != -1 && categoriaOptions != null && !categoriaOptions.isEmpty()) {
-            SheetServiceUtils.applySelect(
+            applySelectValidation(
                     sheet,
                     helper,
                     categoriaOptions.toArray(new String[0]),
@@ -206,16 +158,14 @@ public class IdentificacaoEventosService {
                     lastEditableRow
             );
         }
-        if (colIntegridade != -1) {
-            SheetServiceUtils.applySelect(
-                    sheet,
-                    helper,
-                    new String[]{"Corrupção", "Fraude", "Desvio de conduta"},
-                    colIntegridade,
-                    firstEditableRow,
-                    lastEditableRow
-            );
-        }
+        applySelectValidation(
+            sheet,
+            helper,
+            new String[]{"Corrupção", "Fraude", "Desvio de conduta"},
+            colIntegridade,
+            firstEditableRow,
+            lastEditableRow
+        );
     }
 
     private PreparedRows prepareRows(List<Map<String, Object>> rows) {
@@ -290,19 +240,52 @@ public class IdentificacaoEventosService {
         }
     }
 
-    private void setColumnWidths(XSSFSheet sheet, List<String> headers) {
-        for (int i = 0; i < headers.size(); i++) {
-            String h = headers.get(i);
-            if (h.contains("Evento") || h.contains("Causas")) {
-                sheet.setColumnWidth(i, 15000);
-            } else if (h.equalsIgnoreCase("Processo")) {
-                sheet.setColumnWidth(i, 12000);
-            } else if (h.contains("Consequências")) {
-                sheet.setColumnWidth(i, 40000);
+    private void populateDataRow(
+            List<String> headerList,
+            Row dataRow,
+            Map<String, Object> rowData,
+            String processoReferenceFormula,
+            CellStyle dataStyleLeft,
+            CellStyle dataStyleCenter
+    ) {
+        for (int c = 0; c < headerList.size(); c++) {
+            String headerName = headerList.get(c);
+            Cell cell = dataRow.createCell(c);
+            boolean isProcessoColumn = headerName.equalsIgnoreCase("Processo");
+
+            if (isProcessoColumn) {
+                // Processo é referência fixa da ETAPA 1 para manter consistência em todas as linhas.
+                cell.setCellFormula(processoReferenceFormula);
             } else {
-                sheet.setColumnWidth(i, 7000);
+                Object val = rowData == null ? null : rowData.get(headerName);
+                String text = val == null ? "" : String.valueOf(val);
+                cell.setCellValue(normalizeSelectValue(headerName, text));
+            }
+
+            if (isProcessoColumn
+                    || headerName.contains("Evento")
+                    || headerName.contains("Causas")
+                    || headerName.contains("Consequências")) {
+                cell.setCellStyle(dataStyleLeft);
+            } else {
+                cell.setCellStyle(dataStyleCenter);
             }
         }
+    }
+
+    private void setColumnWidths(XSSFSheet sheet, List<String> headers) {
+        applyColumnWidthsByHeaders(sheet, headers, header -> {
+            if (header.contains("Evento") || header.contains("Causas")) {
+                return 15000;
+            }
+            if (header.equalsIgnoreCase("Processo")) {
+                return 12000;
+            }
+            if (header.contains("Consequências")) {
+                return 40000;
+            }
+            return 7000;
+        });
     }
 
     private String normalizeSelectValue(String headerName, String value) {
