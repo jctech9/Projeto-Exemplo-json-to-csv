@@ -27,6 +27,7 @@ public class IdentificacaoEventosService extends AbstractWorksheetTemplateServic
     private static final String META_ROW_TYPE_KEY = "__meta_row_type";
     private static final String META_ROW_TYPE_OPTIONS = "etapa2_options";
     private static final String META_CATEGORIA_OPTIONS_KEY = "__meta_categoria_options";
+    private static final String META_TIPO_RISCO_INTEGRIDADE_OPTIONS_KEY = "__meta_tipo_risco_integridade_options";
     private static final List<String> FIXED_HEADERS = Arrays.asList(
             "Processo",
             "Fase",
@@ -42,6 +43,7 @@ public class IdentificacaoEventosService extends AbstractWorksheetTemplateServic
         PreparedRows preparedRows = prepareRows(rows);
         List<Map<String, Object>> dataRows = preparedRows.dataRows;
         List<String> categoriaOptions = preparedRows.categoriaOptions;
+        List<String> tipoRiscoIntegridadeOptions = preparedRows.tipoRiscoIntegridadeOptions;
 
         XSSFSheet sheet = wb.createSheet(sheetName);
         String etapa1SheetName = SheetServiceUtils.resolveSheetName(
@@ -124,7 +126,14 @@ public class IdentificacaoEventosService extends AbstractWorksheetTemplateServic
                 )
         );
 
-        setupValidations(sheet, headerList, firstEditableRow, lastEditableRow, categoriaOptions);
+        setupValidations(
+            sheet,
+            headerList,
+            firstEditableRow,
+            lastEditableRow,
+            categoriaOptions,
+            tipoRiscoIntegridadeOptions
+        );
         setColumnWidths(sheet, headerList);
     }
 
@@ -133,7 +142,8 @@ public class IdentificacaoEventosService extends AbstractWorksheetTemplateServic
             List<String> headers,
             int firstEditableRow,
             int lastEditableRow,
-            List<String> categoriaOptions
+            List<String> categoriaOptions,
+            List<String> tipoRiscoIntegridadeOptions
     ) {
         DataValidationHelper helper = sheet.getDataValidationHelper();
         int colTipo = headers.indexOf("Tipo de Risco");
@@ -158,27 +168,37 @@ public class IdentificacaoEventosService extends AbstractWorksheetTemplateServic
                     lastEditableRow
             );
         }
-        applySelectValidation(
-            sheet,
-            helper,
-            new String[]{"Corrupção", "Fraude", "Desvio de conduta"},
-            colIntegridade,
-            firstEditableRow,
-            lastEditableRow
-        );
+        if (colIntegridade != -1
+                && tipoRiscoIntegridadeOptions != null
+                && !tipoRiscoIntegridadeOptions.isEmpty()) {
+            applySelectValidation(
+                    sheet,
+                    helper,
+                    tipoRiscoIntegridadeOptions.toArray(new String[0]),
+                    colIntegridade,
+                    firstEditableRow,
+                    lastEditableRow
+            );
+        }
     }
 
     private PreparedRows prepareRows(List<Map<String, Object>> rows) {
         List<Map<String, Object>> dataRows = new ArrayList<>();
         LinkedHashSet<String> categoriaOptions = new LinkedHashSet<>();
+        LinkedHashSet<String> tipoRiscoIntegridadeOptions = new LinkedHashSet<>();
         if (rows == null || rows.isEmpty()) {
-            return new PreparedRows(dataRows, new ArrayList<>(categoriaOptions));
+            return new PreparedRows(
+                    dataRows,
+                    new ArrayList<>(categoriaOptions),
+                    new ArrayList<>(tipoRiscoIntegridadeOptions)
+            );
         }
 
         for (Map<String, Object> row : rows) {
             // Linhas de metadado são injetadas no builder para transportar opções dinâmicas de select.
             if (isMetadataRow(row)) {
                 collectCategoriaOptionsFromMetadata(row, categoriaOptions);
+                collectTipoRiscoIntegridadeOptionsFromMetadata(row, tipoRiscoIntegridadeOptions);
                 continue;
             }
 
@@ -188,9 +208,14 @@ public class IdentificacaoEventosService extends AbstractWorksheetTemplateServic
 
             dataRows.add(row);
             collectCategoriaOptionsFromData(row, categoriaOptions);
+            collectTipoRiscoIntegridadeOptionsFromData(row, tipoRiscoIntegridadeOptions);
         }
 
-        return new PreparedRows(dataRows, new ArrayList<>(categoriaOptions));
+        return new PreparedRows(
+                dataRows,
+                new ArrayList<>(categoriaOptions),
+                new ArrayList<>(tipoRiscoIntegridadeOptions)
+        );
     }
 
     private boolean isMetadataRow(Map<String, Object> row) {
@@ -218,6 +243,26 @@ public class IdentificacaoEventosService extends AbstractWorksheetTemplateServic
         }
     }
 
+    private void collectTipoRiscoIntegridadeOptionsFromMetadata(
+            Map<String, Object> row,
+            LinkedHashSet<String> tipoRiscoIntegridadeOptions
+    ) {
+        Object value = row.get(META_TIPO_RISCO_INTEGRIDADE_OPTIONS_KEY);
+        if (!(value instanceof List<?> list)) {
+            return;
+        }
+
+        for (Object item : list) {
+            if (item == null) {
+                continue;
+            }
+            String option = String.valueOf(item).trim();
+            if (!option.isBlank()) {
+                tipoRiscoIntegridadeOptions.add(option);
+            }
+        }
+    }
+
     private void collectCategoriaOptionsFromData(Map<String, Object> row, LinkedHashSet<String> categoriaOptions) {
         Object categoria = row.get("Categoria");
         if (categoria == null) {
@@ -230,13 +275,34 @@ public class IdentificacaoEventosService extends AbstractWorksheetTemplateServic
         }
     }
 
+    private void collectTipoRiscoIntegridadeOptionsFromData(
+            Map<String, Object> row,
+            LinkedHashSet<String> tipoRiscoIntegridadeOptions
+    ) {
+        Object tipoRiscoIntegridade = row.get("Tipo de Risco de Integridade");
+        if (tipoRiscoIntegridade == null) {
+            return;
+        }
+
+        String option = String.valueOf(tipoRiscoIntegridade).trim();
+        if (!option.isBlank()) {
+            tipoRiscoIntegridadeOptions.add(option);
+        }
+    }
+
     private static final class PreparedRows {
         private final List<Map<String, Object>> dataRows;
         private final List<String> categoriaOptions;
+        private final List<String> tipoRiscoIntegridadeOptions;
 
-        private PreparedRows(List<Map<String, Object>> dataRows, List<String> categoriaOptions) {
+        private PreparedRows(
+                List<Map<String, Object>> dataRows,
+                List<String> categoriaOptions,
+                List<String> tipoRiscoIntegridadeOptions
+        ) {
             this.dataRows = dataRows;
             this.categoriaOptions = categoriaOptions;
+            this.tipoRiscoIntegridadeOptions = tipoRiscoIntegridadeOptions;
         }
     }
 

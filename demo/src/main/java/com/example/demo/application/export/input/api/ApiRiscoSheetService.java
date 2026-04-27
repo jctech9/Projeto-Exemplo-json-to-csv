@@ -20,6 +20,7 @@ public class ApiRiscoSheetService {
     private static final String META_ROW_TYPE_KEY = "__meta_row_type";
     private static final String META_ROW_TYPE_OPTIONS = "etapa2_options";
     private static final String META_CATEGORIA_OPTIONS_KEY = "__meta_categoria_options";
+    private static final String META_TIPO_RISCO_INTEGRIDADE_OPTIONS_KEY = "__meta_tipo_risco_integridade_options";
 
     private final ApiEndpointDataService endpointDataService;
     private final ApiPayloadFilterService payloadFilterService;
@@ -42,6 +43,7 @@ public class ApiRiscoSheetService {
         }
 
         List<String> categoriaOptions = fetchCategoriaOptions(baseUrl);
+        List<String> tipoRiscoIntegridadeOptions = fetchTipoRiscoIntegridadeOptions(baseUrl);
         List<Map<String, Object>> riscosFiltrados = payloadFilterService.filterByProcess(riscosData, processId);
         riscosData.put("content", riscosFiltrados);
 
@@ -54,15 +56,23 @@ public class ApiRiscoSheetService {
         }
 
         Map<String, List<Map<String, Object>>> etapa2Sheets = IdentificacaoEventosTransformer.transform(riscosData);
-        attachCategoriaOptionsMetadata(etapa2Sheets, categoriaOptions);
+        attachEtapa2OptionsMetadata(etapa2Sheets, categoriaOptions, tipoRiscoIntegridadeOptions);
 
         return new ApiRiscoContext(etapa2Sheets, riscoIdsDoProcesso, riscoNomePorId);
     }
 
     private List<String> fetchCategoriaOptions(String baseUrl) {
+        return fetchNomeOptions(baseUrl, "/categoriasRisco");
+    }
+
+    private List<String> fetchTipoRiscoIntegridadeOptions(String baseUrl) {
+        return fetchNomeOptions(baseUrl, "/tiposRiscoIntegridade");
+    }
+
+    private List<String> fetchNomeOptions(String baseUrl, String endpoint) {
         try {
-            Map<String, Object> categoriasData = endpointDataService.fetchEndpointData(baseUrl, "/categoriasRisco");
-            List<Map<String, Object>> content = payloadFilterService.getContentList(categoriasData);
+            Map<String, Object> optionsData = endpointDataService.fetchEndpointData(baseUrl, endpoint);
+            List<Map<String, Object>> content = payloadFilterService.getContentList(optionsData);
             if (content == null || content.isEmpty()) {
                 return new ArrayList<>();
             }
@@ -96,16 +106,48 @@ public class ApiRiscoSheetService {
         }
     }
 
-    private void attachCategoriaOptionsMetadata(
+    private void attachEtapa2OptionsMetadata(
             Map<String, List<Map<String, Object>>> etapa2Sheets,
-            List<String> categoriaOptions
+            List<String> categoriaOptions,
+            List<String> tipoRiscoIntegridadeOptions
     ) {
-        if (etapa2Sheets == null || etapa2Sheets.isEmpty() || categoriaOptions == null || categoriaOptions.isEmpty()) {
+        if (etapa2Sheets == null || etapa2Sheets.isEmpty()) {
             return;
         }
 
+        List<String> normalizedCategoriaOptions = normalizeOptions(categoriaOptions);
+        List<String> normalizedTipoRiscoIntegridadeOptions = normalizeOptions(tipoRiscoIntegridadeOptions);
+
+        if (normalizedCategoriaOptions.isEmpty() && normalizedTipoRiscoIntegridadeOptions.isEmpty()) {
+            return;
+        }
+
+        for (Map.Entry<String, List<Map<String, Object>>> entry : etapa2Sheets.entrySet()) {
+            List<Map<String, Object>> rows = entry.getValue();
+            if (rows == null) {
+                rows = new ArrayList<>();
+                entry.setValue(rows);
+            }
+
+            Map<String, Object> metadataRow = new LinkedHashMap<>();
+            metadataRow.put(META_ROW_TYPE_KEY, META_ROW_TYPE_OPTIONS);
+            if (!normalizedCategoriaOptions.isEmpty()) {
+                metadataRow.put(META_CATEGORIA_OPTIONS_KEY, normalizedCategoriaOptions);
+            }
+            if (!normalizedTipoRiscoIntegridadeOptions.isEmpty()) {
+                metadataRow.put(META_TIPO_RISCO_INTEGRIDADE_OPTIONS_KEY, normalizedTipoRiscoIntegridadeOptions);
+            }
+            rows.add(0, metadataRow);
+        }
+    }
+
+    private List<String> normalizeOptions(List<String> options) {
+        if (options == null || options.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         LinkedHashSet<String> normalizedOptions = new LinkedHashSet<>();
-        for (String option : categoriaOptions) {
+        for (String option : options) {
             if (option == null) {
                 continue;
             }
@@ -116,22 +158,6 @@ public class ApiRiscoSheetService {
             }
         }
 
-        if (normalizedOptions.isEmpty()) {
-            return;
-        }
-
-        List<String> optionsList = new ArrayList<>(normalizedOptions);
-        for (Map.Entry<String, List<Map<String, Object>>> entry : etapa2Sheets.entrySet()) {
-            List<Map<String, Object>> rows = entry.getValue();
-            if (rows == null) {
-                rows = new ArrayList<>();
-                entry.setValue(rows);
-            }
-
-            Map<String, Object> metadataRow = new LinkedHashMap<>();
-            metadataRow.put(META_ROW_TYPE_KEY, META_ROW_TYPE_OPTIONS);
-            metadataRow.put(META_CATEGORIA_OPTIONS_KEY, optionsList);
-            rows.add(0, metadataRow);
-        }
+        return new ArrayList<>(normalizedOptions);
     }
 }

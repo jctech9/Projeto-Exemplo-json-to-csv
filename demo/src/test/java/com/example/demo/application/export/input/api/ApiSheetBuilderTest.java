@@ -175,7 +175,7 @@ class ApiSheetBuilderTest {
     }
 
     @Test
-    void shouldAttachDynamicCategoriaOptionsMetadataToEtapa2Rows() {
+        void shouldAttachDynamicEtapa2OptionsMetadataToEtapa2Rows() {
         String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
         ApiSheetBuilder builder = createBuilder(apiHttpClient);
@@ -186,6 +186,11 @@ class ApiSheetBuilderTest {
         when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/categoriasRisco"))).thenReturn(payload(List.of(
                 categoria(1, "Categoria A"),
                 categoria(2, "Categoria B")
+        )));
+        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/tiposRiscoIntegridade"))).thenReturn(payload(List.of(
+                tipoRiscoIntegridade(1, "Corrupção"),
+                tipoRiscoIntegridade(2, "Fraude"),
+                tipoRiscoIntegridade(3, "Desvio de conduta")
         )));
         when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/riscos"))).thenReturn(payload(List.of(
                 risco(10, 1, "Risco 10")
@@ -210,6 +215,10 @@ class ApiSheetBuilderTest {
         Map<String, Object> metadataRow = etapa2Rows.get(0);
         assertEquals("etapa2_options", metadataRow.get("__meta_row_type"));
         assertEquals(List.of("Categoria A", "Categoria B"), metadataRow.get("__meta_categoria_options"));
+        assertEquals(
+                List.of("Corrupção", "Fraude", "Desvio de conduta"),
+                metadataRow.get("__meta_tipo_risco_integridade_options")
+        );
     }
 
     private ApiSheetBuilder createBuilder(ApiHttpClient apiHttpClient) {
@@ -255,6 +264,13 @@ class ApiSheetBuilderTest {
                 categoria.put("id", id);
                 categoria.put("nome", nome);
                 return categoria;
+        }
+
+        private Map<String, Object> tipoRiscoIntegridade(int id, String nome) {
+                Map<String, Object> tipo = new LinkedHashMap<>();
+                tipo.put("id", id);
+                tipo.put("nome", nome);
+                return tipo;
         }
 
     private Map<String, Object> risco(int riscoId, int processoId, String nomeRisco) {
