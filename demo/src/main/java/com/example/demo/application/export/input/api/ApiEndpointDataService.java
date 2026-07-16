@@ -15,8 +15,8 @@ public class ApiEndpointDataService {
         this.apiHttpClient = apiHttpClient;
     }
 
-    public Map<String, Object> fetchEndpointData(String baseUrl, String endpoint) {
-        Map<String, Object> data = apiHttpClient.fetchAllPages(baseUrl, endpoint);
+    public Map<String, Object> fetchEndpointData(String endpoint) {
+        Map<String, Object> data = apiHttpClient.fetchAllPages(endpoint);
         if (data != null) {
             RefResolver.resolve(data);
         }

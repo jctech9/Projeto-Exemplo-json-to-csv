@@ -17,7 +17,7 @@ public class ExportSheetBuilderService {
         this.apiSheetBuilder = apiSheetBuilder;
     }
 
-    public Map<String, List<Map<String, Object>>> buildSheetsFromProcessId(String baseUrl, int processId) {
-        return apiSheetBuilder.buildSheetsFromApi(baseUrl, processId);
+    public Map<String, List<Map<String, Object>>> buildSheetsFromProcessId(int processId) {
+        return apiSheetBuilder.buildSheetsFromApi(processId);
     }
 }

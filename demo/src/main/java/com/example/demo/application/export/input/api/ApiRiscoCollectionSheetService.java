@@ -32,14 +32,13 @@ public class ApiRiscoCollectionSheetService {
     }
 
     public Map<String, List<Map<String, Object>>> buildAlignedSheet(
-            String baseUrl,
             String endpoint,
             int processId,
             Set<Integer> canonicalRiscoIds,
             String collectionName,
             Function<Map<String, Object>, Map<String, List<Map<String, Object>>>> transformer
     ) {
-        Map<String, Object> data = endpointDataService.fetchEndpointData(baseUrl, endpoint);
+        Map<String, Object> data = endpointDataService.fetchEndpointData(endpoint);
         if (data == null) {
             return new LinkedHashMap<>();
         }

@@ -22,8 +22,8 @@ public class ApiProcessSheetService {
         this.payloadFilterService = payloadFilterService;
     }
 
-    public Map<String, List<Map<String, Object>>> buildProcessSheets(String baseUrl, int processId) {
-        Map<String, Object> processosData = endpointDataService.fetchEndpointData(baseUrl, "/processos");
+    public Map<String, List<Map<String, Object>>> buildProcessSheets(int processId) {
+        Map<String, Object> processosData = endpointDataService.fetchEndpointData("/processos");
         if (processosData == null) {
             return new LinkedHashMap<>();
         }

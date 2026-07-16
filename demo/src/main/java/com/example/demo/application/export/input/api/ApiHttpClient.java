@@ -1,6 +1,7 @@
 package com.example.demo.application.export.input.api;
 
 import com.example.demo.config.ExportApiProperties;
+import com.example.demo.config.ApiDestinationValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.retry.support.RetryTemplate;
@@ -24,20 +25,23 @@ public class ApiHttpClient {
     private final RestTemplate restTemplate;
     private final RetryTemplate retryTemplate;
     private final ExportApiProperties properties;
+    private final ApiDestinationValidator destinationValidator;
 
     public ApiHttpClient(
             RestTemplate exportApiRestTemplate,
             RetryTemplate exportApiRetryTemplate,
-            ExportApiProperties properties
+            ExportApiProperties properties,
+            ApiDestinationValidator destinationValidator
     ) {
         this.restTemplate = exportApiRestTemplate;
         this.retryTemplate = exportApiRetryTemplate;
         this.properties = properties;
+        this.destinationValidator = destinationValidator;
     }
 
-    public Map<String, Object> fetchAllPages(String baseUrl, String endpoint) {
+    public Map<String, Object> fetchAllPages(String endpoint) {
         String normalizedEndpoint = normalizeEndpoint(endpoint);
-        String normalizedBaseUrl = normalizeBaseUrl(baseUrl, normalizedEndpoint);
+        String normalizedBaseUrl = null;
 
         Map<String, Object> mergedResponse = null;
         List<Map<String, Object>> mergedContent = new ArrayList<>();
@@ -46,21 +50,22 @@ public class ApiHttpClient {
         while (true) {
             // Proteção contra laço infinito em APIs com metadados inconsistentes.
             if (page >= MAX_PAGES) {
-                URI maxUri = buildUri(normalizedBaseUrl, normalizedEndpoint, page);
                 throw new ApiDataFetchException(
                         "Limite maximo de paginas excedido para endpoint " + normalizedEndpoint,
-                        normalizedEndpoint,
-                        maxUri.toString()
+                        normalizedEndpoint
                 );
             }
 
+            // Revalida DNS imediatamente antes de cada chamada para reduzir a janela
+            // de DNS rebinding entre paginas.
+            normalizedBaseUrl = destinationValidator.validateConfiguredDestination().toString();
             Map<String, Object> response = fetchPageInternal(normalizedBaseUrl, normalizedEndpoint, page);
             if (mergedResponse == null) {
                 // Preserva metadados da primeira página e substitui apenas o content no final.
                 mergedResponse = new LinkedHashMap<>(response);
             }
 
-            List<Map<String, Object>> pageContent = extractPageContent(response, normalizedEndpoint, normalizedBaseUrl, page);
+            List<Map<String, Object>> pageContent = extractPageContent(response, normalizedEndpoint, page);
             mergedContent.addAll(pageContent);
 
             if (!hasNextPage(response, page, pageContent.size())) {
@@ -85,34 +90,31 @@ public class ApiHttpClient {
             Map<String, Object> response = retryTemplate.execute(context -> {
                 int attempt = context.getRetryCount() + 1;
                 log.debug(
-                        "event=api_request endpoint={} page={} attempt={} url={}",
+                        "event=api_request endpoint={} page={} attempt={}",
                         normalizedEndpoint,
                         page,
-                        attempt,
-                        uri
+                        attempt
                 );
 
                 try {
                     return restTemplate.getForObject(uri, Map.class);
                 } catch (RuntimeException ex) {
                     log.warn(
-                            "event=api_request_attempt_failed endpoint={} page={} attempt={} url={} message={}",
+                            "event=api_request_attempt_failed endpoint={} page={} attempt={} exception={}",
                             normalizedEndpoint,
                             page,
                             attempt,
-                            uri,
-                            ex.getMessage()
+                            ex.getClass().getSimpleName()
                     );
                     throw ex;
                 }
             });
 
             if (response == null) {
-                log.error("event=api_request_empty_response endpoint={} page={} url={}", normalizedEndpoint, page, uri);
+                log.error("event=api_request_empty_response endpoint={} page={}", normalizedEndpoint, page);
                 throw new ApiDataFetchException(
                         "Resposta vazia ao consultar endpoint " + normalizedEndpoint + " (page=" + page + ")",
-                        normalizedEndpoint,
-                        uri.toString()
+                        normalizedEndpoint
                 );
             }
 
@@ -122,34 +124,27 @@ public class ApiHttpClient {
         } catch (RestClientResponseException ex) {
             int statusCode = ex.getStatusCode().value();
             log.error(
-                    "event=api_request_http_error endpoint={} page={} url={} status={} message={}",
+                    "event=api_request_http_error endpoint={} page={} status={}",
                     normalizedEndpoint,
                     page,
-                    uri,
-                    statusCode,
-                    ex.getStatusText(),
-                    ex
+                    statusCode
             );
             throw new ApiDataFetchException(
                     "Falha HTTP ao consultar endpoint " + normalizedEndpoint
                             + " (page=" + page + ", status=" + statusCode + ")",
                     normalizedEndpoint,
-                    uri.toString(),
                     ex
             );
         } catch (RuntimeException ex) {
             log.error(
-                    "event=api_request_failed endpoint={} page={} url={} message={}",
+                    "event=api_request_failed endpoint={} page={} exception={}",
                     normalizedEndpoint,
                     page,
-                    uri,
-                    ex.getMessage(),
-                    ex
+                    ex.getClass().getSimpleName()
             );
             throw new ApiDataFetchException(
                     "Falha ao consultar endpoint " + normalizedEndpoint + " (page=" + page + ") apos tentativas de retry",
                     normalizedEndpoint,
-                    uri.toString(),
                     ex
             );
         }
@@ -164,17 +159,6 @@ public class ApiHttpClient {
                 .toUri();
     }
 
-    private String normalizeBaseUrl(String baseUrl, String endpoint) {
-        if (baseUrl == null || baseUrl.isBlank()) {
-            throw new ApiDataFetchException(
-                    "Parametro baseUrl nao pode ser vazio",
-                    endpoint,
-                    String.valueOf(baseUrl)
-            );
-        }
-        return baseUrl.replaceAll("/+$", "");
-    }
-
     private String normalizeEndpoint(String endpoint) {
         if (endpoint == null || endpoint.isBlank()) {
             return "/";
@@ -186,7 +170,6 @@ public class ApiHttpClient {
     private List<Map<String, Object>> extractPageContent(
             Map<String, Object> response,
             String endpoint,
-            String baseUrl,
             int page
     ) {
         Object contentObject = response.get("content");
@@ -195,11 +178,9 @@ public class ApiHttpClient {
         }
 
         if (!(contentObject instanceof List<?> list)) {
-            URI uri = buildUri(baseUrl, endpoint, page);
             throw new ApiDataFetchException(
                     "Resposta invalida ao consultar endpoint " + endpoint + ": campo 'content' nao e lista",
-                    endpoint,
-                    uri.toString()
+                    endpoint
             );
         }
 
@@ -207,12 +188,10 @@ public class ApiHttpClient {
         for (int i = 0; i < list.size(); i++) {
             Object item = list.get(i);
             if (!(item instanceof Map<?, ?> itemMap)) {
-                URI uri = buildUri(baseUrl, endpoint, page);
                 throw new ApiDataFetchException(
                         "Resposta invalida ao consultar endpoint " + endpoint
                                 + ": item de 'content' na posicao " + (i + 1) + " nao e objeto",
-                        endpoint,
-                        uri.toString()
+                        endpoint
                 );
             }
             pageContent.add((Map<String, Object>) itemMap);

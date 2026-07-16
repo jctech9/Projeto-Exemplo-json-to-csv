@@ -32,16 +32,16 @@ public class ApiRiscoSheetService {
         this.payloadFilterService = payloadFilterService;
     }
 
-    public ApiRiscoContext buildRiscoContext(String baseUrl, int processId) {
+    public ApiRiscoContext buildRiscoContext(int processId) {
         Set<Integer> riscoIdsDoProcesso = new LinkedHashSet<>();
         Map<Integer, String> riscoNomePorId = new LinkedHashMap<>();
 
-        Map<String, Object> riscosData = endpointDataService.fetchEndpointData(baseUrl, "/riscos");
+        Map<String, Object> riscosData = endpointDataService.fetchEndpointData("/riscos");
         if (riscosData == null) {
             return new ApiRiscoContext(new LinkedHashMap<>(), riscoIdsDoProcesso, riscoNomePorId);
         }
 
-        List<String> categoriaOptions = fetchCategoriaOptions(baseUrl);
+        List<String> categoriaOptions = fetchCategoriaOptions();
         List<Map<String, Object>> riscosFiltrados = payloadFilterService.filterByProcess(riscosData, processId);
         riscosData.put("content", riscosFiltrados);
 
@@ -59,9 +59,9 @@ public class ApiRiscoSheetService {
         return new ApiRiscoContext(etapa2Sheets, riscoIdsDoProcesso, riscoNomePorId);
     }
 
-    private List<String> fetchCategoriaOptions(String baseUrl) {
+    private List<String> fetchCategoriaOptions() {
         try {
-            Map<String, Object> categoriasData = endpointDataService.fetchEndpointData(baseUrl, "/categoriasRisco");
+            Map<String, Object> categoriasData = endpointDataService.fetchEndpointData("/categoriasRisco");
             List<Map<String, Object>> content = payloadFilterService.getContentList(categoriasData);
             if (content == null || content.isEmpty()) {
                 return new ArrayList<>();
@@ -87,10 +87,8 @@ public class ApiRiscoSheetService {
             return new ArrayList<>(names);
         } catch (ApiDataFetchException ex) {
             log.warn(
-                    "event=api_export_optional_endpoint_failed endpoint={} url={} message={}",
-                    ex.getEndpoint(),
-                    ex.getUrl(),
-                    ex.getMessage()
+                    "event=api_export_optional_endpoint_failed endpoint={}",
+                    ex.getEndpoint()
             );
             return new ArrayList<>();
         }

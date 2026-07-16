@@ -1,6 +1,7 @@
 package com.example.demo.application.export.input.api;
 
 import com.example.demo.config.ExportApiProperties;
+import com.example.demo.config.ApiDestinationValidator;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.retry.support.RetryTemplate;
@@ -18,6 +19,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 class ApiHttpClientTest {
 
@@ -28,7 +30,9 @@ class ApiHttpClientTest {
         ExportApiProperties properties = new ExportApiProperties();
         properties.setPageSize(2);
 
-        ApiHttpClient client = new ApiHttpClient(restTemplate, retryTemplate, properties);
+        ApiDestinationValidator destinationValidator = mock(ApiDestinationValidator.class);
+        when(destinationValidator.validateConfiguredDestination()).thenReturn(URI.create("https://api.example.com:443"));
+        ApiHttpClient client = new ApiHttpClient(restTemplate, retryTemplate, properties, destinationValidator);
 
         when(restTemplate.getForObject(any(URI.class), eq(Map.class))).thenAnswer(invocation -> {
             URI uri = invocation.getArgument(0);
@@ -55,7 +59,7 @@ class ApiHttpClientTest {
             throw new IllegalStateException("Pagina inesperada: " + uri);
         });
 
-        Map<String, Object> response = client.fetchAllPages("http://localhost:8090/", "/riscos");
+        Map<String, Object> response = client.fetchAllPages("/riscos");
 
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> content = (List<Map<String, Object>>) response.get("content");

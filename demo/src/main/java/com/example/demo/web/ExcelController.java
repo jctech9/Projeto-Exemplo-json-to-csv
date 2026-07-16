@@ -3,6 +3,7 @@ package com.example.demo.web;
 import com.example.demo.application.export.ExcelService;
 import com.example.demo.application.export.ExportSheetBuilderService;
 import com.example.demo.application.export.input.api.ApiDataFetchException;
+import com.example.demo.config.InvalidApiDestinationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -37,34 +38,39 @@ public class ExcelController {
     @GetMapping("/xlsx/{id}")
     public ResponseEntity<byte[]> exportByProcessId(
             @PathVariable("id") int id,
-            @RequestParam(value = "baseUrl", defaultValue = "http://localhost:8090") String baseUrl
+            @RequestParam(value = "baseUrl", required = false) String rejectedBaseUrl
     ) throws IOException {
+        if (rejectedBaseUrl != null) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Parametro de destino nao e aceito.".getBytes(StandardCharsets.UTF_8));
+        }
+
         Map<String, List<Map<String, Object>>> allSheets;
 
         try {
-            allSheets = exportSheetBuilderService.buildSheetsFromProcessId(baseUrl, id);
+            allSheets = exportSheetBuilderService.buildSheetsFromProcessId(id);
+        } catch (InvalidApiDestinationException e) {
+            log.error("event=api_export_invalid_server_destination process_id={}", id);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Integracao com API origem indisponivel.".getBytes(StandardCharsets.UTF_8));
         } catch (ApiDataFetchException e) {
             log.error(
-                "event=api_export_failed policy=fail_fast endpoint={} url={} message={}",
+                "event=api_export_failed policy=fail_fast endpoint={} process_id={}",
                 e.getEndpoint(),
-                e.getUrl(),
-                e.getMessage(),
-                e
+                id
             );
-            String message = "Falha de integracao com API origem (politica fail-fast). Nenhum arquivo parcial foi gerado. "
-                + e.getMessage();
+            String message = "Falha de integracao com API origem. Nenhum arquivo parcial foi gerado.";
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                 .contentType(MediaType.TEXT_PLAIN)
                 .body(message.getBytes(StandardCharsets.UTF_8));
         } catch (IllegalArgumentException e) {
             log.error(
-                    "event=api_export_invalid_data policy=fail_fast process_id={} message={}",
-                    id,
-                    e.getMessage(),
-                    e
+                    "event=api_export_invalid_data policy=fail_fast process_id={}",
+                    id
             );
-            String message = "Falha de consistencia nos dados da API origem (politica fail-fast). "
-                    + "Nenhum arquivo parcial foi gerado. " + e.getMessage();
+            String message = "Falha de consistencia nos dados da API origem. Nenhum arquivo parcial foi gerado.";
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                     .contentType(MediaType.TEXT_PLAIN)
                     .body(message.getBytes(StandardCharsets.UTF_8));

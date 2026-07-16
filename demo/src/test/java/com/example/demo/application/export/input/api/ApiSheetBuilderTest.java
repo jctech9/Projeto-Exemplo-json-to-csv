@@ -30,7 +30,7 @@ class ApiSheetBuilderTest {
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.buildSheetsFromApi("http://localhost:8090", 0)
+                () -> builder.buildSheetsFromApi(0)
         );
 
         assertTrue(ex.getMessage().contains("maior que zero"));
@@ -38,17 +38,16 @@ class ApiSheetBuilderTest {
 
     @Test
     void shouldFailWhenProcessIdDoesNotExistOnSourceApi() {
-        String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
         ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/processos"))).thenReturn(payload(List.of(
                 processo(2, "Processo 2")
         )));
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.buildSheetsFromApi(baseUrl, 1)
+                () -> builder.buildSheetsFromApi(1)
         );
 
         assertTrue(ex.getMessage().contains("nao foi encontrado"));
@@ -56,36 +55,35 @@ class ApiSheetBuilderTest {
 
     @Test
     void shouldFetchOcorrenciasInBatchWithoutNPlusOne() {
-        String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
         ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/processos"))).thenReturn(payload(List.of(
                 processo(1, "Processo 1"),
                 processo(2, "Processo 2")
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/riscos"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/riscos"))).thenReturn(payload(List.of(
                 risco(10, 1, "Risco 10"),
                 risco(99, 2, "Risco 99")
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/avaliacoesRiscoControle"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/avaliacoesRiscoControle"))).thenReturn(payload(List.of(
                 avaliacao(10, 1),
                 avaliacao(99, 2)
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/respostasRisco"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/respostasRisco"))).thenReturn(payload(List.of(
                 resposta(10, 1),
                 resposta(99, 2)
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/atividadeControles"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/atividadeControles"))).thenReturn(payload(List.of(
                 atividade(10, 1),
                 atividade(99, 2)
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/ocorrenciasRisco"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/ocorrenciasRisco"))).thenReturn(payload(List.of(
                 ocorrencia(10, ""),
                 ocorrencia(99, "Risco 99")
         )));
 
-        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, 1);
+        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(1);
 
         String ocorrenciasSheet = sheets.keySet().stream()
                 .filter(name -> name.toUpperCase().contains("OCORR"))
@@ -95,33 +93,31 @@ class ApiSheetBuilderTest {
         assertEquals(1, sheets.get(ocorrenciasSheet).size());
         assertEquals("Risco 10", sheets.get(ocorrenciasSheet).get(0).get("Evento de Risco"));
 
-        verify(apiHttpClient, times(1)).fetchAllPages(baseUrl, "/ocorrenciasRisco");
+        verify(apiHttpClient, times(1)).fetchAllPages("/ocorrenciasRisco");
         verify(apiHttpClient, never()).fetchAllPages(
-                eq(baseUrl),
                 argThat(endpoint -> endpoint != null && endpoint.startsWith("/ocorrenciasRisco/risco/"))
         );
     }
 
     @Test
     void shouldCaptureOcorrenciasWhenRiscoIdsComeAsString() {
-        String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
         ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/processos"))).thenReturn(payload(List.of(
                 processo(1, "Processo 1")
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/riscos"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/riscos"))).thenReturn(payload(List.of(
                 riscoComIdString("10", 1, "Risco 10")
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/avaliacoesRiscoControle"))).thenReturn(payload(List.of()));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/respostasRisco"))).thenReturn(payload(List.of()));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/atividadeControles"))).thenReturn(payload(List.of()));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/ocorrenciasRisco"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/avaliacoesRiscoControle"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq("/respostasRisco"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq("/atividadeControles"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq("/ocorrenciasRisco"))).thenReturn(payload(List.of(
                 ocorrenciaComIdString("10", "")
         )));
 
-        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, 1);
+        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(1);
 
         String ocorrenciasSheet = sheets.keySet().stream()
                 .filter(name -> name.toUpperCase().contains("OCORR"))
@@ -134,19 +130,18 @@ class ApiSheetBuilderTest {
 
     @Test
     void shouldFallbackToPerRiskEndpointWhenBatchOcorrenciasHasNoRiscoReference() {
-        String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
         ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/processos"))).thenReturn(payload(List.of(
                 processo(1, "Processo 1")
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/riscos"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/riscos"))).thenReturn(payload(List.of(
                 risco(10, 1, "Risco 10")
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/avaliacoesRiscoControle"))).thenReturn(payload(List.of()));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/respostasRisco"))).thenReturn(payload(List.of()));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/atividadeControles"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq("/avaliacoesRiscoControle"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq("/respostasRisco"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq("/atividadeControles"))).thenReturn(payload(List.of()));
 
         Map<String, Object> ocorrenciaSemRisco = new LinkedHashMap<>();
         ocorrenciaSemRisco.put("dataOcorrencia", "2026-01-01");
@@ -154,13 +149,13 @@ class ApiSheetBuilderTest {
         ocorrenciaSemRisco.put("responsavelSolucao", "Responsavel");
         ocorrenciaSemRisco.put("solucao", "Solucao");
         ocorrenciaSemRisco.put("resultados", "Resultados");
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/ocorrenciasRisco")))
+        when(apiHttpClient.fetchAllPages(eq("/ocorrenciasRisco")))
                 .thenReturn(payload(List.of(ocorrenciaSemRisco)));
 
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/ocorrenciasRisco/risco/10")))
+        when(apiHttpClient.fetchAllPages(eq("/ocorrenciasRisco/risco/10")))
                 .thenReturn(payload(List.of(ocorrenciaComIdString("10", ""))));
 
-        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, 1);
+        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(1);
 
         String ocorrenciasSheet = sheets.keySet().stream()
                 .filter(name -> name.toUpperCase().contains("OCORR"))
@@ -170,32 +165,31 @@ class ApiSheetBuilderTest {
         assertEquals(1, sheets.get(ocorrenciasSheet).size());
         assertEquals("Risco 10", sheets.get(ocorrenciasSheet).get(0).get("Evento de Risco"));
 
-        verify(apiHttpClient, times(1)).fetchAllPages(baseUrl, "/ocorrenciasRisco");
-        verify(apiHttpClient, times(1)).fetchAllPages(baseUrl, "/ocorrenciasRisco/risco/10");
+        verify(apiHttpClient, times(1)).fetchAllPages("/ocorrenciasRisco");
+        verify(apiHttpClient, times(1)).fetchAllPages("/ocorrenciasRisco/risco/10");
     }
 
     @Test
     void shouldAttachDynamicCategoriaOptionsMetadataToEtapa2Rows() {
-        String baseUrl = "http://localhost:8090";
         ApiHttpClient apiHttpClient = mock(ApiHttpClient.class);
         ApiSheetBuilder builder = createBuilder(apiHttpClient);
 
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/processos"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/processos"))).thenReturn(payload(List.of(
                 processo(1, "Processo 1")
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/categoriasRisco"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/categoriasRisco"))).thenReturn(payload(List.of(
                 categoria(1, "Categoria A"),
                 categoria(2, "Categoria B")
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/riscos"))).thenReturn(payload(List.of(
+        when(apiHttpClient.fetchAllPages(eq("/riscos"))).thenReturn(payload(List.of(
                 risco(10, 1, "Risco 10")
         )));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/avaliacoesRiscoControle"))).thenReturn(payload(List.of()));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/respostasRisco"))).thenReturn(payload(List.of()));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/atividadeControles"))).thenReturn(payload(List.of()));
-        when(apiHttpClient.fetchAllPages(eq(baseUrl), eq("/ocorrenciasRisco"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq("/avaliacoesRiscoControle"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq("/respostasRisco"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq("/atividadeControles"))).thenReturn(payload(List.of()));
+        when(apiHttpClient.fetchAllPages(eq("/ocorrenciasRisco"))).thenReturn(payload(List.of()));
 
-        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(baseUrl, 1);
+        Map<String, List<Map<String, Object>>> sheets = builder.buildSheetsFromApi(1);
 
         String etapa2Sheet = sheets.keySet().stream()
                 .filter(name -> name.toUpperCase().contains("ETAPA 2") || name.toUpperCase().contains("EVENTOS"))

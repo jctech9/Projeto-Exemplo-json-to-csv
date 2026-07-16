@@ -3,12 +3,43 @@ package com.example.demo.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 @ConfigurationProperties(prefix = "export.api")
 public class ExportApiProperties {
 
+    private String baseUrl;
+    private List<String> allowedSchemes = new ArrayList<>(List.of("https"));
+    private List<String> allowedAuthorities = new ArrayList<>();
     private int pageSize = 5000;
     private final Http http = new Http();
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
+    public List<String> getAllowedSchemes() {
+        return allowedSchemes;
+    }
+
+    public void setAllowedSchemes(List<String> allowedSchemes) {
+        this.allowedSchemes = allowedSchemes == null ? new ArrayList<>() : new ArrayList<>(allowedSchemes);
+    }
+
+    public List<String> getAllowedAuthorities() {
+        return allowedAuthorities;
+    }
+
+    public void setAllowedAuthorities(List<String> allowedAuthorities) {
+        this.allowedAuthorities = allowedAuthorities == null
+                ? new ArrayList<>()
+                : new ArrayList<>(allowedAuthorities);
+    }
 
     public int getPageSize() {
         return pageSize;

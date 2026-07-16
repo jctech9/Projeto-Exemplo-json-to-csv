@@ -30,11 +30,10 @@ public class ApiOcorrenciaSheetService {
     }
 
     public Map<String, List<Map<String, Object>>> buildOcorrenciaSheets(
-            String baseUrl,
             Set<Integer> riscoIdsDoProcesso,
             Map<Integer, String> riscoNomePorId
     ) {
-        List<Map<String, Object>> todasOcorrencias = fetchOcorrencias(baseUrl, riscoIdsDoProcesso, riscoNomePorId);
+        List<Map<String, Object>> todasOcorrencias = fetchOcorrencias(riscoIdsDoProcesso, riscoNomePorId);
         enrichOcorrenciasWithCanonicalRisco(todasOcorrencias, riscoNomePorId);
 
         List<Map<String, Object>> ocorrenciasAlinhadas =
@@ -48,7 +47,6 @@ public class ApiOcorrenciaSheetService {
     }
 
     private List<Map<String, Object>> fetchOcorrencias(
-            String baseUrl,
             Set<Integer> riscoIdsDoProcesso,
             Map<Integer, String> riscoNomePorId
     ) {
@@ -56,7 +54,7 @@ public class ApiOcorrenciaSheetService {
             return new ArrayList<>();
         }
 
-        Map<String, Object> ocorrenciasData = endpointDataService.fetchEndpointData(baseUrl, "/ocorrenciasRisco");
+        Map<String, Object> ocorrenciasData = endpointDataService.fetchEndpointData("/ocorrenciasRisco");
         if (ocorrenciasData == null) {
             return new ArrayList<>();
         }
@@ -80,21 +78,20 @@ public class ApiOcorrenciaSheetService {
         }
 
         if (withRiscoId == 0) {
-            return fetchOcorrenciasByRisco(baseUrl, riscoIdsDoProcesso, riscoNomePorId);
+            return fetchOcorrenciasByRisco(riscoIdsDoProcesso, riscoNomePorId);
         }
 
         return filtradas;
     }
 
     private List<Map<String, Object>> fetchOcorrenciasByRisco(
-            String baseUrl,
             Set<Integer> riscoIdsDoProcesso,
             Map<Integer, String> riscoNomePorId
     ) {
         List<Map<String, Object>> todasOcorrencias = new ArrayList<>();
         for (Integer riscoId : riscoIdsDoProcesso) {
             Map<String, Object> ocData =
-                    endpointDataService.fetchEndpointData(baseUrl, "/ocorrenciasRisco/risco/" + riscoId);
+                    endpointDataService.fetchEndpointData("/ocorrenciasRisco/risco/" + riscoId);
             if (ocData == null) {
                 continue;
             }

@@ -30,19 +30,18 @@ public class ApiSheetBuilder {
         this.ocorrenciaSheetService = ocorrenciaSheetService;
     }
 
-    public Map<String, List<Map<String, Object>>> buildSheetsFromApi(String baseUrl, int processId) {
+    public Map<String, List<Map<String, Object>>> buildSheetsFromApi(int processId) {
         if (processId <= 0) {
             throw new IllegalArgumentException("Parametro id deve ser maior que zero.");
         }
 
         Map<String, List<Map<String, Object>>> allSheets = new LinkedHashMap<>();
-        allSheets.putAll(processSheetService.buildProcessSheets(baseUrl, processId));
+        allSheets.putAll(processSheetService.buildProcessSheets(processId));
 
-        ApiRiscoContext riscoContext = riscoSheetService.buildRiscoContext(baseUrl, processId);
+        ApiRiscoContext riscoContext = riscoSheetService.buildRiscoContext(processId);
         allSheets.putAll(riscoContext.sheets());
 
         allSheets.putAll(riscoCollectionSheetService.buildAlignedSheet(
-                baseUrl,
                 "/avaliacoesRiscoControle",
                 processId,
                 riscoContext.riscoIdsDoProcesso(),
@@ -51,7 +50,6 @@ public class ApiSheetBuilder {
         ));
 
         allSheets.putAll(riscoCollectionSheetService.buildAlignedSheet(
-                baseUrl,
                 "/respostasRisco",
                 processId,
                 riscoContext.riscoIdsDoProcesso(),
@@ -60,7 +58,6 @@ public class ApiSheetBuilder {
         ));
 
         allSheets.putAll(riscoCollectionSheetService.buildAlignedSheet(
-                baseUrl,
                 "/atividadeControles",
                 processId,
                 riscoContext.riscoIdsDoProcesso(),
@@ -69,7 +66,6 @@ public class ApiSheetBuilder {
         ));
 
         allSheets.putAll(ocorrenciaSheetService.buildOcorrenciaSheets(
-                baseUrl,
                 riscoContext.riscoIdsDoProcesso(),
                 riscoContext.riscoNomePorId()
         ));
