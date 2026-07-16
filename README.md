@@ -1,7 +1,21 @@
 # Projeto Exemplo JSON para XLSX
 
 Aplicação Spring Boot que consulta uma API de origem e exporta os dados para XLSX.
-O projeto Maven está no diretório `demo`.
+
+## Estrutura
+
+```text
+.
+├── .github/workflows/   # CI
+├── .mvn/                # Maven Wrapper
+├── src/main/            # aplicação
+├── src/test/            # testes
+├── pom.xml
+└── README.md
+```
+
+O projeto Maven fica na raiz. Arquivos gerados, snapshots de dependências,
+pacotes ZIP e materiais do Spring Initializr não são versionados.
 
 ## Configuração segura da API de origem
 
@@ -90,16 +104,34 @@ ambientes de alto risco, use DNS interno controlado e filtragem de saída
 Requer Java 21:
 
 ```bash
-cd demo
 ./mvnw test
 ```
 
 No Windows:
 
 ```powershell
-cd demo
 .\mvnw.cmd test
 ```
 
 O workflow `.github/workflows/maven.yml` executa os testes com Java 21 em pushes
 e pull requests.
+
+## Executar
+
+Depois de configurar a API de origem:
+
+```bash
+./mvnw spring-boot:run
+```
+
+No Windows:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Exemplo de exportação:
+
+```text
+GET http://localhost:8080/export/xlsx/59
+```

@@ -1,1 +1,30 @@
+HELP.md
+target/
+
+*.csv
+*.xlsx
+*.bat
+
+.mvn/wrapper/maven-wrapper.jar
+
+### IDEs ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
 .idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+
+### Build tools ###
+build/
+dist/
+nbbuild/
+nbdist/
+nbproject/private/
+.nb-gradle/

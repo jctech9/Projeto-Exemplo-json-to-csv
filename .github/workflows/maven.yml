@@ -10,9 +10,6 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: demo
 
     steps:
       - name: Checkout
@@ -24,7 +21,7 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-          cache-dependency-path: demo/pom.xml
+          cache-dependency-path: pom.xml
 
       - name: Run tests
         run: ./mvnw --batch-mode test
